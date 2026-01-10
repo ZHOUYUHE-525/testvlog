@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用须知 | Rules</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+
+    <style>
+        :root { --primary: #6CAD9C; --red: #9F2E2E; --yellow: #E5CC84; --blue: #14507D; --bg: #F9F7F2; --text: #4A3B32; }
+        body { margin: 0; font-family: "PingFang SC", sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+        .sidebar { width: 240px; background: white; border-right: 1px solid rgba(0,0,0,0.05); padding: 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .logo { font-size: 18px; font-weight: 800; color: var(--red); margin-bottom: 40px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        
+        .back-btn { 
+            display: flex; align-items: center; gap: 10px; padding: 12px; 
+            border-radius: 8px; cursor: pointer; color: #666; transition: 0.2s; 
+            text-decoration: none; font-weight: bold; background: #eee; margin-bottom: 20px;
+        }
+        .back-btn:hover { background: #e0f2fe; color: var(--blue); }
+
+        .lang-switch { 
+            cursor: pointer; padding: 10px; border-radius: 8px; 
+            background: white; border: 1px solid #ddd; color: var(--text); 
+            display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: bold;
+        }
+        .lang-switch:hover { border-color: var(--primary); color: var(--primary); }
+
+        .main { flex: 1; padding: 40px; overflow-y: auto; max-width: 800px; margin: 0 auto; }
+        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 3px solid var(--yellow); padding-bottom: 10px; }
+        .page-title { font-size: 28px; font-weight: 900; color: var(--blue); margin: 0; }
+
+        .rule-card {
+            background: white; border-radius: 12px; padding: 25px;
+            margin-bottom: 20px; box-shadow: 2px 4px 15px rgba(0,0,0,0.03);
+            border-left: 5px solid var(--primary);
+        }
+        .rule-title { font-size: 18px; font-weight: bold; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .rule-content { font-size: 15px; color: #666; line-height: 1.8; }
+        .highlight { color: var(--red); font-weight: bold; background: #fff1f2; padding: 2px 5px; border-radius: 4px; }
+
+        .contact-box {
+            background: #eef7f6; border: 1px dashed var(--primary);
+            border-radius: 12px; padding: 20px; margin-top: 30px; text-align: center;
+        }
+        .contact-title { font-weight: bold; color: var(--blue); margin-bottom: 5px; }
+        .contact-info { font-size: 16px; font-weight: 800; color: var(--text); font-family: monospace; display: flex; flex-direction: column; gap: 5px;}
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; padding: 10px; border-right: none; border-bottom: 1px solid #eee; flex-direction: row; justify-content: space-between; align-items: center; box-sizing: border-box; }
+            .logo { display: none; }
+            .back-btn { margin-bottom: 0; padding: 8px 12px; font-size: 14px; }
+            .lang-switch { padding: 8px 12px; font-size: 14px; }
+            .main { padding: 20px; }
+            .page-title { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo" onclick="location.href='home.html'">
+            <i class="fas fa-book-reader"></i> 汉语 Vlog
+        </div>
+        <a href="home.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> <span data-i18n="btn_back">返回首页</span>
+        </a>
+        <div class="lang-switch" onclick="toggleLang()">
+            <i class="fas fa-globe"></i> <span id="langLabel">RU</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="page-header">
+            <h1 class="page-title" data-i18n="title">使用须知 & 注意事项</h1>
+        </div>
+
+        <!-- 规则 1 -->
+        <div class="rule-card">
+            <div class="rule-title"><i class="fas fa-desktop" style="color:var(--primary)"></i> <span data-i18n="rule1_title">设备建议</span></div>
+            <div class="rule-content" data-i18n="rule1_desc">
+                为了获得最佳的学习体验（特别是查词和跟读功能），建议您使用 <span class="highlight">电脑 (PC/Mac)</span> 或 <span class="highlight">iPad</span> 访问本平台。<br>手机端仅适合临时复习，可能会影响部分交互体验。
+            </div>
+        </div>
+
+        <!-- 规则 2 -->
+        <div class="rule-card" style="border-left-color: var(--yellow);">
+            <div class="rule-title"><i class="fas fa-shield-alt" style="color:var(--yellow)"></i> <span data-i18n="rule2_title">账号安全</span></div>
+            <div class="rule-content" data-i18n="rule2_desc">
+                1. 一个账号同一时间只能在一个设备上登录。<br>2. 当您在新设备登录时，<span class="highlight">旧设备将自动下线</span>。<br>3. 请勿将账号分享给他人，系统检测到异常频繁切换设备可能会暂时冻结账号。
+            </div>
+        </div>
+
+        <!-- 规则 3 -->
+        <div class="rule-card" style="border-left-color: var(--red);">
+            <div class="rule-title"><i class="fas fa-exclamation-triangle" style="color:var(--red)"></i> <span data-i18n="rule3_title">常见问题</span></div>
+            <div class="rule-content" data-i18n="rule3_desc">
+                如果遇到视频无法播放、白屏或闪退等情况，请尝试：<br>• 刷新页面<br>• 清除浏览器缓存<br>• 使用 Chrome 或 Safari 浏览器访问
+            </div>
+        </div>
+
+        <!-- 联系方式 -->
+        <div class="contact-box">
+            <div class="contact-title" data-i18n="contact_title">遇到问题？联系管理员</div>
+            <div class="contact-info">
+                <div><i class="fab fa-telegram"></i> Telegram: @zhouyuhe</div>
+                <div><i class="fab fa-weixin"></i> Wechat: 1285829414zz</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentLang = 'ru'; // 默认俄语
+
+        const uiDict = {
+            ru: {
+                btn_back: "Назад",
+                title: "Правила и советы",
+                rule1_title: "Рекомендуемые устройства",
+                rule1_desc: "Для наилучшего опыта (особенно функций словаря и аудио) используйте <span class='highlight'>PC/Mac</span> или <span class='highlight'>iPad</span>.<br>Телефон подходит только для повторения.",
+                rule2_title: "Безопасность аккаунта",
+                rule2_desc: "1. Одновременный вход возможен только на одном устройстве.<br>2. При входе с нового устройства, <span class='highlight'>старое будет отключено</span>.<br>3. Не передавайте аккаунт другим лицам во избежание блокировки.",
+                rule3_title: "Частые проблемы",
+                rule3_desc: "Если видео не воспроизводится или сайт завис:<br>• Обновите страницу<br>• Очистите кэш браузера<br>• Используйте Chrome или Safari",
+                contact_title: "Нужна помощь? Свяжитесь с админом"
+            },
+            en: {
+                btn_back: "Back Home",
+                title: "Rules & Tips",
+                rule1_title: "Device Suggestion",
+                rule1_desc: "For the best experience (especially dictionary & speaking), please use <span class='highlight'>PC/Mac</span> or <span class='highlight'>iPad</span>.<br>Mobile is only for quick review.",
+                rule2_title: "Account Security",
+                rule2_desc: "1. One account can only be logged in on one device at a time.<br>2. Logging in on a new device will <span class='highlight'>log out the old one</span>.<br>3. Do not share your account to avoid being banned.",
+                rule3_title: "Troubleshooting",
+                rule3_desc: "If video fails to play or page crashes:<br>• Refresh the page<br>• Clear browser cache<br>• Use Chrome or Safari",
+                contact_title: "Need Help? Contact Admin"
+            },
+            cn: {
+                btn_back: "返回首页",
+                title: "使用须知 & 注意事项",
+                rule1_title: "设备建议",
+                rule1_desc: "为了获得最佳的学习体验（特别是查词和跟读功能），建议您使用 <span class='highlight'>电脑 (PC/Mac)</span> 或 <span class='highlight'>iPad</span> 访问本平台。<br>手机端仅适合临时复习，可能会影响部分交互体验。",
+                rule2_title: "账号安全",
+                rule2_desc: "1. 一个账号同一时间只能在一个设备上登录。<br>2. 当您在新设备登录时，<span class='highlight'>旧设备将自动下线</span>。<br>3. 请勿将账号分享给他人，系统检测到异常频繁切换设备可能会暂时冻结账号。",
+                rule3_title: "常见问题",
+                rule3_desc: "如果遇到视频无法播放、白屏或闪退等情况，请尝试：<br>• 刷新页面<br>• 清除浏览器缓存<br>• 使用 Chrome 或 Safari 浏览器访问",
+                contact_title: "遇到问题？联系管理员"
+            }
+        };
+
+        function toggleLang() {
+            if (currentLang === 'ru') currentLang = 'en'; 
+            else if (currentLang === 'en') currentLang = 'cn'; 
+            else currentLang = 'ru';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            let label = '🇷🇺 RU'; if (currentLang === 'en') label = '🇺🇸 EN'; if (currentLang === 'cn') label = '🇨🇳 CN';
+            document.getElementById('langLabel').innerText = label;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (uiDict[currentLang][key]) {
+                    el.innerHTML = uiDict[currentLang][key]; // 用 innerHTML 以支持 span 高亮
+                }
+            });
+        }
+
+        // 初始化
+        updateLanguage();
+    </script>
+</body>
+</html>

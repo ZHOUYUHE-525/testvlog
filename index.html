@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. 引入 Supabase (必须在最前) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 2. 🔴 加上这行！这就是锁！ -->
+    <script src="auth.js"></script>
+    
+    <!-- 3. 引入课程数据 -->
+    <script src="lesson_001.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #6CAD9C; --dark-red: #612321; --brown: #A77046; --yellow: #E5CC84; --bg: #F9F7F2; --white: #FFFFFF; --highlight: #EAF6F4; --word-hover: #ffecb3; }
+        body { margin: 0; padding: 0; font-family: "PingFang SC", sans-serif; background-color: var(--bg); height: 100vh; display: flex; flex-direction: column; color: var(--dark-red); }
+        header { background: var(--white); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--yellow); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-size: 20px; font-weight: 800; color: var(--dark-red); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .main-container { display: flex; flex: 1; padding: 20px 40px; gap: 30px; overflow: hidden; max-width: 1600px; margin: 0 auto; width: 100%; box-sizing: border-box; transition: all 0.3s ease; }
+        body.focus-mode .subtitle-section { display: none; } body.focus-mode .video-section { flex: 1; max-width: 1000px; margin: 0 auto; }
+        .video-section { flex: 7; display: flex; flex-direction: column; gap: 20px; min-width: 0; transition: all 0.3s ease; }
+        .video-wrapper { background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(97, 35, 33, 0.15); border: 4px solid #fff; aspect-ratio: 16/9; position: relative; }
+        video { width: 100%; height: 100%; display: block; outline: none; }
+        .lang-switch { cursor: pointer; padding: 6px 12px; border-radius: 20px; background: #eee; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .lang-switch:hover { background: #e0f2fe; color: var(--primary); }
+        .audio-visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #4A3B32 0%, #2c241f 100%); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        .audio-visualizer.active { display: flex; }
+        .wave-container { display: flex; gap: 6px; height: 60px; align-items: center; }
+        .wave-bar { width: 8px; background: var(--yellow); border-radius: 4px; animation: wave 1s infinite ease-in-out; }
+        .wave-bar:nth-child(odd) { background: var(--primary); } .wave-bar:nth-child(1) { height: 20px; animation-delay: 0.1s; } .wave-bar:nth-child(2) { height: 40px; animation-delay: 0.2s; } .wave-bar:nth-child(3) { height: 50px; animation-delay: 0.3s; } .wave-bar:nth-child(4) { height: 30px; animation-delay: 0.4s; } .wave-bar:nth-child(5) { height: 40px; animation-delay: 0.5s; }
+        @keyframes wave { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.5); } }
+        .tools-panel { background: var(--white); padding: 15px; border-radius: 12px; display: flex; flex-wrap: wrap; gap: 10px; border: 1px solid rgba(167, 112, 70, 0.1); justify-content: center; }
+        .control-row { width: 100%; display: flex; justify-content: space-between; gap: 10px; }
+        .control-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; flex: 1; border: 2px solid #eee; border-radius: 10px; background: white; color: var(--text-main); cursor: pointer; transition: all 0.2s; font-size: 12px; gap: 4px; min-width: 60px; }
+        .control-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-play { background: var(--primary); border-color: var(--primary); color: white; flex: 1.5; } .btn-play:hover { background: var(--primary-dark); }
+        .control-btn.active { background: var(--highlight); border-color: var(--primary); color: var(--primary); }
+        .speed-select { height: 60px; padding: 0 10px; border: 2px solid #eee; border-radius: 10px; background: white; font-weight: bold; color: var(--brown); outline: none; cursor: pointer; flex: 0.8; text-align: center;}
+        .practice-btn { width: 100%; height: 55px; margin-top: 5px; border: none; border-radius: 12px; background: linear-gradient(90deg, #E5CC84 0%, #d4b158 100%); color: #4A3B32; font-weight: 800; font-size: 16px; letter-spacing: 1px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(229, 204, 132, 0.4); }
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(229, 204, 132, 0.6); } .practice-btn i { font-size: 22px; }
+        .subtitle-section { flex: 4; background: var(--white); border-radius: 12px; display: flex; flex-direction: column; height: 100%; border: 1px solid rgba(167, 112, 70, 0.1); }
+        .sub-header { padding: 20px; border-bottom: 2px solid var(--bg); display: flex; justify-content: space-between; align-items: center; }
+        .sub-title { font-weight: 800; font-size: 16px; color: var(--dark-red); max-width: 50%; }
+        .header-actions { display: flex; gap: 10px; }
+        .toggle-circle { width: 36px; height: 36px; border-radius: 50%; background: #eee; color: #999; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .toggle-circle.on { background: var(--primary); color: white; } .toggle-circle:hover { transform: scale(1.1); }
+        .subtitle-list { flex: 1; overflow-y: auto; padding: 15px; scroll-behavior: smooth; position: relative; }
+        .sub-item { padding: 16px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; border-left: 4px solid transparent; background: #fff; transition: all 0.2s; }
+        .sub-item:hover { background-color: var(--bg); }
+        .sub-item.active { background-color: var(--highlight); border-left-color: var(--primary); transform: scale(1.02); }
+        .pinyin { font-size: 14px; color: var(--brown); margin-bottom: 4px; font-family: "Courier New", monospace; }
+        .chinese { font-size: 20px; color: var(--dark-red); font-weight: 800; margin-bottom: 6px; line-height: 1.5; }
+        .trans { font-size: 13px; color: #888; font-style: italic; }
+        .hide-py .pinyin { opacity: 0; } .hide-py .sub-item:hover .pinyin { opacity: 1; } .hide-cn .chinese { opacity: 0; } .hide-cn .sub-item:hover .chinese { opacity: 1; } .hide-trans .trans { opacity: 0; } .hide-trans .sub-item:hover .trans { opacity: 1; }
+        body.word-mode .sub-item { cursor: default; } body.word-mode .sub-item:hover { background-color: white; }
+        .word-span { border-radius: 4px; padding: 0 2px; transition: all 0.2s; cursor: pointer; } body.word-mode .word-span:hover { background-color: var(--yellow); color: var(--dark-red); }
+        .dict-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 2px solid var(--primary); z-index: 1000; display: none; text-align: center; }
+        .dict-modal.show { display: block; animation: popIn 0.3s; }
+        @keyframes popIn { from {opacity:0; transform:translate(-50%, -40%);} to {opacity:1; transform:translate(-50%, -50%);} }
+        .dict-word { font-size: 32px; font-weight: bold; color: var(--dark-red); margin-bottom: 5px; } .dict-pinyin { font-size: 16px; color: var(--brown); margin-bottom: 15px; font-family: "Courier New"; } .dict-meaning { font-size: 16px; color: #555; margin-bottom: 20px; background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: left; } .dict-btn { padding: 8px 20px; background: var(--primary); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; } .dict-close { position: absolute; top: 10px; right: 15px; cursor: pointer; color: #999; font-size: 20px; } .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:999; display:none; } .overlay.show { display: block; }
+        /* 弹窗按钮样式 */
+        .dict-btn-link, .dict-btn-add {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 8px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+            text-decoration: none; cursor: pointer; border: none; transition: all 0.2s;
+        }
+        /* BKRS 按钮 (蓝色) */
+        .dict-btn-link { background: #e0f2fe; color: #0369a1; }
+        .dict-btn-link:hover { background: #bae6fd; }
+        
+        /* 生词本按钮 (黄色) */
+        .dict-btn-add { background: #fef3c7; color: #b45309; }
+        .dict-btn-add:hover { background: #fde68a; }
+        /* === 📱 视频页手机端：瀑布流式布局 (字幕铺满) === */
+        @media (max-width: 768px) {
+            /* 1. 让整个页面可以滚动 */
+            body { 
+                flex-direction: column; 
+                height: auto; /* 不再限制高度，允许内容撑开 */
+                overflow-y: auto; /* 开启系统级滚动 */
+                background: #fff; /* 手机上白色背景更清爽 */
+            }
+            
+            /* 2. 顶部导航 */
+            header { 
+                padding: 10px 15px; 
+                height: auto; 
+                position: sticky; top: 0; z-index: 100; /* 吸顶 */
+                background: white;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            }
+            .logo { font-size: 16px; }
+            .control-btn { font-size: 10px; height: 36px; padding: 0 10px; } /* 顶部按钮变小 */
+
+            /* 3. 主容器 (取消 flex 限制，改为自然流) */
+            .main-container { 
+                display: block; /* 关键：取消 flex */
+                padding: 0; 
+                overflow: visible; /* 让内容溢出显示 */
+            }
+
+            /* 4. 视频区域 */
+            .video-section { 
+                width: 100%; 
+                padding: 0; 
+                margin-bottom: 0;
+            }
+            .video-wrapper { 
+                border-radius: 0; /* 视频通栏，不要圆角 */
+                border: none;
+                box-shadow: none;
+            }
+
+            /* 5. 按钮控制区 (重新布局！) */
+            .tools-panel { 
+                padding: 10px 15px; 
+                border: none; 
+                background: #f9f9f9; /* 浅灰底色区分 */
+                gap: 8px;
+            }
+            
+            .control-row { 
+                display: grid; /* 用 Grid 布局更精准 */
+                /* 第一行：上一句 | -5s | 播放(大) | +5s | 下一句 */
+                /* 第二行：循环 | 速度 (占满) */
+                grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr; 
+                gap: 8px;
+                width: 100%;
+            }
+
+            /* 定制按钮位置 */
+            /* 播放键 (中间那个) */
+            .control-row > button:nth-child(3) { 
+                grid-column: 3 / 4; 
+                background: var(--primary); color: white; border: none;
+            }
+            
+            /* 循环按钮 (放到第二行) */
+            #loopBtn { 
+                grid-row: 2; 
+                grid-column: 1 / 3; /* 占左边两个格 */
+            }
+            
+            /* 速度选框 (放到第二行) */
+            .speed-select { 
+                grid-row: 2; 
+                grid-column: 3 / 6; /* 占右边三个格 */
+                height: 40px;
+                width: 100%;
+            }
+
+            /* 其他普通按钮 */
+            .control-btn { 
+                height: 40px; /* 统一高度 */
+                border-radius: 8px;
+                font-size: 12px;
+                padding: 0;
+                min-width: 0; /* 防止被挤大 */
+            }
+            /* 隐藏按钮里的文字，只留图标 (空间不够) */
+            .control-btn span { display: none; } 
+            
+            /* 特殊处理：循环按钮显示文字 */
+            #loopBtn span { display: inline; margin-left: 4px; }
+
+            /* 练习按钮 */
+            .practice-btn { 
+                margin-top: 10px; 
+                height: 45px; 
+                font-size: 15px; 
+                border-radius: 25px; /* 全圆角 */
+            }
+
+            /* 6. 字幕区域 (铺满整页) */
+            .subtitle-section { 
+                border-radius: 0; 
+                border: none; 
+                box-shadow: none;
+                height: auto; /* 自动高度 */
+                min-height: 500px;
+            }
+            .sub-header {
+                position: sticky; /* 字幕工具栏吸顶 */
+                top: 60px; /* 放在 header 下面 */
+                background: white;
+                z-index: 90;
+                padding: 10px 15px;
+                border-bottom: 1px solid #eee;
+            }
+            .subtitle-list { 
+                padding: 15px; 
+                overflow: visible; /* 关键：不许内部滚动 */
+                height: auto;
+            }
+            
+            /* 查词弹窗 */
+            .dict-modal { width: 85%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="location.href='home.html'"><i class="fas fa-chevron-left"></i> <span data-i18n="back">返回课程大厅</span></div>
+        <div style="display:flex; gap:15px;">
+            <button class="control-btn" onclick="toggleWordMode()" id="wordModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;">
+                <i class="fas fa-book-open"></i> <span data-i18n="word_mode">查词模式: 关</span>
+            </button>
+            <button class="control-btn" onclick="toggleAudioMode()" id="audioModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;">
+                <i class="fas fa-headphones"></i> <span data-i18n="audio_mode">音频模式</span>
+            </button>
+            <button class="control-btn" onclick="toggleFullscreen()" id="fullscreenBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; background:var(--bg); border:none;"><i class="fas fa-expand"></i></button>
+            <div class="lang-switch" onclick="toggleLang()"><i class="fas fa-globe"></i> <span id="langLabel">RU</span></div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="video-section">
+            <div class="video-wrapper">
+                <video id="myVideo" controls><source src="" type="video/mp4"></video>
+                <div class="audio-visualizer" id="audioVisualizer"><div class="wave-container"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div><div class="audio-text">Playing...</div></div>
+            </div>
+            <div class="tools-panel">
+                <div class="control-row">
+                    <button class="control-btn" onclick="seekRelative(-1)"><i class="fas fa-step-backward"></i><span data-i18n="prev">上一句</span></button>
+                    <button class="control-btn" onclick="video.currentTime -= 5"><i class="fas fa-undo"></i><span>-5s</span></button>
+                    <button class="control-btn btn-play" onclick="togglePlay()"><i class="fas fa-play" id="playIcon"></i></button>
+                    <button class="control-btn" onclick="video.currentTime += 5"><i class="fas fa-redo"></i><span>+5s</span></button>
+                    <button class="control-btn" onclick="seekRelative(1)"><i class="fas fa-step-forward"></i><span data-i18n="next">下一句</span></button>
+                    <button class="control-btn" id="loopBtn" onclick="toggleLoop()"><i class="fas fa-sync-alt"></i><span data-i18n="loop">循环</span></button>
+                    <select class="speed-select" onchange="changeSpeed(this.value)"><option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1.0" selected>1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option></select>
+                </div>
+                <button class="practice-btn" onclick="goToPractice()"><i class="fas fa-graduation-cap"></i><span data-i18n="start_practice">开始本课练习</span></button>
+            </div>
+        </div>
+        <div class="subtitle-section" id="subContainer">
+            <div class="sub-header">
+                <div class="sub-title" id="lessonTitle">Loading...</div>
+                <div class="header-actions">
+                    <div class="toggle-circle on" onclick="toggleVisibility('py', this)">拼</div>
+                    <div class="toggle-circle on" onclick="toggleVisibility('cn', this)">汉</div>
+                    <div class="toggle-circle on" id="transToggle" onclick="toggleVisibility('trans', this)">RU</div>
+                </div>
+            </div>
+            <div class="subtitle-list" id="subtitleList"></div>
+        </div>
+    </div>
+
+    <!-- 1. 关键：引入中央数据库 -->
+    <!-- 1. 引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 2. 引入云端加载器 -->
+    <script src="lesson_001.js"></script>
+    <script src="lesson_002.js"></script> 
+    <script src="lesson_003.js"></script>
+    <script src="lesson_004.js"></script>
+    <script src="lesson_005.js"></script>
+    <script src="lesson_006.js"></script>
+    <script src="lesson_007.js"></script> 
+    <script src="lesson_008.js"></script>
+    <script src="lesson_009.js"></script>
+    <script src="lesson_010.js"></script>
+    <script src="lesson_011.js"></script>
+    <script src="lesson_012.js"></script>
+    
+    <script src="lesson_401.js"></script>
+    <script src="lesson_402.js"></script>
+    <script src="lesson_403.js"></script>
+    <script src="lesson_404.js"></script>
+    
+    <!-- === 补丁 1：查词弹窗 (插入在 </body> 之前) === -->
+    <div class="overlay" id="overlay" onclick="closeDict()"></div>
+    <div class="dict-modal" id="dictModal">
+        <div class="dict-close" onclick="closeDict()">×</div>
+        <div class="dict-word" id="d-word">加载中...</div>
+        <div class="dict-pinyin" id="d-pinyin">...</div>
+        <div class="dict-meaning" id="d-mean">
+            <i class="fas fa-spinner fa-spin"></i> AI 正在思考...
+        </div>
+    </div>
+
+    <script>
+        // === 2. 使用数据库 ===
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id') || "1";
+        
+        // 确保数据库已加载
+        let lesson = null;
+        if (window.lessonDatabase) {
+            lesson = window.lessonDatabase[id];
+        } else {
+            alert("Error: data.js not found!");
+        }
+
+        const video = document.getElementById('myVideo');
+        const list = document.getElementById('subtitleList');
+        const container = document.getElementById('subContainer');
+        const playIcon = document.getElementById('playIcon');
+        let loopEnabled = false, activeIndex = -1, isAudioMode = false, isWordMode = false;
+        let currentLang = 'ru'; 
+        // === 补丁 2：查词核心逻辑 (插入在 let currentLang = 'ru'; 下面) ===
+        
+        // 🔴🔴🔴 请在这里填入你的 API Key 🔴🔴🔴
+        const API_KEY = "sk-..."; 
+
+        function toggleWordMode() {
+            isWordMode = !isWordMode;
+            const btn = document.getElementById('wordModeBtn');
+            // 更新按钮文字
+            if (isWordMode) {
+                btn.classList.add('active');
+                btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode_on || "查词: 开"}`;
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode || "查词: 关"}`;
+            }
+            // 重新渲染字幕，把文字变成可点击的状态
+            renderSubtitles();
+        }
+
+        // === 🟢 终极修复版：查词弹窗 (双语显示 + 双词典) ===
+        function lookupWord(word, event) {
+            event.stopPropagation(); 
+            video.pause(); 
+
+            // 显示弹窗
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('dictModal').classList.add('show');
+            document.getElementById('d-word').innerText = word;
+            
+            // 获取本地数据
+            const dictData = lesson.dictionary && lesson.dictionary[word];
+
+            let html = '';
+
+            if (dictData) {
+                // 1. 拼音
+                document.getElementById('d-pinyin').innerText = dictData.py || "";
+                
+                // 2. 俄语含义 (主释义，加粗大字)
+                html += `<div style="font-weight:bold; font-size:18px; color:#333; margin-bottom:4px;">${dictData.mean}</div>`;
+                
+                // 3. ✅ 找回英语含义 (如果有，显示在下方)
+                if (dictData.mean_en) {
+                    html += `<div style="font-size:14px; color:#666; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">🇺🇸 ${dictData.mean_en}</div>`;
+                } else {
+                    html += `<div style="margin-bottom:10px;"></div>`; // 占位
+                }
+                
+                // 4. 词组
+                if(dictData.phrases && dictData.phrases.length > 0) {
+                    html += `<div style="font-size:13px; color:#555; margin-bottom:8px; background:#f3f4f6; padding:6px; border-radius:6px;">
+                        🔹 ${dictData.phrases.join(', ')}
+                    </div>`;
+                }
+                
+                // 5. 例句
+                if(dictData.ex) {
+                    const exText = dictData.ex.replace(/\n/g, '<br>');
+                    html += `<div style="font-size:13px; color:#444; background:#fffbeb; padding:8px; border-radius:6px; border-left:3px solid #f59e0b; line-height:1.4;">
+                        ${exText}
+                    </div>`;
+                }
+            } else {
+                document.getElementById('d-pinyin').innerText = "---";
+                html += `<div style="color:#999; margin-bottom:10px;">(该词汇未收录在离线词典中)</div>`;
+            }
+
+            // 6. ✅ 底部按钮区 (两排布局)
+            html += `
+                <div style="margin-top:15px; display:flex; gap:8px;">
+                    <!-- 俄语词典 BKRS -->
+                    <a href="https://bkrs.info/slovo.php?ch=${word}" target="_blank" class="dict-btn-link" style="flex:1; background:#e0f2fe; color:#0369a1;">
+                        🇷🇺 BKRS
+                    </a>
+                    <!-- 英语词典 MDBG -->
+                    <a href="https://www.mdbg.net/chinese/dictionary?page=worddict&wdrst=0&wdq=${word}" target="_blank" class="dict-btn-link" style="flex:1; background:#fce7f3; color:#be185d;">
+                        🇺🇸 MDBG
+                    </a>
+                </div>
+                <!-- 收藏按钮 -->
+                <div style="margin-top:8px;">
+                    <button onclick="addToNotebook('${word}')" class="dict-btn-add" style="width:100%;">
+                        ⭐ 加入生词本
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('d-mean').innerHTML = html;
+        }
+
+        // === 🟢 新增：加入生词本逻辑 ===
+        function addToNotebook(word) {
+            // 1. 读取旧数据
+            let vocabList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
+            
+            // 2. 查重
+            if (vocabList.includes(word)) {
+                alert(`"${word}" 已经在你的生词本里啦！`);
+                return;
+            }
+            
+            // 3. 保存
+            vocabList.push(word);
+            localStorage.setItem('my_vocab_list', JSON.stringify(vocabList));
+            
+            // 4. 反馈
+            alert(`✅ 已将 "${word}" 加入生词本！\n(当前共 ${vocabList.length} 个词)`);
+        }
+
+        function closeDict() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('dictModal').classList.remove('show');
+        }
+
+        const uiDict = {
+            ru: { back: "Назад", word_mode: "Словарь", word_mode_on: "Словарь", audio_mode: "Аудио", prev: "Пред.", next: "След.", loop: "Повтор", start_practice: "Начать упражнения", trans_label: "RU" },
+            en: { back: "Back", word_mode: "Dictionary", word_mode_on: "Dictionary", audio_mode: "Audio Mode", prev: "Prev", next: "Next", loop: "Loop", start_practice: "Start Practice", trans_label: "EN" },
+            cn: { back: "返回", word_mode: "词典", word_mode_on: "词典", audio_mode: "音频模式", prev: "上一句", next: "下一句", loop: "循环", start_practice: "开始本课练习", trans_label: "译" }
+        };
+
+        if(lesson) {
+            document.getElementById('lessonTitle').innerText = lesson.title;
+            video.src = lesson.video;
+            window.currentSubtitles = lesson.subs; // 注意：这里用的是 subs
+            updateLanguage();
+        }
+
+        function toggleLang() {
+            if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            let label = '🇷🇺 RU';
+            if (currentLang === 'en') label = '🇺🇸 EN';
+            if (currentLang === 'cn') label = '🇨🇳 CN';
+            document.getElementById('langLabel').innerText = label;
+            document.getElementById('transToggle').innerText = uiDict[currentLang].trans_label;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
+            });
+            renderSubtitles();
+        }
+
+        function renderSubtitles() {
+            list.innerHTML = '';
+            window.currentSubtitles.forEach((sub, index) => {
+                const div = document.createElement('div');
+                div.className = 'sub-item';
+                div.id = 'sub-' + index;
+
+                let transText = sub.ru;
+                if (currentLang === 'en') transText = sub.en || sub.ru;
+                if (currentLang === 'cn') transText = `${sub.ru} <br> ${sub.en || ''}`;
+
+                let chineseContent = sub.cn;
+                if (isWordMode && window.Intl && Intl.Segmenter) {
+                    const segmenter = new Intl.Segmenter('zh-CN', { granularity: 'word' });
+                    const segments = segmenter.segment(sub.cn);
+                    chineseContent = '';
+                    for (const segment of segments) {
+                        chineseContent += `<span class="word-span" onclick="lookupWord('${segment.segment}', event)">${segment.segment}</span>`;
+                    }
+                }
+                div.innerHTML = `<div class="pinyin">${sub.py}</div><div class="chinese">${chineseContent}</div><div class="trans">${transText}</div>`;
+                div.onclick = () => { if (!isWordMode) { video.currentTime = sub.start; video.play(); } };
+                list.appendChild(div);
+            });
+        }
+
+        // ... (省略 AI 查词和播放逻辑，保持不变) ...
+        // 为了确保能运行，我把基础播放逻辑补全：
+        
+        // === 修改后的播放逻辑 (自动保存进度) ===
+        video.ontimeupdate = () => {
+            const time = video.currentTime;
+            const duration = video.duration;
+            const subs = window.currentSubtitles;
+
+            // 1. 计算并保存进度 (新功能)
+            if (duration > 0) {
+                const percent = Math.floor((time / duration) * 100);
+                
+                // 只有进度变了才保存，减少性能消耗
+                // Key 的格式是: 'progress_课程ID'
+                const oldPercent = localStorage.getItem('progress_' + id);
+                if (percent > (oldPercent || 0)) {
+                    localStorage.setItem('progress_' + id, percent);
+                    
+                    // 如果超过 90%，标记为“已完成”
+                    if (percent >= 90) {
+                        localStorage.setItem('done_' + id, 'true');
+                    }
+                }
+            }
+
+            // 2. 循环逻辑 (保持不变)
+            if (loopEnabled && activeIndex !== -1 && time >= subs[activeIndex].end) {
+                video.currentTime = subs[activeIndex].start; video.play();
+            }
+
+            // 3. 高亮逻辑 (保持不变)
+            const currentIndex = subs.findIndex(s => time >= s.start && time < s.end);
+            if (currentIndex !== -1 && currentIndex !== activeIndex) {
+                if (activeIndex !== -1) document.getElementById('sub-' + activeIndex)?.classList.remove('active');
+                const activeItem = document.getElementById('sub-' + currentIndex);
+                if (activeItem) { 
+                    activeItem.classList.add('active'); 
+                    activeItem.scrollIntoView({ behavior: "smooth", block: "center" }); 
+                }
+                activeIndex = currentIndex;
+            }
+        };
+
+        function seekRelative(offset) {
+            let target = activeIndex + offset;
+            if (target < 0) target = 0; if (target >= window.currentSubtitles.length) target = window.currentSubtitles.length - 1;
+            if (window.currentSubtitles[target]) { video.currentTime = window.currentSubtitles[target].start; video.play(); }
+        }
+        function togglePlay() { if (video.paused) { video.play(); playIcon.className = 'fas fa-pause'; } else { video.pause(); playIcon.className = 'fas fa-play'; } }
+        function changeSpeed(rate) { video.playbackRate = rate; }
+        function toggleLoop() { loopEnabled = !loopEnabled; document.getElementById('loopBtn').classList.toggle('active'); }
+        function toggleAudioMode() { isAudioMode = !isAudioMode; document.getElementById('audioVisualizer').classList.toggle('active'); document.getElementById('audioModeBtn').classList.toggle('active'); }
+        function toggleFullscreen() { document.body.classList.toggle('focus-mode'); }
+        function toggleVisibility(type, btn) { const cls = 'hide-' + type; if (container.classList.contains(cls)) { container.classList.remove(cls); btn.classList.add('on'); } else { container.classList.add(cls); btn.classList.remove('on'); } }
+        function goToPractice() { location.href = 'practice.html?id=' + id; }
+        
+        video.onplay = () => playIcon.className = 'fas fa-pause';
+        video.onpause = () => playIcon.className = 'fas fa-play';
+    </script>
+</body>
+</html>

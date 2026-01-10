@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语 Vlog 课堂 | 沉浸练习</title>
+    
+    <!-- 1. 引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 2. 🔴 加上这行！ -->
+    <script src="auth.js"></script>
+    
+    <!-- 3. 引入课程数据 -->
+    <script src="lesson_001.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #6CAD9C; --primary-light: #e0f2fe; --red: #8B3A3A; --bg: #F9F7F2; --white: #FFFFFF; --yellow: #E5CC84; --text: #4A3B32; --gray: #9ca3af; }
+        body { margin: 0; font-family: "PingFang SC", sans-serif; background: var(--bg); color: var(--text); height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
+        .top-fixed-area { height: 38vh; width: 100%; background: #000; flex-shrink: 0; display: flex; flex-direction: column; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .video-container { flex: 1; width: 100%; position: relative; background: black; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: contain; outline: none; }
+        .nav-bar { height: 50px; background: var(--white); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #eee; flex-shrink: 0; }
+        .back-btn { cursor: pointer; color: var(--gray); font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 5px; } .back-btn:hover { color: var(--primary); }
+        .lang-switch { cursor: pointer; padding: 4px 10px; border-radius: 15px; background: #eee; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .tabs-wrapper { background: var(--bg); padding: 15px 20px 5px 20px; flex-shrink: 0; }
+        .mode-tabs { display: flex; gap: 10px; background: #e5e7eb; padding: 5px; border-radius: 12px; overflow-x: auto; }
+        .tab { flex: 1; min-width: 80px; text-align: center; padding: 10px 0; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 800; color: #666; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;}
+        .tab.active { background: var(--white); color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .scroll-content { flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
+        .content-inner { max-width: 700px; margin: 0 auto; padding-bottom: 60px; }
+        .module { display: none; animation: fadeIn 0.3s ease; } .module.active { display: block; } @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* 词卡 */
+        .flashcard-stage { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .card-scene { perspective: 1000px; width: 100%; max-width: 380px; height: 320px; cursor: pointer; }
+        .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+        .card.flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 20px; background: var(--white); border: 2px solid var(--primary); padding: 20px; box-sizing: border-box; }
+        .card-back { transform: rotateY(180deg); background: #fffdf5; border-color: var(--yellow); }
+        .card-front .hanzi { font-size: 42px; font-weight: bold; color: var(--red); margin-bottom: 20px; }
+        .audio-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 20px; transition: transform 0.2s; }
+        .back-py { font-family: "Courier New"; font-size: 18px; color: #A77046; font-weight: bold; margin-bottom: 5px; }
+        .back-mean { font-size: 16px; color: #333; margin-bottom: 15px; font-weight: bold; text-align: center; line-height: 1.5; }
+        .video-ctx-box { background: rgba(108, 173, 156, 0.1); padding: 8px 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; text-align: center; }
+        .video-sent { font-size: 13px; color: #333; margin-bottom: 5px; font-weight: bold; }
+        .video-jump { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; background: var(--primary); color: white; padding: 4px 12px; border-radius: 15px; cursor: pointer; }
+        .example-box { font-size: 13px; color: #666; text-align: center; border-top: 1px solid #eee; padding-top: 8px; width: 100%; line-height: 1.4; }
+        .card-controls { display: flex; gap: 15px; margin-top: 10px; }
+        .ctrl-btn { padding: 8px 24px; border-radius: 30px; border: 1px solid #ddd; background: white; cursor: pointer; color: var(--text); font-weight: bold; font-size: 14px;}
+        .add-btn { background: var(--yellow); border: none; color: #4a3b32; }
+        /* 列表与拓展 */
+        .list-container { display: flex; flex-direction: column; gap: 12px; }
+        .list-item { background: var(--white); padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border-left: 4px solid transparent; transition: all 0.2s; }
+        .list-item:hover { border-left-color: var(--yellow); transform: translateX(2px); }
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .play-icon { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #eee; color: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
+        .text-content { font-size: 16px; line-height: 1.6; color: #333; }
+        .cloze-input { border: none; border-bottom: 2px solid #9ca3af; background: #e5e7eb; width: 80px; text-align: center; font-size: 16px; color: var(--text); outline: none; border-radius: 4px; padding: 4px 6px; margin: 0 4px; font-weight: bold; }
+        .cloze-input.correct { color: #10b981; border-bottom-color: #10b981; background: #ecfdf5; }
+        .cloze-input.wrong { color: #ef4444; border-bottom-color: #ef4444; background: #fef2f2; }
+        .shadow-actions { display: flex; gap: 15px; margin-top: 10px; border-top: 1px solid #f9f9f9; padding-top: 10px; justify-content: center;}
+        .circle-action { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #eee; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s; }
+        .act-listen { color: var(--primary); } .act-rec { color: var(--red); border-color: #fee2e2; } 
+        /* === 🔴 录音时的声波动画 === */
+.act-rec.recording {
+    background: #ef4444 !important;
+    color: white !important;
+    border-color: #ef4444 !important;
+    /* 核心：多重阴影扩散动画 */
+    animation: recording-wave 1.5s infinite;
+}
+
+@keyframes recording-wave {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+        transform: scale(1);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); /* 扩散出15px的光圈 */
+        transform: scale(1.1); /* 按钮稍微变大 */
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+        transform: scale(1);
+    }
+}
+
+/* 录音结果播放器容器 */
+.player-box {
+    margin-top: 10px;
+    width: 100%;
+    display: none; /* 默认隐藏，录完显示 */
+    animation: fadeIn 0.5s;
+}
+/* 美化原生播放器 */
+audio {
+    width: 100%;
+    height: 36px;
+    border-radius: 18px;
+    background: #f3f4f6;
+}
+        .resource-card { display: flex; gap: 15px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #eee; cursor: pointer; transition: all 0.2s; align-items: center; }
+        .resource-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .res-icon { width: 50px; height: 50px; border-radius: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .res-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .res-title { font-weight: bold; color: var(--text); font-size: 15px; }
+        .res-tag { font-size: 12px; color: #999; display: flex; align-items: center; gap: 5px; }
+        .icon-xhs { color: #ff2442; background: #ffe6eb; } .icon-bili { color: #23ade5; background: #e0f2fe; } .icon-article { color: #f59e0b; background: #fef3c7; }
+        /* === 📱 手机端适配 (把这段加到 style 最下面) === */
+        @media (max-width: 768px) {
+            /* 1. 布局变竖排 */
+            body { flex-direction: column; height: auto; overflow-y: auto; }
+            
+            /* 2. 侧边栏藏起来 (变成底部导航或折叠菜单) */
+            .sidebar { 
+                width: 100%; height: auto; 
+                position: relative; 
+                border-right: none; border-bottom: 1px solid #eee;
+                display: none; /* 暂时隐藏侧边栏，或者改成点击展开 */
+            }
+            /* 如果想显示侧边栏，可以做一个汉堡菜单按钮来控制 */
+
+            /* 3. 主内容填满 */
+            .main-container { flex-direction: column; padding: 10px; }
+            .video-section { width: 100%; max-width: 100%; margin-bottom: 20px; }
+            .subtitle-section { width: 100%; height: 300px; } /* 字幕区定高 */
+
+            /* 4. 首页卡片 */
+            .grid { grid-template-columns: 1fr; } /* 卡片一列排 */
+            
+            /* 5. 查词弹窗 */
+            .dict-modal { width: 90%; top: 20%; transform: translate(-50%, 0); }
+        }
+        /* === 🎨 自定义录音播放器样式 === */
+.custom-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f0f4f8; /* 浅灰背景 */
+    padding: 8px 15px;
+    border-radius: 30px; /* 胶囊形状 */
+    margin-top: 10px;
+    border: 1px solid #e5e7eb;
+    animation: fadeIn 0.5s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 播放按钮 */
+.custom-play-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--primary); /* 使用你的主题色 */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.1s;
+}
+.custom-play-btn:active { transform: scale(0.9); }
+
+/* 进度条容器 */
+.custom-progress-box {
+    flex: 1;
+    height: 6px;
+    background: #d1d5db;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden; /* 关键：把超出的部分切掉 */
+}
+
+/* 进度条填充 */
+.custom-progress-bar {
+    height: 100%;
+    background: var(--yellow); /* 进度条颜色 */
+    width: 0%; /* 初始宽度 */
+    border-radius: 3px;
+    transition: width 0.1s linear;
+}
+
+/* 时间文字 */
+.custom-time {
+    font-size: 12px;
+    color: #666;
+    font-family: monospace;
+    font-weight: bold;
+    min-width: 35px;
+}
+    </style>
+</head>
+<body>
+
+    <div class="top-fixed-area">
+        <div class="video-container">
+            <video id="practiceVideo" controls><source src="" type="video/mp4"></video>
+        </div>
+        <div class="nav-bar">
+            <div class="back-btn" onclick="goBack()"><i class="fas fa-chevron-left"></i> <span data-i18n="back">返回</span></div>
+            <div class="lang-switch" onclick="toggleLang()">
+                <i class="fas fa-globe"></i> <span id="langLabel">RU</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs-wrapper">
+        <div class="mode-tabs">
+            <div class="tab active" onclick="switchMode('flashcard')"><i class="fas fa-clone"></i> <span data-i18n="tab_card">重点词卡</span></div>
+            <div class="tab" onclick="switchMode('cloze')"><i class="fas fa-pen"></i> <span data-i18n="tab_cloze">听音填空</span></div>
+            <div class="tab" onclick="switchMode('shadow')"><i class="fas fa-microphone"></i> <span data-i18n="tab_speak">全文跟读</span></div>
+            <div class="tab" onclick="switchMode('parallel')"><i class="fas fa-link"></i> <span data-i18n="tab_extend">拓展</span></div>
+        </div>
+    </div>
+
+    <div class="scroll-content">
+        <div class="content-inner">
+            <!-- A: 词卡 -->
+            <div id="flashcard" class="module active">
+                <div class="flashcard-stage">
+                    <div class="card-scene" onclick="flipCard()">
+                        <div class="card" id="cardEl">
+                            <div class="card-face card-front">
+                                <div class="hanzi" id="fc-cn">...</div>
+                                <div class="audio-btn" onclick="playWordAudio(event)"><i class="fas fa-volume-up"></i></div>
+                                <div style="font-size:12px; color:#999; margin-top:15px;" data-i18n="tip_flip">(点击卡片翻面)</div>
+                            </div>
+                            <div class="card-face card-back">
+                                <div class="back-py" id="fc-py">...</div>
+                                <div class="back-mean" id="fc-mean">...</div>
+                                <div class="video-ctx-box">
+                                    <div class="video-sent" id="fc-video-sent">...</div>
+                                    <div class="video-jump" onclick="jumpToVideoContext(event)"><i class="fas fa-play"></i> <span data-i18n="btn_play">播放此句</span></div>
+                                </div>
+                                <div class="example-box" id="fc-ex">...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-controls">
+                        <button class="ctrl-btn" onclick="prevCard()"><i class="fas fa-arrow-left"></i></button>
+                        <button class="ctrl-btn add-btn" onclick="addToLib()"><i class="fas fa-plus"></i> <span data-i18n="btn_add">加入生词库</span></button>
+                        <button class="ctrl-btn" onclick="nextCard()"><i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+            <!-- B: 填空 -->
+            <div id="cloze" class="module">
+                <div style="margin-bottom:15px; color:#666; font-size:13px; text-align:center;">
+                    <i class="fas fa-info-circle"></i> <span data-i18n="tip_cloze">点击小喇叭听原句，填入缺失的词。</span>
+                </div>
+                <div class="list-container" id="clozeList"></div>
+            </div>
+            <!-- C: 跟读 -->
+            <div id="shadow" class="module">
+                <div style="margin-bottom:15px; color:#666; font-size:13px; text-align:center;">
+                    <i class="fas fa-microphone"></i> <span data-i18n="tip_shadow">听原音(蓝) -> 按住录(红) -> 听回放(黄)</span>
+                </div>
+                <div class="list-container" id="shadowList"></div>
+            </div>
+            <!-- D: 平行 -->
+            <div id="parallel" class="module">
+                <div style="margin-bottom:15px; color:#666; font-size:13px; text-align:center;">
+                    <i class="fas fa-external-link-alt"></i> <span data-i18n="tip_extend">推荐阅读与相关视频</span>
+                </div>
+                <div id="parallelList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. 引入数据库 -->
+    <!-- 1. 引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 2. 引入云端加载器 -->
+    <script src="lesson_001.js"></script>
+    <script src="lesson_002.js"></script> 
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id') || "1";
+        
+        let lesson = null;
+        if (window.lessonDatabase) lesson = window.lessonDatabase[id];
+        else alert("Error: data.js not found!");
+
+        const video = document.getElementById('practiceVideo');
+        let currentCardIdx = 0;
+        let currentLang = 'ru'; 
+
+        const uiDict = {
+            ru: { back: "Назад", tab_card: "Слова", tab_cloze: "Заполнить", tab_speak: "Говорить", tab_extend: "Расширение", tip_flip: "(Нажмите, чтобы перевернуть)", btn_play: "Слушать", btn_add: "Добавить", tip_cloze: "Слушайте и заполняйте пропуски.", tip_shadow: "Слушать(Синий) -> Запись(Красный) -> Проверка(Желтый)", tip_extend: "Рекомендуемые материалы", check: "Проверить" },
+            en: { back: "Back", tab_card: "Words", tab_cloze: "Cloze", tab_speak: "Speaking", tab_extend: "Extend", tip_flip: "(Click to flip)", btn_play: "Play", btn_add: "Add to list", tip_cloze: "Listen and fill in the blanks.", tip_shadow: "Listen(Blue) -> Record(Red) -> Playback(Yellow)", tip_extend: "Recommended Reading", check: "Check" },
+            cn: { back: "返回", tab_card: "重点词卡", tab_cloze: "听音填空", tab_speak: "全文跟读", tab_extend: "拓展阅读", tip_flip: "(点击卡片翻面)", btn_play: "播放此句", btn_add: "加入生词库", tip_cloze: "点击小喇叭听原句，填入缺失的词。", tip_shadow: "听原音(蓝) -> 按住录(红) -> 听回放(黄)", tip_extend: "推荐阅读与相关视频", check: "检查" }
+        };
+
+        if(lesson) {
+            video.src = lesson.video;
+            initFlashcards(); initCloze(); initShadow(); initParallel();
+            updateLanguage();
+        }
+
+        function goBack() { location.href = 'index.html?id=' + id; }
+        function switchMode(modeName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.getElementById(modeName).classList.add('active');
+        }
+        function toggleLang() {
+            if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
+            updateLanguage();
+        }
+        function updateLanguage() {
+            let label = '🇷🇺 RU'; if (currentLang === 'en') label = '🇺🇸 EN'; if (currentLang === 'cn') label = '🇨🇳 CN';
+            document.getElementById('langLabel').innerText = label;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
+            });
+            loadCardData(currentCardIdx); initCloze(); // 刷新内容
+        }
+
+        function initFlashcards() { loadCardData(0); }
+        function loadCardData(idx) {
+            const word = lesson.flashcards[idx];
+            document.getElementById('fc-cn').innerText = word.cn;
+            document.getElementById('fc-py').innerText = word.py;
+            document.getElementById('fc-video-sent').innerText = word.video_ex || "";
+            document.getElementById('fc-ex').innerHTML = "📝 " + (word.ex || "");
+            
+            const meanDiv = document.getElementById('fc-mean');
+            if (currentLang === 'ru') meanDiv.innerHTML = word.ru;
+            else if (currentLang === 'en') meanDiv.innerHTML = word.en || word.ru;
+            else meanDiv.innerHTML = `<div style="font-size:14px; font-weight:normal; color:#666;">🇷🇺 ${word.ru}<br>🇺🇸 ${word.en || '-'}</div>`;
+            document.getElementById('cardEl').classList.remove('flipped');
+        }
+        function flipCard() { document.getElementById('cardEl').classList.toggle('flipped'); }
+        function nextCard() { currentCardIdx = (currentCardIdx + 1) % lesson.flashcards.length; loadCardData(currentCardIdx); }
+        function prevCard() { currentCardIdx = (currentCardIdx - 1 + lesson.flashcards.length) % lesson.flashcards.length; loadCardData(currentCardIdx); }
+        function playWordAudio(e) { e.stopPropagation(); const u = new SpeechSynthesisUtterance(lesson.flashcards[currentCardIdx].cn); u.lang = 'zh-CN'; speechSynthesis.speak(u); }
+        function jumpToVideoContext(e) { e.stopPropagation(); video.currentTime = lesson.flashcards[currentCardIdx].time; video.play(); setTimeout(() => video.pause(), 4000); }
+        function addToLib() { alert("Saved!"); }
+
+        function initCloze() {
+            const list = document.getElementById('clozeList'); list.innerHTML = '';
+            const btnText = uiDict[currentLang].check;
+            lesson.script.forEach((sent, index) => {
+                let html = sent.cn;
+                if(sent.target) { html = sent.cn.replace(sent.target, `<input class="cloze-input" data-ans="${sent.target}">`); }
+                const div = document.createElement('div'); div.className = 'list-item';
+                div.innerHTML = `<div class="item-header"><span class="item-idx">#${index+1}</span><div class="play-icon" onclick="playSegment(${sent.start}, ${sent.end})"><i class="fas fa-volume-up"></i></div></div><div class="text-content">${html}</div>${sent.target ? `<div style="text-align:right; margin-top:5px;"><button class="ctrl-btn" style="padding:4px 12px; font-size:12px; border:1px solid #ddd; background:white; border-radius:10px; cursor:pointer;" onclick="checkOne(this)">${btnText}</button></div>` : ''}`;
+                list.appendChild(div);
+            });
+        }
+        function checkOne(btn) {
+            const container = btn.parentElement.parentElement; const input = container.querySelector('input'); const ans = input.getAttribute('data-ans');
+            if (input.value.trim() === ans) { input.classList.add('correct'); input.classList.remove('wrong'); } else { input.classList.add('wrong'); }
+        }
+
+        // === 🟢 修复版：跟读列表生成（预留播放器位置） ===
+        function initShadow() {
+            const list = document.getElementById('shadowList'); 
+            list.innerHTML = '';
+            
+            lesson.script.forEach((sent, index) => {
+                const div = document.createElement('div'); 
+                div.className = 'list-item';
+                div.innerHTML = `
+                    <div class="text-content" style="font-weight:bold; margin-bottom:5px;">
+                        ${sent.cn}
+                    </div>
+                    
+                    <div class="shadow-actions">
+                        <!-- 听原音 -->
+                        <div class="circle-action act-listen" onclick="playSegment(${sent.start}, ${sent.end})">
+                            <i class="fas fa-volume-up"></i>
+                        </div>
+                        
+                        <!-- 录音按钮 (按住说话) -->
+                        <div class="circle-action act-rec" 
+                             onmousedown="startRec(this, ${index})" 
+                             onmouseup="stopRec(this, ${index})" 
+                             ontouchstart="startRec(this, ${index})" 
+                             ontouchend="stopRec(this, ${index})">
+                            <i class="fas fa-microphone"></i>
+                        </div>
+                    </div>
+
+                    <!-- 🎧 录音结果展示区 (默认隐藏，录完后显示播放器) -->
+                    <div id="player-box-${index}" class="player-box"></div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // === 🟢 最终修正版：原生链接 + 不强制HTTPS ===
+        function initParallel() {
+            const list = document.getElementById('parallelList');
+            
+            if (!lesson.parallel || lesson.parallel.length === 0) { 
+                list.innerHTML = '<div style="text-align:center;color:#ccc;padding:20px;">暂无拓展内容</div>'; 
+                return; 
+            }
+            
+            list.innerHTML = ''; 
+
+            lesson.parallel.forEach(item => {
+                let iconClass = "icon-article";
+                let iconName = "fa-file-alt";
+                if (item.type === 'xhs') { iconClass = "icon-xhs"; iconName = "fa-hashtag"; }
+                if (item.type === 'bili') { iconClass = "icon-bili"; iconName = "fa-play-circle"; }
+                
+                // --- 🔗 URL 处理 ---
+                let targetUrl = item.url ? item.url.trim() : "";
+                
+                // 1. 如果没有协议头，才默认补 http (注意：不是https)
+                // 这样既兼容了 http 的短链，也兼容了 https 的正规链
+                if (targetUrl && !targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+                    targetUrl = 'http://' + targetUrl;
+                }
+                
+                // 2. 如果链接无效，让它失效
+                if (!targetUrl || targetUrl === "链接") {
+                    targetUrl = "javascript:alert('⚠️ 链接配置错误');";
+                }
+                // ----------------
+
+                // 使用 a 标签，确保能跳
+                const linkCard = document.createElement('a'); 
+                linkCard.className = 'resource-card'; 
+                linkCard.href = targetUrl; 
+                linkCard.target = "_blank"; // 必开新窗口
+                // 样式修正：确保 a 标签像个块级元素
+                linkCard.style.textDecoration = "none"; 
+                linkCard.style.color = "inherit"; 
+                linkCard.style.display = "flex"; // 关键！保持卡片布局
+
+                linkCard.innerHTML = `
+                    <div class="res-icon ${iconClass}"><i class="fas ${iconName}"></i></div>
+                    <div class="res-info">
+                        <div class="res-title">${item.title}</div>
+                        <div class="res-tag"><i class="fas fa-external-link-alt"></i> ${item.tag || '拓展资源'}</div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:#ddd;"></i>
+                `;
+                
+                list.appendChild(linkCard);
+            });
+        }
+        
+        function playSegment(start, end) { video.currentTime = start; video.play(); setTimeout(() => video.pause(), (end - start) * 1000); }
+
+        // === 🟢 终极美化版：录音逻辑 + 自定义播放器 ===
+        
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let activeStream = null;
+
+        // 1. 开始录音
+        async function startRec(btn, index) {
+            if (btn.classList.contains('recording')) return;
+            const video = document.getElementById('practiceVideo');
+            if(video) video.pause();
+
+            try {
+                if (!activeStream) activeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                let options = {};
+                if (MediaRecorder.isTypeSupported('audio/webm')) options = { mimeType: 'audio/webm' };
+                else if (MediaRecorder.isTypeSupported('audio/mp4')) options = { mimeType: 'audio/mp4' };
+
+                mediaRecorder = new MediaRecorder(activeStream, options);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+
+                // 🛑 核心修改：生成美化的播放器
+                mediaRecorder.onstop = () => {
+                    const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                    const audioBlob = new Blob(audioChunks, { type: mimeType });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+
+                    // 渲染自定义播放器
+                    renderCustomPlayer(index, audioUrl);
+                };
+
+                mediaRecorder.start();
+                btn.classList.add('recording');
+                if(window.getSelection) window.getSelection().removeAllRanges();
+
+            } catch (err) {
+                console.error(err);
+                alert("麦克风启动失败");
+                btn.classList.remove('recording');
+            }
+        }
+
+        // 2. 停止录音
+        function stopRec(btn, index) {
+            if (btn.classList.contains('recording')) {
+                btn.classList.remove('recording');
+                setTimeout(() => {
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                }, 200);
+            }
+        }
+
+        // === 🟢 新增：渲染自定义播放器函数 ===
+        function renderCustomPlayer(index, audioUrl) {
+            const playerBox = document.getElementById(`player-box-${index}`);
+            if (!playerBox) return;
+
+            // 1. 生成 HTML 结构
+            playerBox.innerHTML = `
+                <div class="custom-player">
+                    <div class="custom-play-btn" onclick="toggleCustomPlay(${index})">
+                        <i class="fas fa-play" id="icon-${index}"></i>
+                    </div>
+                    <div class="custom-progress-box" onclick="seekAudio(event, ${index})">
+                        <div class="custom-progress-bar" id="bar-${index}"></div>
+                    </div>
+                    <div class="custom-time" id="time-${index}">0:00</div>
+                    <!-- 隐藏的原生 audio 标签，负责实际播放 -->
+                    <audio id="audio-${index}" src="${audioUrl}" style="display:none"></audio>
+                </div>
+            `;
+            playerBox.style.display = 'block';
+
+            // 2. 绑定播放事件 (更新进度条)
+            const audio = document.getElementById(`audio-${index}`);
+            const bar = document.getElementById(`bar-${index}`);
+            const timeDisplay = document.getElementById(`time-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+
+            // 监听时间更新
+            audio.ontimeupdate = () => {
+                if (audio.duration) {
+                    const percent = (audio.currentTime / audio.duration) * 100;
+                    bar.style.width = percent + '%';
+                    // 格式化时间 0:05
+                    let s = Math.floor(audio.currentTime);
+                    timeDisplay.innerText = "0:" + (s < 10 ? "0" + s : s);
+                }
+            };
+
+            // 播放结束，图标变回暂停
+            audio.onended = () => {
+                icon.className = 'fas fa-play';
+                bar.style.width = '0%'; // 可选：播完归零
+            };
+        }
+
+        // === 🟢 新增：控制自定义播放器 ===
+        function toggleCustomPlay(index) {
+            const audio = document.getElementById(`audio-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            
+            // 暂停其他所有音频 (互斥)
+            document.querySelectorAll('audio').forEach(a => {
+                if (a !== audio) { 
+                    a.pause(); 
+                    // 找到对应的图标复位
+                    const otherId = a.id.split('-')[1];
+                    const otherIcon = document.getElementById(`icon-${otherId}`);
+                    if(otherIcon) otherIcon.className = 'fas fa-play';
+                }
+            });
+
+            if (audio.paused) {
+                audio.play();
+                icon.className = 'fas fa-pause'; // 变成暂停图标
+            } else {
+                audio.pause();
+                icon.className = 'fas fa-play'; // 变成播放图标
+            }
+        }
+
+        // 点击进度条跳转
+        function seekAudio(e, index) {
+            const audio = document.getElementById(`audio-${index}`);
+            if (!audio || !audio.duration) return;
+            
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left; // 点击位置
+            const width = rect.width;
+            const percent = x / width;
+            
+            audio.currentTime = percent * audio.duration;
+        }
+    </script>
+</body>
+</html>

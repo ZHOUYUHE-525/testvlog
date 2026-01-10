@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语 Vlog | 学员登录</title>
+    <!-- 引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 引入保安脚本 (用于检测如果已登录则自动跳去首页) -->
+    <script src="auth.js"></script>
+    
+    <style>
+        body { margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; background: #f3f4f6; font-family: sans-serif; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 320px; text-align: center; }
+        .logo { font-size: 24px; font-weight: 800; color: #8B3A3A; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #6CAD9C; }
+        .btn { width: 100%; padding: 12px; background: #6CAD9C; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; } /* 增加禁用样式 */
+        .footer { margin-top: 20px; font-size: 12px; color: #999; }
+        #msg { color: #ef4444; font-size: 13px; margin-top: 10px; min-height: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <div class="logo">🐼 汉语 Vlog 课堂</div>
+        
+        <div class="input-group">
+            <label>账号 / Email</label>
+            <input type="email" id="email" placeholder="student@vip.com">
+        </div>
+        <div class="input-group">
+            <label>密码 / Password</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <div id="msg"></div>
+        <button class="btn" onclick="handleLogin()" id="loginBtn">登录 / Login</button>
+
+        <div class="footer">
+            仅限会员访问 · 请联系老师获取账号
+        </div>
+    </div>
+
+    <script>
+        // 1. 定义 Supabase (注意：这里改名为 loginClient，防止和 auth.js 冲突)
+        const LOGIN_URL = 'https://tcrayyqmozfqrfagvusp.supabase.co'; 
+        const LOGIN_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcmF5eXFtb3pmcXJmYWd2dXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTY0NjYsImV4cCI6MjA4MTgzMjQ2Nn0.G4ei36j_DgvIRaa3wzO89YI8lj67MQs9ZbrsDFzxi1M';
+        
+        // 🟢 改名：loginClient
+        let loginClient = null;
+        if (typeof window.supabase !== 'undefined') {
+            loginClient = window.supabase.createClient(LOGIN_URL, LOGIN_KEY);
+        }
+
+        let isLoggingIn = false; // 🔒 状态锁
+
+        // 2. 登录主函数
+        async function handleLogin() {
+            if (isLoggingIn) return; 
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('msg');
+            const btn = document.getElementById('loginBtn');
+
+            if(!email || !password) {
+                msg.innerText = "请输入账号和密码";
+                return;
+            }
+
+            // 上锁
+            isLoggingIn = true;
+            btn.innerText = "验证中...";
+            btn.disabled = true;
+
+            try {
+                if (!loginClient) throw new Error("Supabase 未加载，请刷新");
+
+                // A. 验证账号密码 (使用 loginClient)
+                const { data, error } = await loginClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) throw error;
+
+                // B. 抢椅子 (生成互踢令牌)
+                const newToken = Date.now() + "_" + Math.random();
+                
+                // 存入数据库
+                const { error: updateError } = await loginClient
+                    .from('profiles')
+                    .upsert({ 
+                        id: data.user.id, 
+                        session_token: newToken 
+                    });
+
+                if (updateError) {
+                    alert("⚠️ 登录状态更新失败: " + updateError.message);
+                    // 即使抢椅子失败，也尽量让用户进去，或者在这里 return 阻止
+                    // return; 
+                } else {
+                    localStorage.setItem('my_session_token', newToken);
+                }
+
+                // C. 拉取云端存档 (进度和权限)
+                try {
+                    console.log("拉取云端存档...");
+                    const { data: profile } = await loginClient
+                        .from('profiles')
+                        .select('progress, access_tags')
+                        .eq('id', data.user.id)
+                        .maybeSingle();
+
+                    if (profile) {
+                        if(profile.progress) {
+                            Object.keys(profile.progress).forEach(k => localStorage.setItem(k, profile.progress[k]));
+                        }
+                        // 🟢 记得把权限也拉下来！
+                        if(profile.access_tags) {
+                            localStorage.setItem('my_access_tags', JSON.stringify(profile.access_tags));
+                        }
+                    }
+                } catch(e) { console.error("拉取存档出错", e); }
+
+                // D. 颁发免死金牌并跳转
+                localStorage.setItem('login_immunity_time', Date.now());
+                
+                msg.style.color = 'green';
+                msg.innerText = "✅ 登录成功！正在跳转...";
+                
+                setTimeout(() => {
+                    // 带参数跳转
+                    window.location.href = 'home.html?from_login=1';
+                }, 1000);
+
+            } catch (err) {
+                msg.style.color = 'red';
+                msg.innerText = "错误: " + err.message;
+                // 解锁
+                isLoggingIn = false;
+                btn.innerText = "登录 / Login";
+                btn.disabled = false;
+            }
+        }
+
+        // 回车键支持
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') handleLogin();
+        });
+    </script>
+</body>
+</html>

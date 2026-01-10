@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生词复习本</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- 1. 引入必要库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- 2. 引入 Auth -->
+    <script src="auth.js"></script>
+    
+    <!-- 3. 🔴 关键：引入所有课程数据 (为了查字典) -->
+    <script src="lesson_001.js"></script>
+    <script src="lesson_002.js"></script> 
+    <script src="lesson_003.js"></script>
+    <script src="lesson_004.js"></script>
+    <script src="lesson_005.js"></script>
+    <script src="lesson_006.js"></script>
+    <script src="lesson_007.js"></script> 
+    <script src="lesson_008.js"></script>
+    <script src="lesson_009.js"></script>
+    <script src="lesson_010.js"></script>
+    <script src="lesson_011.js"></script>
+    <script src="lesson_012.js"></script>
+    
+    <script src="lesson_401.js"></script>
+    <script src="lesson_402.js"></script>
+    <script src="lesson_403.js"></script>
+    <script src="lesson_404.js"></script>
+
+    <!-- 4. 配置 Supabase (解决变量冲突) -->
+    <script>
+        const SUPABASE_URL = 'https://tcrayyqmozfqrfagvusp.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcmF5eXFtb3pmcXJmYWd2dXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTY0NjYsImV4cCI6MjA4MTgzMjQ2Nn0.G4ei36j_DgvIRaa3wzO89YI8lj67MQs9ZbrsDFzxi1M';
+
+        let supabaseClient = null;
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+    </script>
+
+    <style>
+        :root { 
+            --primary: #6CAD9C;   
+            --red: #9F2E2E;       
+            --yellow: #E5CC84;    
+            --blue: #14507D;      
+            --bg: #F9F7F2;        
+            --card-bg: #FFFFFF;
+            --text: #4A3B32;
+        }
+
+        body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+        /* 侧边栏 */
+        .sidebar { width: 240px; background: var(--card-bg); border-right: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
+        .logo { font-size: 18px; font-weight: 800; color: var(--red); margin-bottom: 40px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        
+        .nav-btn { 
+            display: flex; align-items: center; gap: 12px; padding: 12px 15px; 
+            border-radius: 8px; cursor: pointer; color: #666; margin-bottom: 8px; transition: 0.2s; font-size: 14px;
+            border: 1px solid transparent;
+        }
+        .nav-btn:hover { background: #fdfdfd; border-color: #eee; color: var(--blue); }
+        .nav-btn.active { background: var(--yellow); color: #5a3a1a; font-weight: bold; box-shadow: 2px 4px 10px rgba(229, 204, 132, 0.3); }
+        .badge { margin-left: auto; background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 10px; font-size: 11px; color: inherit; }
+
+        /* 主内容 */
+        .main { flex: 1; padding: 30px; overflow-y: auto; background: var(--bg); }
+        
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .page-title { font-size: 26px; font-weight: 900; color: var(--blue); letter-spacing: 1px; }
+        
+        .lang-switch { 
+            cursor: pointer; padding: 6px 14px; border-radius: 20px; 
+            background: #e8e4db; color: var(--text); font-size: 13px; font-weight: bold; 
+            display: flex; align-items: center; gap: 6px; transition: 0.2s; border: 1px solid #dcdcdc;
+        }
+
+        /* 图表容器 */
+        .chart-card { 
+            background: var(--card-bg); border-radius: 16px; padding: 25px; 
+            border: 1px solid rgba(0,0,0,0.03); margin-bottom: 30px; max-width: 900px; margin: 0 auto 30px auto;
+            box-shadow: 4px 6px 20px rgba(0,0,0,0.02);
+        }
+        .chart-wrapper { position: relative; height: 300px; width: 100%; }
+        .chart-legend-custom { display: flex; gap: 20px; justify-content: center; margin-top: 20px; font-size: 12px; color: #666; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 12px; height: 3px; border-radius: 2px; }
+
+        .quote-banner {
+            margin-top: 20px; padding-top: 15px; border-top: 1px dashed #eee;
+            font-size: 13px; color: #666; line-height: 1.6;
+            display: flex; gap: 10px; text-align: justify;
+        }
+        .quote-icon { font-size: 20px; color: var(--primary); opacity: 0.5; }
+
+        .list-header { max-width: 900px; margin: 0 auto 15px auto; display: flex; justify-content: space-between; align-items: flex-end; }
+        .list-title { font-size: 18px; font-weight: bold; color: var(--text); }
+
+        /* 单词列表 */
+        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 900px; margin: 0 auto; }
+        
+        .word-card { 
+            background: var(--card-bg); border-radius: 12px; padding: 20px; 
+            box-shadow: 2px 4px 12px rgba(0,0,0,0.03); 
+            display: flex; flex-direction: column; gap: 12px;
+            border-top: 4px solid #ddd; transition: transform 0.2s;
+        }
+        .word-card:hover { transform: translateY(-3px); box-shadow: 4px 8px 20px rgba(0,0,0,0.06); }
+        
+        .status-new { border-top-color: var(--primary); } 
+        .status-due { border-top-color: var(--red); } 
+        .status-master { border-top-color: var(--yellow); } 
+        
+        .wc-top { display: flex; justify-content: space-between; align-items: baseline; }
+        .wc-hz { font-size: 24px; font-weight: bold; color: var(--text); font-family: "Songti SC", serif; }
+        .wc-py { color: #888; font-family: monospace; font-size: 14px; }
+        .wc-mean { font-size: 14px; color: #555; background: #fbfbfb; padding: 8px; border-radius: 6px; border: 1px dashed #eee; }
+        
+        .note-area { 
+            width: 100%; border: none; background: #fffdf5; 
+            border-radius: 0; border-bottom: 2px solid #f0e6d2; 
+            padding: 10px; box-sizing: border-box;
+            font-size: 13px; color: #8d704f; resize: none; height: 50px;
+            font-family: inherit; transition: 0.2s;
+        }
+        .note-area:focus { outline: none; border-bottom-color: var(--yellow); background: #fff; }
+
+        .wc-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 12px; color: #999; }
+        
+        .btn-check { 
+            background: var(--red); color: white; border: none; 
+            padding: 6px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; gap: 5px; letter-spacing: 1px;
+        }
+        .btn-check:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-check.checked { background: #e5e7eb; color: #999; cursor: default; transform: none; }
+
+        .empty { grid-column: 1 / -1; text-align: center; color: #aaa; margin-top: 50px; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; overflow-y: auto; background: var(--bg); }
+            .sidebar { 
+                width: 100%; padding: 12px; 
+                border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); 
+                flex-direction: row; overflow-x: auto; align-items: center; gap: 8px;
+                background: white; position: sticky; top: 0; z-index: 999;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            }
+            .logo { display: none; }
+            .nav-btn { 
+                padding: 6px 12px; font-size: 13px; 
+                white-space: nowrap; margin-bottom: 0; flex-shrink: 0; 
+                background: #f5f5f5; border-radius: 20px;
+            }
+            .nav-btn.active { background: var(--yellow); }
+            .main { padding: 15px; overflow: visible; }
+            .chart-card { padding: 15px; margin-bottom: 25px; }
+            .chart-wrapper { height: 200px; }
+            .vocab-grid { grid-template-columns: 1fr; gap: 15px; }
+            .word-card { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="logo" onclick="location.href='home.html'">
+            <i class="fas fa-chevron-left"></i> 返回背单词
+        </div>
+        
+        <div class="nav-btn active" onclick="filterList('all', this)">
+            <i class="fas fa-layer-group"></i> <span data-i18n="filter_all">收藏的单词</span>
+            <span class="badge" id="badge-all">0</span>
+        </div>
+        <div class="nav-btn" onclick="filterList('due', this)">
+            <i class="fas fa-clock"></i> <span data-i18n="filter_due">今日需复习</span>
+            <span class="badge" id="badge-due" style="background:var(--red); color:white">0</span>
+        </div>
+        <div class="nav-btn" onclick="filterList('master', this)">
+            <i class="fas fa-medal"></i> <span data-i18n="filter_master">已掌握</span>
+            <span class="badge" id="badge-master" style="background:var(--yellow); color:#5a3a1a">0</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="header-area">
+            <div class="page-title"><span data-i18n="page_title">我的艾宾浩斯曲线</span></div>
+            <div class="lang-switch" onclick="toggleLang()">
+                <i class="fas fa-globe"></i> <span id="langLabel">RU</span>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-wrapper">
+                <canvas id="ebbinghausChart"></canvas>
+            </div>
+            <div class="chart-legend-custom">
+                <div class="legend-item"><div class="dot" style="background:#6CAD9C"></div> <span data-i18n="legend_mine">我的遗忘曲线</span></div>
+                <div class="legend-item"><div class="dot" style="background:#E5CC84"></div> <span data-i18n="legend_std">艾宾浩斯标准曲线</span></div>
+            </div>
+            
+            <div class="quote-banner">
+                <i class="fas fa-quote-left quote-icon"></i>
+                <div data-i18n="chart_desc">
+                    曲线解读：根据您最近的学习频率，计算了你的遗忘曲线。坚持使用本平台背单词的频率越高，你的遗忘曲线统计就越精准，而且你的遗忘率会越来越低。
+                </div>
+            </div>
+        </div>
+
+        <div class="list-header">
+            <div class="list-title" id="list-title">列表</div>
+        </div>
+        
+        <div id="grid" class="vocab-grid">
+            <div style="text-align:center; color:#999; margin-top:50px;">
+                <i class="fas fa-spinner fa-spin"></i> 正在同步云端数据...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null; 
+        let myVocab = [];
+        let vocabMeta = {};
+        let currentFilter = 'all';
+        let currentLang = 'ru'; 
+
+        const REVIEW_INTERVALS = [5*60*1000, 24*60*60*1000, 3*24*60*60*1000, 7*24*60*60*1000, 15*24*60*60*1000];
+
+        // 语言字典
+        const uiDict = {
+            ru: {
+                page_title: "Кривая забывания", 
+                filter_all: "Все слова", filter_due: "Повторить", filter_master: "Выучено",
+                legend_mine: "Моя кривая", legend_std: "Стандарт Эббингауза",
+                chart_desc: "Интерпретация: Кривая рассчитана на основе вашей частоты обучения. Чем чаще вы используете платформу, тем точнее статистика и ниже скорость забывания.",
+                list_title_all: "Мой словарь", list_title_due: "Нужно повторить", list_title_master: "Выученные слова",
+                btn_check: "Учить", 
+                axis_0:"Сегодня", axis_1:"1д", axis_2:"2д", axis_3:"3д", axis_4:"4д", axis_5:"5д", axis_6:"6д", axis_7:"7д", axis_15:"15д",
+                times_label: "раз",
+                msg_empty: "🎉 Пока пусто! Добавьте слова из видео." 
+            },
+            en: {
+                page_title: "Forgetting Curve", 
+                filter_all: "All Words", filter_due: "Review Due", filter_master: "Mastered",
+                legend_mine: "My Curve", legend_std: "Ebbinghaus Standard",
+                chart_desc: "Interpretation: Calculated based on your learning frequency. The more you use this platform, the more accurate your curve becomes, and your forgetting rate will decrease.",
+                list_title_all: "Collection", list_title_due: "Review Today", list_title_master: "Mastered Words",
+                btn_check: "Check",
+                axis_0:"Today", axis_1:"1d", axis_2:"2d", axis_3:"3d", axis_4:"4d", axis_5:"5d", axis_6:"6d", axis_7:"7d", axis_15:"15d",
+                times_label: "times",
+                msg_empty: "🎉 Empty here! Go collect words from videos."
+            },
+            cn: {
+                page_title: "我的艾宾浩斯曲线", 
+                filter_all: "收藏的单词", filter_due: "今日需复习", filter_master: "已掌握",
+                legend_mine: "我的遗忘曲线", legend_std: "艾宾浩斯标准曲线",
+                chart_desc: "曲线解读：根据您最近的学习频率，计算了你的遗忘曲线。坚持使用本平台背单词的频率越高，你的遗忘曲线统计就越精准，而且你的遗忘率会越来越低。",
+                list_title_all: "单词列表", list_title_due: "今日急需复习", list_title_master: "已掌握的单词",
+                btn_check: "打卡复习",
+                axis_0:"今天", axis_1:"1天", axis_2:"2天", axis_3:"3天", axis_4:"4天", axis_5:"5天", axis_6:"6天", axis_7:"7天", axis_15:"15天",
+                times_label: "次",
+                msg_empty: "🎉 空空如也！快去视频里点击单词收藏吧！"
+            }
+        };
+
+        // 🟢 1. 页面加载：先同步，再渲染
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateLanguage(); 
+            initChart();      
+            
+            // 核心修复：等待云端同步完成后再渲染
+            await syncFromCloud();
+            loadLocalData();
+            render();
+        });
+
+        // 🟢 2. 从云端拉取生词并合并
+        async function syncFromCloud() {
+            if (!supabaseClient) return;
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) return;
+
+            try {
+                const { data } = await supabaseClient
+                    .from('user_progress')
+                    .select('data')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (data && data.data) {
+                    // 合并逻辑：云端 + 本地去重
+                    const cloudList = JSON.parse(data.data['my_vocab_list'] || '[]');
+                    const localList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
+                    const mergedList = [...new Set([...cloudList, ...localList])];
+                    localStorage.setItem('my_vocab_list', JSON.stringify(mergedList));
+                    
+                    // 合并元数据 (保留最新的记录)
+                    // 这里简化处理：直接合并，本地覆盖云端旧值
+                    const cloudMeta = JSON.parse(data.data['my_vocab_meta'] || '{}');
+                    const localMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+                    const mergedMeta = { ...cloudMeta, ...localMeta };
+                    localStorage.setItem('my_vocab_meta', JSON.stringify(mergedMeta));
+                    
+                    console.log("✅ 复习本已与云端合并");
+                }
+            } catch (e) { console.error("同步出错:", e); }
+        }
+
+        // 🟢 3. 加载本地数据
+        function loadLocalData() {
+            myVocab = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
+            vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+            const now = Date.now();
+            myVocab.forEach(word => {
+                if (!vocabMeta[word]) {
+                    vocabMeta[word] = { created: now, nextReview: now, level: 0, note: "" };
+                }
+            });
+            saveMeta(false); // 这一步只保存本地，不触发上传，避免循环
+        }
+
+        // 🟢 4. 保存数据 (操作后上传)
+        async function saveMeta(upload = true) { 
+            localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
+            localStorage.setItem('my_vocab_list', JSON.stringify(myVocab)); // 列表也可能变
+            
+            // 顺手存到云端
+            if (upload && supabaseClient) {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (user) {
+                    try {
+                        // 读取现有云端大包
+                        const { data } = await supabaseClient
+                            .from('user_progress')
+                            .select('data')
+                            .eq('user_id', user.id)
+                            .maybeSingle();
+                        
+                        const currentData = data ? data.data : {};
+                        
+                        // 更新这两个字段
+                        currentData['my_vocab_list'] = localStorage.getItem('my_vocab_list');
+                        currentData['my_vocab_meta'] = localStorage.getItem('my_vocab_meta');
+                        
+                        // 推送
+                        await supabaseClient
+                            .from('user_progress')
+                            .upsert({ 
+                                user_id: user.id, 
+                                data: currentData,
+                                updated_at: new Date().toISOString() 
+                            });
+                        console.log("✅ 操作已同步到云端");
+                    } catch (e) { console.error(e); }
+                }
+            }
+        }
+
+        function markReviewed(word, btn) {
+            const meta = vocabMeta[word];
+            if(!meta) return;
+            
+            meta.level = Math.min(meta.level + 1, REVIEW_INTERVALS.length);
+            meta.nextReview = Date.now() + (REVIEW_INTERVALS[meta.level] || 30*24*60*60*1000);
+            
+            // 保存并上传
+            saveMeta(true);
+            
+            btn.classList.add('checked');
+            btn.innerHTML = '<i class="fas fa-check"></i> OK';
+            btn.disabled = true;
+            setTimeout(render, 500); 
+        }
+        
+        function saveUserNote(word, el) { 
+            if(vocabMeta[word]) { 
+                vocabMeta[word].note = el.value; 
+                saveMeta(true); // 笔记修改也要上传
+            } 
+        }
+
+        function filterList(type, btn) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = type;
+            render();
+        }
+
+        function render() {
+            const container = document.getElementById('grid');
+            container.innerHTML = '';
+            const now = Date.now();
+            let countTotal = 0, countDue = 0, countMaster = 0;
+
+            const listToShow = myVocab.filter(word => {
+                const meta = vocabMeta[word];
+                countTotal++;
+                
+                const isDue = meta.nextReview <= now;
+                const isMaster = meta.level >= 4; 
+
+                if (isDue) countDue++;
+                if (isMaster) countMaster++;
+
+                if (currentFilter === 'due') return isDue;
+                if (currentFilter === 'master') return isMaster;
+                return true;
+            });
+
+            document.getElementById('badge-all').innerText = countTotal;
+            document.getElementById('badge-due').innerText = countDue;
+            document.getElementById('badge-master').innerText = countMaster;
+
+            const titleKey = 'list_title_' + currentFilter;
+            document.getElementById('list-title').innerText = uiDict[currentLang][titleKey] || "List";
+
+            if (listToShow.length === 0) {
+                const emptyText = uiDict[currentLang].msg_empty;
+                container.innerHTML = `<div class="empty">${emptyText}</div>`;
+                return;
+            }
+
+            listToShow.forEach(word => {
+                const meta = vocabMeta[word];
+                const isDue = meta.nextReview <= now;
+                const isMaster = meta.level >= 4;
+                
+                // 🔍 查字典：遍历所有 lesson 文件
+                let details = { py: "", mean: "" };
+                if (window.lessonDatabase) {
+                    for (let id in window.lessonDatabase) {
+                        const dict = window.lessonDatabase[id].dictionary;
+                        if (dict && dict[word]) { details = dict[word]; break; }
+                    }
+                }
+
+                const card = document.createElement('div');
+                let statusClass = 'status-new';
+                if (isDue) statusClass = 'status-due';
+                if (isMaster) statusClass = 'status-master';
+                card.className = `word-card ${statusClass}`;
+                
+                const unit = uiDict[currentLang].times_label; 
+                const countDisplay = `<i class="fas fa-check-double"></i> ${meta.level} ${unit}`;
+
+                card.innerHTML = `
+                    <div class="wc-top">
+                        <span class="wc-hz">${word}</span>
+                        <span class="wc-py">${details.py}</span>
+                        <i class="fas fa-volume-up" style="color:#ccc; cursor:pointer" onclick="speak('${word}')"></i>
+                    </div>
+                    <div class="wc-mean">${details.mean || '...'}</div>
+                    <textarea class="note-area" placeholder="✍️..." onchange="saveUserNote('${word}', this)">${meta.note || ''}</textarea>
+                    
+                    <div class="wc-foot">
+                        <span style="color:#888; font-size:11px;">${countDisplay}</span>
+                        ${isDue ? 
+                            `<button class="btn-check" onclick="markReviewed('${word}', this)">${uiDict[currentLang].btn_check}</button>` 
+                            : 
+                            `<span style="color:#ccc; font-size:11px;">${new Date(meta.nextReview).getMonth()+1}/${new Date(meta.nextReview).getDate()}</span>`
+                        }
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function speak(text) { const u = new SpeechSynthesisUtterance(text); u.lang = 'zh-CN'; speechSynthesis.speak(u); }
+        
+        function toggleLang() {
+            if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
+            updateLanguage();
+            initChart(); 
+            render();
+        }
+
+        function updateLanguage() {
+            let label = '🇷🇺 RU'; if (currentLang === 'en') label = '🇺🇸 EN'; if (currentLang === 'cn') label = '🇨🇳 CN';
+            document.getElementById('langLabel').innerText = label;
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
+            });
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('ebbinghausChart').getContext('2d');
+            const labels = [
+                uiDict[currentLang].axis_0, uiDict[currentLang].axis_1, uiDict[currentLang].axis_2,
+                uiDict[currentLang].axis_3, uiDict[currentLang].axis_4, uiDict[currentLang].axis_5,
+                uiDict[currentLang].axis_6, uiDict[currentLang].axis_7, uiDict[currentLang].axis_15
+            ];
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Mine',
+                            data: [100, 65, 55, 48, 42, 38, 36, 35, 33],
+                            borderColor: '#6CAD9C',
+                            backgroundColor: 'rgba(108, 173, 156, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#6CAD9C',
+                            pointRadius: 5,
+                            tension: 0.4, fill: true
+                        },
+                        {
+                            label: 'Standard',
+                            data: [100, 40, 30, 25, 23, 21, 20, 19, 18],
+                            borderColor: '#E5CC84',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            borderDash: [5, 5],
+                            tension: 0.4, fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { display: false }, x: { grid: { display: false } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

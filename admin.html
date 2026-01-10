@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语 Vlog | 备课后台 (AI 预制词典版)</title>
+    
+    <!-- 1. 引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #6CAD9C; --bg: #f3f4f6; --white: #ffffff; --text: #374151; --border: #e5e7eb; --red: #ef4444; --yellow: #f59e0b; }
+        body { font-family: "PingFang SC", sans-serif; background: var(--bg); color: var(--text); padding: 30px; max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--white); border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; }
+        .step-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .step-title { font-size: 18px; font-weight: 800; }
+        .step-num { background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-right: 8px; }
+        .input-row { display: flex; gap: 20px; }
+        .input-group { margin-bottom: 10px; flex: 1; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 12px; color: #666; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-family: monospace; }
+        .btn { background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; font-size: 14px; }
+        .btn:hover { opacity: 0.9; } .btn-green { background: #10b981; } .btn-yellow { background: var(--yellow); color: #4a3b32; } .btn-blue { background: #3b82f6; } .btn-purple { background: #8b5cf6; }
+        
+        #loginOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index:9999; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+        .editor-list { display: flex; flex-direction: column; gap: 8px; max-height: 500px; overflow-y: auto; border: 1px solid #eee; padding: 10px; }
+        .sentence-row { display: flex; gap: 10px; padding: 10px; border: 1px solid white; background: #f9fafb; border-radius: 8px; }
+        .sentence-row.is-target { background: #fffbeb; border-color: var(--yellow); }
+        .flashcard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
+        .fc-item { border: 1px solid #e5e7eb; padding: 12px; border-radius: 8px; background: #fff; position: relative; }
+        .fc-input { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 4px 0; margin-bottom: 4px; background: transparent; }
+        
+        /* 词典状态标记 */
+        .dict-status { font-size: 10px; color: #aaa; position: absolute; bottom: 5px; right: 10px; }
+        .dict-status.done { color: #10b981; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <h2 style="color:var(--text)">🔒 教师身份验证</h2>
+        <input type="email" id="adminEmail" placeholder="邮箱" style="width:300px; margin-bottom:10px;">
+        <input type="password" id="adminPwd" placeholder="密码" style="width:300px; margin-bottom:20px;">
+        <button class="btn" onclick="adminLogin()">登录后台</button>
+        <p style="margin-top:20px; color:red; font-size:12px;" id="loginStatus"></p>
+    </div>
+
+    <h1><i class="fas fa-cloud-upload-alt"></i> 汉语 Vlog | 云端备课台</h1>
+
+    <!-- 0. 设置 -->
+    <div class="card" style="background:#e0f2fe;">
+        <div class="input-row">
+            <div class="input-group">
+                <label>DeepSeek API Key (生成词典必须)</label>
+                <input type="password" id="apiKey" placeholder="sk-...">
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 1. 导入 -->
+    <div class="card">
+        <div class="step-header"><div class="step-title"><span class="step-num">1</span> 导入字幕</div></div>
+        <div class="input-row">
+            <div class="input-group"><label>课程 ID</label><input id="lessonId" placeholder="例如: 001"></div>
+            <div class="input-group"><label>课程标题</label><input id="lessonTitle"></div>
+            <div class="input-group"><label>视频文件(Cloudinary链接)</label><input id="videoFile" placeholder="https://res.cloudinary.com/..."></div>
+        </div>
+        <textarea id="srtInput" placeholder="在此粘贴 SRT 字幕..." style="height: 100px; margin-bottom:10px;"></textarea>
+        <button class="btn" onclick="parseSRT()">🚀 解析字幕</button>
+    </div>
+
+    <!-- 2. 详情 -->
+    <div class="card" id="detailSection" style="display:none;">
+        <div class="step-header">
+            <div class="step-title"><span class="step-num">2</span> 视频详情 & 翻译</div>
+            <button class="btn btn-blue" onclick="aiTranslateScript()" id="transBtn"><i class="fas fa-language"></i> AI 全文翻译</button>
+        </div>
+        <div class="input-row">
+            <div class="input-group"><label>作者</label><input id="vAuthor"></div>
+            <div class="input-group"><label>难度</label><input id="vHSK" placeholder="HSK 4"></div>
+            <div class="input-group"><label>分类</label><input id="vTopic" list="topicList" placeholder="job">
+                <datalist id="topicList"><option value="job"><option value="life"><option value="food"><option value="culture"></datalist>
+            </div>
+            <div class="input-group"><label>时长</label><input id="vDuration" placeholder="02:30"></div>
+            <div class="input-group"><label>封面</label><input id="vCover" placeholder="cover.jpg"></div>
+        </div>
+        <div class="input-group"><label>简介</label><input id="vDesc"></div>
+        <div style="margin-top:15px;">
+            <label>平行资源 (JSON)</label>
+            <textarea id="parallelJson" style="height:60px;" placeholder='[]'></textarea>
+            <button class="btn btn-yellow" onclick="formatParallel()" style="margin-top:5px;font-size:12px;">格式化模版</button>
+        </div>
+    </div>
+
+    <!-- 3. 划词 -->
+    <div class="card" id="step3" style="display:none;">
+        <div class="step-header"><div class="step-title"><span class="step-num">3</span> 划词出题</div></div>
+        <div class="editor-list" id="sentList"></div>
+    </div>
+
+    <!-- 4. 词卡与词典生成 -->
+    <div class="card" id="step2" style="display:none;">
+        <div class="step-header">
+            <div class="step-title"><span class="step-num">4</span> 词卡 & 预制词典</div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-green" onclick="aiAutoFill()" id="aiBtn"><i class="fas fa-magic"></i> AI 补全词卡</button>
+                <!-- 🔴 新增按钮 -->
+                <button class="btn btn-purple" onclick="aiBatchDict()" id="dictBtn"><i class="fas fa-book"></i> AI 批量生成词典</button>
+            </div>
+        </div>
+        <div class="flashcard-grid" id="fcList"></div>
+    </div>
+
+    <!-- 5. 导出 -->
+    <div class="card" id="step4" style="display:none; text-align:center;">
+        <button class="btn btn-green" onclick="uploadToCloud()" id="uploadBtn">
+            <i class="fas fa-cloud-upload-alt"></i> 备份到 Supabase (仅管理员)
+        </button>
+        <button class="btn btn-blue" onclick="downloadDataJs()" style="margin-left:10px;">
+            <i class="fas fa-file-download"></i> 导出 data.js (给学生用)
+        </button>
+    </div>
+
+    <script>
+        // === 全局变量 ===
+        let parsedSentences = [], flashcards = [];
+        // 🟢 新增：预制词典对象
+        let preCookedDictionary = {}; 
+        let dbClient = null; 
+
+        // 🔴🔴🔴 请填入你的 Supabase URL 和 Key 🔴🔴🔴
+        const SUPABASE_URL = 'https://tcrayyqmozfqrfagvusp.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcmF5eXFtb3pmcXJmYWd2dXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTY0NjYsImV4cCI6MjA4MTgzMjQ2Nn0.G4ei36j_DgvIRaa3wzO89YI8lj67MQs9ZbrsDFzxi1M'; 
+
+        // === 初始化 ===
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof window.supabase === 'undefined') return alert("Supabase 库未加载");
+            try {
+                dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { data } = await dbClient.auth.getSession();
+                if (data && data.session) document.getElementById('loginOverlay').style.display = 'none';
+            } catch (e) { console.error(e); }
+        });
+
+        // === 登录 ===
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPwd').value;
+            try {
+                const { error } = await dbClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                document.getElementById('loginOverlay').style.display = 'none';
+            } catch (err) { alert("登录失败: " + err.message); }
+        }
+
+
+        // 2. 保存公告
+        async function saveNotice() {
+            const text = document.getElementById('noticeInput').value;
+            if(!dbClient) return alert("数据库未连接");
+            
+            const btn = event.target; // 获取点击的按钮
+            btn.innerText = "保存中...";
+            
+            const { error } = await dbClient
+                .from('app_settings')
+                .upsert({ id: 1, notice: text });
+
+            if (error) {
+                alert("保存失败: " + error.message);
+            } else {
+                alert("✅ 公告已更新！学生刷新首页即可看到。");
+            }
+            btn.innerHTML = "💾 保存公告";
+        }
+
+        // 🟢 记得在初始化里调用 loadNotice()
+        // 找到 document.addEventListener('DOMContentLoaded', ...) 
+        // 在里面的 if (data && data.session) 下面加一行：
+        // loadNotice();
+
+        // === 字幕解析 ===
+        function parseSRT() {
+            const raw = document.getElementById('srtInput').value;
+            if (!raw.trim()) return alert("请粘贴内容");
+            const regex = new RegExp("(\\d+)\\n(\\d{2}:\\d{2}:\\d{2},\\d{3}) --> (\\d{2}:\\d{2}:\\d{2},\\d{3})\\n([\\s\\S]*?)(?=\\n\\n|\\n$|$)", "g");
+            let match; parsedSentences = [];
+            while ((match = regex.exec(raw + "\n\n")) !== null) {
+                parsedSentences.push({ start: timeToSec(match[2]), end: timeToSec(match[3]), cn: match[4].replace(/\n/g, ' ').trim(), target: null });
+            }
+            if (parsedSentences.length === 0) {
+                 const lines = raw.split('\n').filter(l => l.trim());
+                 parsedSentences = lines.map((l, i) => ({ start: i*3, end: i*3+3, cn: l.trim(), target: null }));
+            }
+            renderSentenceList();
+            document.getElementById('detailSection').style.display = 'block';
+            document.getElementById('step2').style.display = 'block';
+            document.getElementById('step3').style.display = 'block';
+            document.getElementById('step4').style.display = 'block';
+        }
+        function timeToSec(timeStr) {
+            const [h, m, s] = timeStr.split(':'); const [sec, ms] = s.split(',');
+            return parseInt(h)*3600 + parseInt(m)*60 + parseInt(sec) + parseInt(ms)/1000;
+        }
+
+        // === 渲染列表 ===
+        function renderSentenceList() {
+            const list = document.getElementById('sentList'); list.innerHTML = '';
+            parsedSentences.forEach((sent, i) => {
+                const div = document.createElement('div');
+                div.className = `sentence-row ${sent.target ? 'is-target' : ''}`;
+                div.innerHTML = `
+                    <div style="font-size:12px;color:#999;width:50px;">${sent.start.toFixed(1)}s</div>
+                    <div style="flex:1;">
+                        <div onmouseup="checkSelection(${i})">${sent.cn}</div>
+                        ${sent.target ? `<div style="color:#b45309;font-size:12px;font-weight:bold;">[${sent.target}]</div>` : ''}
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:5px;">
+                        <button class="btn btn-yellow" style="padding:2px 8px;font-size:10px;" onclick="setTarget(${i})">填空</button>
+                        <button class="btn btn-green" style="padding:2px 8px;font-size:10px;" onclick="extractCard(${i})">词卡</button>
+                    </div>`;
+                list.appendChild(div);
+            });
+        }
+        
+        let currentSelection = "";
+        function checkSelection(i) { currentSelection = window.getSelection().toString().trim(); }
+        
+        function setTarget(i) {
+            if(!currentSelection) return alert("请先划选文字");
+            parsedSentences[i].target = currentSelection; renderSentenceList(); currentSelection = "";
+        }
+        function extractCard(i) {
+            if(!currentSelection) return alert("请先划选文字");
+            if(flashcards.find(f => f.cn === currentSelection)) return alert("已存在");
+            // 初始化词卡
+            flashcards.push({ cn: currentSelection, py:"", ru:"", en:"", ex:"", time: parsedSentences[i].start, video_ex: parsedSentences[i].cn });
+            renderFlashcards(); currentSelection = "";
+        }
+
+        function renderFlashcards() {
+            const container = document.getElementById('fcList'); container.innerHTML = '';
+            flashcards.forEach((fc, i) => {
+                const hasDict = preCookedDictionary[fc.cn] ? "✅ AI词典已生成" : "";
+                const div = document.createElement('div'); div.className = 'fc-item';
+                div.innerHTML = `
+                    <input class="fc-input" style="font-weight:bold;" value="${fc.cn}" onchange="flashcards[${i}].cn=this.value">
+                    <input class="fc-input" placeholder="拼音" value="${fc.py}" onchange="flashcards[${i}].py=this.value">
+                    <input class="fc-input" placeholder="俄语" value="${fc.ru}" onchange="flashcards[${i}].ru=this.value">
+                    <input class="fc-input" placeholder="英语" value="${fc.en}" onchange="flashcards[${i}].en=this.value">
+                    <span class="dict-status ${hasDict?'done':''}">${hasDict}</span>
+                    <i class="fas fa-trash" style="position:absolute;top:10px;right:10px;color:#f87171;cursor:pointer;" onclick="removeCard(${i})"></i>`;
+                container.appendChild(div);
+            });
+        }
+        function removeCard(i) { flashcards.splice(i, 1); renderFlashcards(); }
+
+        // === AI 功能 (依赖 node server.js) ===
+        async function callDeepSeek(prompt) {
+            const key = document.getElementById('apiKey').value; 
+            if(!key) throw new Error("请填入 API Key");
+            
+            const res = await fetch("http://localhost:3000/api/chat", {
+                method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+                body: JSON.stringify({ model: "deepseek-chat", messages: [{ role: "user", content: prompt }] })
+            });
+            const data = await res.json();
+            return data.choices[0].message.content.replace(/```json|```/g, '').trim();
+        }
+
+        // 1. 全文翻译
+        async function aiTranslateScript() {
+            const btn = document.getElementById('transBtn'); btn.innerText = "翻译中..."; btn.disabled = true;
+            try {
+                // 1. 准备带ID的数据（给AI防错位用）
+            const simpleSubs = parsedSentences.map((s, i) => ({
+                id: i,
+                cn: s.cn
+            }));
+
+            // 2. 强力防错位提示词
+            const prompt = `
+你是一个专业的字幕翻译专家。
+任务：将 JSON 中的 "cn" (中文) 翻译成 "ru" (俄语) 和 "en" (英语)，并生成 "py" (拼音)。
+
+⚠️⚠️⚠️ 核心规则（非常重要）：
+1. **保持数组长度一致**：输入有 ${simpleSubs.length} 条，输出必须严格返回 ${simpleSubs.length} 条。
+2. **处理断句（合并与留空）**：
+   - 如果遇到剪映把一句话切成了两行（例如第1行是前半句，第2行是后半句）。
+   - 请将**完整句子的翻译**放在**第1行**。
+   - 然后，**必须**将**第2行**的 "ru", "en", "py" 全部设为**空字符串 ""**。
+   - **绝对不要**把下一句的翻译填到这个空位里！
+
+### 示例学习（请严格模仿）：
+**输入**：
+[{"id":0,"cn":"因为我学完哲学"},{"id":1,"cn":"跟大家学任何专业一样"},{"id":2,"cn":"还是要出来找工作的"}]
+
+**正确的输出**：
+[
+  {"ru": "Потому что после изучения философии, как и у всех...", "en": "...", "py": "..."}, 
+  {"ru": "", "en": "", "py": ""},  <-- ✅ 必须留空！
+  {"ru": "Ведь все равно нужно работать...", "en": "...", "py": "..."}
+]
+
+### 待翻译数据：
+${JSON.stringify(simpleSubs)}
+            `;
+                const content = await callDeepSeek(prompt);
+                const aiData = JSON.parse(content);
+                parsedSentences.forEach((s, i) => { if(aiData[i]){ s.en = aiData[i].en; s.ru = aiData[i].ru; s.py = aiData[i].py; }});
+                alert("翻译成功！");
+            } catch(e) { alert("AI 错误: " + e.message); }
+            btn.innerText = "AI 全文翻译"; btn.disabled = false;
+        }
+
+        // 2. 词卡补全 (简单的)
+        async function aiAutoFill() { 
+             const btn = document.getElementById('aiBtn'); btn.innerHTML = '⏳...'; btn.disabled = true;
+             try {
+                const words = flashcards.map(f => f.cn);
+                const prompt = `词汇列表：[${words.join(', ')}]。返回JSON数组含：cn, py, ru, en, ex。`;
+                const content = await callDeepSeek(prompt);
+                JSON.parse(content).forEach(item => {
+                    const idx = flashcards.findIndex(f => f.cn === item.cn);
+                    if (idx !== -1) { flashcards[idx].py = item.py; flashcards[idx].ru = item.ru; flashcards[idx].en = item.en; flashcards[idx].ex = item.ex; }
+                });
+                renderFlashcards(); alert("补全成功");
+            } catch (e) { alert("AI 出错：" + e.message); } 
+            btn.innerHTML = '<i class="fas fa-magic"></i> AI 补全'; btn.disabled = false;
+        }
+
+        // 🔴🔴🔴 3. 核心功能：批量生成预制词典 (最重要！) 🔴🔴🔴
+        // === 🟢 核心升级：生成全文本词典 ===
+        
+        // 1. 辅助函数：从字幕提取所有不重复的中文词
+        function getAllWordsFromScript() {
+            if (parsedSentences.length === 0) return [];
+            
+            // 使用浏览器自带的分词器
+            const segmenter = new Intl.Segmenter('zh-CN', { granularity: 'word' });
+            const allText = parsedSentences.map(s => s.cn).join(' ');
+            const segments = segmenter.segment(allText);
+            
+            const uniqueWords = new Set();
+            
+            for (const seg of segments) {
+                // 过滤掉标点符号、空格、非中文
+                if (seg.isWordLike && /^[\u4e00-\u9fa5]+$/.test(seg.segment)) {
+                    uniqueWords.add(seg.segment);
+                }
+            }
+            
+            // 把原本的手动词卡也加进去，确保不漏
+            flashcards.forEach(f => uniqueWords.add(f.cn));
+            
+            return Array.from(uniqueWords);
+        }
+
+        // === 🟢 修复版：AI 批量生成词典 (防卡死 + 双语) ===
+        async function aiBatchDict() {
+            // 1. 获取所有词
+            const allWords = getAllWordsFromScript();
+            if(allWords.length === 0) return alert("请先解析字幕！");
+            
+            const btn = document.getElementById('dictBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+
+            if(!confirm(`检测到 ${allWords.length} 个生词。\nAI 将逐个生成中/英/俄详解。\n确定要开始吗？`)) {
+                btn.disabled = false;
+                return;
+            }
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // 🟢 改为逐个生成，虽然慢一点点，但是最稳定，不会因为一个报错导致全崩
+            for (let i = 0; i < allWords.length; i++) {
+                const word = allWords[i];
+                
+                // 跳过已存在的
+                if(preCookedDictionary[word]) { successCount++; continue; }
+
+                btn.innerHTML = `⏳ 进度: ${i+1}/${allWords.length} (正在处理: ${word})`;
+
+                // 🟢 双语 Prompt
+                const prompt = `解释中文词汇：“${word}”。
+                请返回纯 JSON 格式，不要 Markdown。
+                格式要求：
+                {
+                    "py": "拼音", 
+                    "mean": "俄语含义 (词性)", 
+                    "mean_en": "英语含义", 
+                    "phrases": ["常用词组1", "词组2"], 
+                    "ex": "中文例句\\n俄语翻译\\nEnglish translation"
+                }`;
+
+                try {
+                    const content = await callDeepSeek(prompt);
+                    // 尝试解析 JSON，如果 AI 返回了多余的 ```json，这里会自动处理
+                    const cleanContent = content.replace(/```json|```/g, '').trim();
+                    const result = JSON.parse(cleanContent);
+                    
+                    // 存入大词典
+                    preCookedDictionary[word] = result;
+                    successCount++;
+                    
+                } catch (e) {
+                    console.error(`❌ 生成 ${word} 失败:`, e);
+                    failCount++;
+                    // 遇到错误不停止，继续下一个！
+                }
+                
+                // 休息 0.5 秒，防止 API 速率限制
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            // 结束
+            renderFlashcards(); 
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            
+            alert(`✅ 生成完毕！\n成功: ${successCount}\n失败: ${failCount}\n\n请点击“导出”保存数据。`);
+        }
+
+        // === 导出与上传 ===
+        function getFullLessonData() {
+            return {
+                title: document.getElementById('lessonTitle').value,
+                video: document.getElementById('videoFile').value,
+                desc: document.getElementById('vDesc').value,
+                author: document.getElementById('vAuthor').value,
+                hsk: document.getElementById('vHSK').value,
+                topic: document.getElementById('vTopic').value,
+                duration: document.getElementById('vDuration').value,
+                cover: document.getElementById('vCover').value,
+                date: new Date().toLocaleDateString(),
+                subs: parsedSentences.map(s => ({ start: s.start, end: s.end, cn: s.cn, py: s.py||"", ru: s.ru||"", en: s.en||"" })),
+                script: parsedSentences.map(s => ({ start: s.start, end: s.end, cn: s.cn, target: s.target })),
+                flashcards: flashcards,
+                parallel: JSON.parse(document.getElementById('parallelJson').value || "[]"),
+                // 🔴 关键：把生成的词典也打包进去！
+                dictionary: preCookedDictionary 
+            };
+        }
+
+        async function uploadToCloud() {
+            if (!dbClient) return alert("未连接数据库");
+            const id = document.getElementById('lessonId').value;
+            if(!id) return alert("必须填写 ID");
+            
+            const btn = document.getElementById('uploadBtn'); btn.innerText = '上传中...';
+            const { error } = await dbClient.from('lessons').upsert({ id: id, data: getFullLessonData() });
+            if (error) alert("失败: " + error.message); else alert("✅ 备份成功！");
+            btn.innerText = '备份到 Supabase';
+        }
+
+        function downloadDataJs() {
+            const id = document.getElementById('lessonId').value;
+            if(!id) return alert("请先填写课程 ID");
+            
+            const data = getFullLessonData();
+            
+            // 检查是否包含词典
+            if(Object.keys(data.dictionary).length === 0) {
+                if(!confirm("⚠️ 警告：你还没有生成 AI 词典！\n学生点击单词将无法查词。\n确定要继续导出吗？")) return;
+            }
+
+            const fileContent = `
+if (!window.lessonDatabase) window.lessonDatabase = {};
+window.lessonDatabase["${id}"] = ${JSON.stringify(data, null, 2)};
+console.log("课程 ${id} 加载完毕 (含离线词典)");
+`;
+            const blob = new Blob([fileContent], { type: "text/javascript" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `lesson_${id}.js`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        function formatParallel() { document.getElementById('parallelJson').value = '[{"title":"标题","type":"xhs","url":"链接","tag":"小红书"}]'; }
+    </script>
+</body>
+</html>

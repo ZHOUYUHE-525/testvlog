@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语 Vlog 课堂 | 学习中心</title>
+    
+    <!-- 1. 引入必要库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="auth.js"></script>
+
+    <!-- 🟢 2. 引入你的本地课程数据 (确保文件名正确) -->
+    <script src="lesson_001.js"></script>
+    <script src="lesson_002.js"></script> 
+    <script src="lesson_003.js"></script> 
+    <script src="lesson_004.js"></script> 
+    <script src="lesson_005.js"></script> 
+    <script src="lesson_006.js"></script> 
+    <script src="lesson_007.js"></script>
+    <script src="lesson_008.js"></script>
+    <script src="lesson_009.js"></script>
+    <script src="lesson_010.js"></script>
+    <script src="lesson_011.js"></script>
+    <script src="lesson_012.js"></script>
+    
+    <script src="lesson_401.js"></script>
+    <script src="lesson_402.js"></script>
+    <script src="lesson_403.js"></script>
+    <script src="lesson_404.js"></script>
+
+    <style>
+        :root {
+            --primary: #6CAD9C; --primary-light: #e0f2fe;
+            --red: #8B3A3A; --bg: #F9F7F2; --white: #FFFFFF;
+            --yellow: #E5CC84; --yellow-light: #fffbeb;
+            --text: #4A3B32; --gray: #9ca3af;
+        }
+        body { margin: 0; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+
+        /* === 侧边栏整体布局 === */
+        .sidebar { 
+            width: 320px; 
+            background: var(--white); 
+            border-right: 1px solid rgba(139, 58, 58, 0.1); 
+            display: flex; 
+            flex-direction: column; /* 确保垂直排列 */
+            position: relative; 
+            z-index: 100; 
+            box-shadow: 4px 0 15px rgba(0,0,0,0.02); 
+            overflow-y: auto; 
+            flex-shrink: 0;
+        }
+        .sidebar.collapsed { margin-left: -320px; transition: margin 0.3s ease; }
+        .sidebar-toggle { position: absolute; right: -40px; top: 20px; width: 40px; height: 40px; background: var(--white); border: 1px solid #ddd; border-left: none; border-radius: 0 8px 8px 0; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--primary); }
+        .sidebar-header { padding: 25px; border-bottom: 3px solid var(--yellow); flex-shrink: 0; }
+        .logo { font-size: 22px; font-weight: 800; color: var(--red); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        
+        /* 数据统计卡片 */
+        .stats-box { margin: 20px; padding: 20px; background: #fff8f0; border-radius: 12px; border: 1px solid var(--yellow); flex-shrink: 0; }
+        .stats-title { font-size: 14px; font-weight: bold; color: var(--red); margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stat-item { text-align: center; }
+        .stat-num { font-size: 20px; font-weight: bold; color: var(--primary); }
+        .stat-label { font-size: 11px; color: #888; margin-top: 4px; }
+
+        /* === 📅 新版月历热力图样式 === */
+        .calendar-section { padding: 0 20px; margin-bottom: 25px; flex-shrink: 0; }
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .cal-title { font-size: 12px; font-weight: bold; color: #999; }
+        .cal-month-label { font-size: 12px; color: var(--primary); font-weight: 800; background: var(--primary-light); padding: 2px 8px; border-radius: 10px; }
+        .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 5px; text-align: center; }
+        .cal-weekday { font-size: 10px; color: #999; font-weight: bold; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background-color: #f3f4f6; position: relative; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #ccc; }
+        .cal-day:hover { transform: scale(1.15); border: 1px solid var(--primary); z-index: 10; color: var(--text); }
+        .cal-day:hover::after { content: attr(data-date); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; pointer-events: none; }
+        .lvl-0 { background-color: #f3f4f6; } 
+        .lvl-1 { background-color: #d1fae5; color: #065f46; font-weight: bold; } 
+        .lvl-2 { background-color: #6CAD9C; color: white; font-weight: bold; } 
+        .lvl-3 { background-color: #3b7566; color: white; font-weight: bold; }
+        .cal-legend { display: flex; align-items: center; justify-content: space-between; margin-top:10px; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+        /* 菜单区域 */
+        .menu-section { padding: 0 20px; margin-bottom: 20px; flex-shrink: 0; }
+        .menu-title { font-size: 12px; color: #999; margin-bottom: 10px; font-weight: bold; }
+        .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; cursor: pointer; color: var(--text); font-size: 14px; margin-bottom: 5px; transition: all 0.2s; }
+        .menu-item:hover, .menu-item.active { background: var(--bg); color: var(--red); }
+
+        /* 右侧主内容 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+        header { padding: 20px 40px; background: var(--bg); display: flex; flex-direction: column; gap: 15px; }
+        .welcome-row { display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 26px; font-weight: 800; color: var(--red); }
+        .top-tools { display: flex; align-items: center; gap: 15px; }
+        .search-box { position: relative; width: 250px; }
+        .search-input { width: 100%; padding: 8px 15px 8px 35px; border-radius: 20px; border: 1px solid #ddd; outline: none; transition: border 0.2s; }
+        .search-input:focus { border-color: var(--primary); }
+        .search-icon { position: absolute; left: 12px; top: 9px; color: #999; font-size: 14px; }
+        .lang-switch { cursor: pointer; padding: 6px 12px; border-radius: 15px; background: #eee; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+        .lang-switch:hover { background: #e0f2fe; color: var(--primary); }
+        .filter-row { 
+            display: flex; 
+            flex-direction: column; /* 关键：竖排 */
+            gap: 15px; 
+            align-items: flex-start; 
+            margin-top: 10px;
+        }
+
+        .filter-group { 
+            display: flex; 
+            gap: 10px; /* 按钮之间的间距大一点 */
+            align-items: center; 
+            flex-wrap: wrap; /* 关键：如果屏幕太窄，按钮自动换行，不硬挤 */
+            width: 100%;
+        }
+
+        .filter-label { 
+            font-size: 13px; 
+            color: #888; 
+            font-weight: bold; 
+            white-space: nowrap; /* 禁止文字换行 */
+            min-width: 60px; /* 给它留够位置 */
+        }
+        .filter-btn { 
+            padding: 6px 16px; 
+            border-radius: 20px; 
+            border: 1px solid #ddd; 
+            background: white; 
+            color: #666; 
+            cursor: pointer; 
+            font-size: 13px; 
+            transition: all 0.2s; 
+            flex-shrink: 0; /* 防止按钮被挤扁 */
+        }
+        .filter-btn:hover, .filter-btn.active { 
+            background: var(--primary); 
+            color: white; 
+            border-color: var(--primary); 
+        }
+        .sort-select { padding: 6px 12px; border-radius: 6px; border: 1px solid #ddd; outline: none; color: #555; cursor: pointer; }
+        .content-scroll { flex: 1; overflow-y: auto; padding: 0 40px 40px 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+
+        /* 卡片 */
+        .card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid rgba(139, 58, 58, 0.08); display: flex; flex-direction: column; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        .card-cover { height: 170px; background-color: #ddd; background-size: cover; background-position: center; position: relative; }
+        .duration-tag { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+        .fav-btn { position: absolute; top: 10px; left: 10px; width: 32px; height: 32px; background: rgba(255, 255, 255, 0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 16px; transition: all 0.2s; z-index: 10; }
+        .fav-btn.active { color: #ff4757; }
+        .progress-bar-bg { width: 100%; height: 6px; background: rgba(0,0,0,0.4); position: absolute; bottom: 0; left: 0; z-index: 5; }
+        .progress-bar-fill { height: 100%; background: #ff4757; box-shadow: 0 0 5px rgba(255, 71, 87, 0.5); transition: width 0.3s ease; }
+        .progress-badge { position: absolute; top: 10px; right: 50px; background: rgba(0, 0, 0, 0.8); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 3px; }
+        .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; line-height: 1.4; color: var(--text); display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; font-weight: bold; height: 20px;}
+        .review-badge { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 1px 6px; border-radius: 4px; font-size: 10px; }
+        .status-text.done { color: var(--primary); } 
+        .status-text.watching { color: #f59e0b; }
+        .card-desc { font-size: 13px; color: #888; margin-bottom: 15px; display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 36px; }
+        .card-footer { margin-top: auto; }
+        .tag-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .pill-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 12px; background: #f0f4f8; color: #555; }
+        .pill-topic { background: var(--primary-light); color: #0369a1; }
+        .bottom-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #999; }
+        .level-badge { display: flex; align-items: center; gap: 4px; background: var(--yellow-light); color: #b45309; padding: 2px 8px; border-radius: 4px; font-weight: bold; border: 1px solid #fcd34d; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px; color: #999; }
+        /* === 个人中心弹窗样式 === */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .profile-card { background: white; width: 320px; border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
+        .modal-close:hover { color: var(--red); }
+
+        /* 头部 */
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .avatar-circle { width: 60px; height: 60px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); border: 2px solid var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .user-email { font-weight: 800; color: var(--text); font-size: 16px; margin-bottom: 4px; }
+        .user-role { font-size: 12px; color: #888; background: #f3f4f6; padding: 2px 8px; border-radius: 10px; display: inline-block; }
+
+        /* 会员卡 */
+        .vip-card { background: linear-gradient(135deg, #333 0%, #555 100%); color: #fcd34d; padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .vip-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .vip-row:last-child { margin-bottom: 0; font-size: 12px; opacity: 0.8; }
+        .vip-status.active { font-weight: bold; color: #4ade80; }
+
+        /* 操作列表 */
+        .action-list { margin-bottom: 20px; }
+        .action-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; color: #555; font-size: 14px; transition: all 0.2s; }
+        .action-item:hover { padding-left: 5px; color: var(--primary); }
+        .act-left { display: flex; align-items: center; gap: 10px; }
+
+        /* 退出按钮 */
+        .logout-btn { width: 100%; padding: 12px; border: 1px solid var(--red); background: white; color: var(--red); border-radius: 10px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { background: var(--red); color: white; }
+        /* === 📱 手机端整容级适配 (仿小红书) === */
+        @media (max-width: 768px) {
+            /* 1. 全局容器 */
+            body { flex-direction: column; overflow-x: hidden; background: #f8f8f8; }
+            .main-content { width: 100vw; padding: 0; }
+
+            /* 2. 侧边栏 (保持抽屉逻辑) */
+            .sidebar { 
+                position: fixed; top: 0; left: -320px; 
+                width: 280px; height: 100vh; z-index: 2500; 
+                display: flex !important; transition: left 0.3s ease; 
+                box-shadow: 10px 0 20px rgba(0,0,0,0.2);
+            }
+            .sidebar.mobile-open { left: 0 !important; }
+            .sidebar-toggle { display: none; }
+
+            /* 3. 悬浮菜单按钮 */
+            .mobile-fab {
+                position: fixed; bottom: 30px; right: 20px;
+                width: 45px; height: 45px;
+                background: var(--primary); color: white;
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                z-index: 3000; font-size: 20px;
+            }
+
+            /* 4. 顶部 Header (大改！) */
+            header { 
+                padding: 10px 15px; 
+                height: auto; 
+                flex-direction: column; /* 变成竖排 */
+                gap: 12px; 
+                background: white;
+                position: sticky; top: 0; z-index: 2000; /* 吸顶 */
+                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            }
+            
+            /* 第一行：标题 + 语言切换 */
+            .welcome-row { 
+                width: 100%; 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+            }
+            .page-title { font-size: 20px; margin: 0; color: #333; }
+            .lang-switch { background: #f5f5f5; padding: 4px 10px; font-size: 12px; }
+
+            /* 第二行：搜索框 (独占一行) */
+            .top-tools { 
+                width: 100%; 
+                gap: 10px; 
+                display: flex;
+            }
+            .search-box { 
+                width: 100%; 
+                flex: 1; 
+            }
+            .search-input { 
+                width: 100%; 
+                box-sizing: border-box; 
+                background: #f5f5f5; 
+                border: none; /* 去掉边框，像APP */
+                padding: 8px 10px 8px 35px;
+                height: 36px;
+            }
+            .search-icon { top: 10px; }
+            
+            /* 隐藏排序下拉框 (手机上不太常用，省空间) */
+            .sort-select { display: none; }
+
+            /* 5. 筛选区 (核心！强制横滑) */
+            .filter-row {
+                width: 100%;
+                padding: 5px 15px;
+                background: white;
+                margin-top: 0;
+                border-bottom: 1px solid #f0f0f0;
+                gap: 8px;
+            }
+            .filter-group {
+                display: flex;
+                gap: 8px;
+                width: 100%;
+                overflow-x: auto !important; /* 强制允许滑动 */
+                white-space: nowrap !important; /* 强制不换行 */
+                flex-wrap: nowrap !important; /* 禁止换行 */
+                padding-bottom: 0;
+                align-items: center;
+                /* 隐藏滚动条 */
+                -ms-overflow-style: none;  
+                scrollbar-width: none;  
+            }
+            .filter-group::-webkit-scrollbar { display: none; }
+
+            /* 隐藏 "Topic:" 这些文字标签 */
+            .filter-label { display: none; } 
+
+            .filter-btn {
+                flex-shrink: 0; /* 防止被挤扁 */
+                padding: 6px 14px;
+                font-size: 13px;
+                background: #f5f5f5;
+                border: none;
+                color: #666;
+                border-radius: 16px;
+            }
+            .filter-btn.active {
+                background: var(--primary-light);
+                color: var(--primary);
+                font-weight: bold;
+                border: 1px solid var(--primary);
+            }
+
+            /* 6. 内容区 (双列瀑布流) */
+            .content-scroll { 
+                padding: 10px; 
+                padding-bottom: 80px; 
+            }
+            .grid { 
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* 两列！ */
+                gap: 10px; 
+            }
+            
+            /* 卡片样式微调 */
+            .card {
+                border-radius: 8px;
+                box-shadow: none;
+                border: 1px solid #f0f0f0;
+            }
+            .card-cover { height: 100px; } /* 封面变矮一点适配双列 */
+            .card-body { padding: 10px; }
+            .card-title { font-size: 13px; line-height: 1.4; margin-bottom: 4px; }
+            .card-desc { display: none; } /* 手机列表页隐藏描述，太挤了 */
+            .status-row { font-size: 10px; margin-bottom: 4px; }
+            .tag-row { display: none; } /* 列表页隐藏标签，清爽点 */
+            
+            /* 弹窗 */
+            .profile-card { width: 85%; }
+        }
+    </style>
+</head>
+<body>
+<!-- 悬浮按钮 -->
+<div class="mobile-fab" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+        <div class="sidebar-header"><div class="logo"><i class="fas fa-book-reader"></i> 汉语 Vlog</div></div>
+        
+        <!-- 统计 -->
+        <div class="stats-box">
+            <div class="stats-title"><span data-i18n="my_data">我的学习数据</span><i class="fas fa-chart-line"></i></div>
+            <div class="stats-grid">
+                <!-- 给数字加上 id="stat-xxx" -->
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-days">1</div>
+                    <div class="stat-label" data-i18n="days">天数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-hours">0h</div>
+                    <div class="stat-label" data-i18n="hours">时长</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-videos">0</div>
+                    <div class="stat-label" data-i18n="videos">已看</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="stat-vocab">0</div>
+                    <div class="stat-label" data-i18n="vocab">词汇</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📅 新版月历 -->
+        <div class="calendar-section">
+            <div class="cal-header">
+                <div class="cal-title"><span data-i18n="heatmap">学习打卡</span></div>
+                <div class="cal-month-label" id="currentMonthStr">...</div>
+            </div>
+            <div class="cal-weekdays">
+                <div class="cal-weekday">日</div><div class="cal-weekday">一</div><div class="cal-weekday">二</div>
+                <div class="cal-weekday">三</div><div class="cal-weekday">四</div><div class="cal-weekday">五</div>
+                <div class="cal-weekday">六</div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="cal-legend">
+                <span style="font-size:10px; color:#ccc">Less</span>
+                <div style="display:flex; gap:3px;">
+                    <div class="legend-dot lvl-0" style="background:#f3f4f6"></div>
+                    <div class="legend-dot lvl-1" style="background:#d1fae5"></div>
+                    <div class="legend-dot lvl-2" style="background:#6CAD9C"></div>
+                    <div class="legend-dot lvl-3" style="background:#3b7566"></div>
+                </div>
+                <span style="font-size:10px; color:#ccc">More</span>
+            </div>
+        </div>
+
+        <!-- 菜单 -->
+        <div class="menu-section">
+            <div class="menu-title" data-i18n="menu_records">学习记录</div>
+            <!-- 按钮 1: 第一季 -->
+            <div class="menu-item" onclick="filterByBatch('season_1', this)">
+                <i class="fas fa-folder"></i> 
+                <!-- 🟢 加上 data-i18n -->
+                <span data-i18n="batch_s1">第 1-100 期</span>
+            </div>
+
+            <!-- 按钮 2: 第二季 -->
+            <div class="menu-item" onclick="filterByBatch('season_2', this)">
+                <i class="fas fa-folder-open"></i> 
+                <!-- 🟢 加上 data-i18n -->
+                <span data-i18n="batch_s2">第 101-200 期</span>
+            </div>
+
+            <!-- 🟢 新增：电视剧 (换个电视图标 fa-tv) -->
+             <div class="menu-item" onclick="filterByBatch('tv_drama', this)">
+                <i class="fas fa-tv"></i> 
+                <span data-i18n="batch_drama">电视剧</span>
+            </div>
+
+            <!-- 🟢 新增：综艺 (换个麦克风图标 fa-microphone-alt) -->
+            <div class="menu-item" onclick="filterByBatch('talk_show', this)">
+               <i class="fas fa-microphone-alt"></i> 
+               <span data-i18n="batch_talk_show">脱口秀</span>
+            </div>
+
+            <div class="menu-item active" onclick="filterByMenu('all', this)"><i class="fas fa-history"></i> <span data-i18n="menu_all">全部课程</span></div>
+            <div class="menu-item" onclick="filterByMenu('fav', this)"><i class="fas fa-bookmark"></i> <span data-i18n="menu_fav">我的收藏</span></div>
+            <div class="menu-item" onclick="filterByMenu('done', this)"><i class="fas fa-check-circle"></i> <span data-i18n="menu_done">已完成</span></div>
+            <div class="menu-item" onclick="location.href='review.html'" style="color: var(--primary); font-weight:bold; background: var(--primary-light);">
+                <i class="fas fa-brain"></i> <span data-i18n="menu_review">艾宾浩斯复习</span>
+            </div>
+            <!-- 跳转到规则页 -->
+            <div class="menu-item" onclick="location.href='rules.html'">
+                <i class="fas fa-info-circle"></i> 
+                <!-- 🟢 加上 data-i18n="menu_rules" -->
+                <span data-i18n="menu_rules">使用须知</span>
+            </div>
+            
+            
+        
+
+
+        <div class="menu-section">
+            <div class="menu-title" data-i18n="menu_account">账户</div>
+            <div class="menu-item" onclick="openProfile()">
+                
+    <i class="fas fa-user-circle"></i> 
+    <span data-i18n="menu_profile">个人中心</span>
+</div>
+            <!-- 4. 退出按钮 (修复样式版) -->
+<button class="logout-btn" onclick="forceLogout()">
+    <i class="fas fa-sign-out-alt"></i> <span data-i18n="menu_logout">退出登录</span>
+</button>
+</div>
+        </div>
+    </div>
+
+    <!-- 右侧内容 -->
+    <div class="main-content">
+        <header>
+            <div class="welcome-row">
+                <div class="page-title" data-i18n="video_lib">视频内容展示</div>
+                <div class="top-tools">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input class="search-input" id="searchBox" placeholder="Search..." oninput="searchVideo(this.value)">
+                    </div>
+                    <select class="sort-select" id="sortSelect" onchange="sortVideos(this.value)">
+                        <option value="new">Sort: Newest</option>
+                        <option value="progress">Sort: Progress</option>
+                    </select>
+                    <div class="lang-switch" onclick="toggleLang()">
+                        <i class="fas fa-globe"></i> <span id="langLabel">RU</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <span class="filter-label" data-i18n="filter_level">难度:</span>
+                    <button class="filter-btn active" data-type="hsk" data-val="all" onclick="applyFilter('hsk', 'all', this)">所有</button>
+                    <button class="filter-btn" data-type="hsk" data-val="HSK 3" onclick="applyFilter('hsk', 'HSK 3', this)">HSK 3</button>
+                    <button class="filter-btn" data-type="hsk" data-val="HSK 4" onclick="applyFilter('hsk', 'HSK 4', this)">HSK 4</button>
+                    <button class="filter-btn" data-type="hsk" data-val="HSK 5" onclick="applyFilter('hsk', 'HSK 5', this)">HSK 5</button>
+                    <button class="filter-btn" data-type="hsk" data-val="HSK 6" onclick="applyFilter('hsk', 'HSK 6', this)">HSK 6</button>
+                    <button class="filter-btn" data-type="hsk" data-val="HSK 6+" onclick="applyFilter('hsk', 'HSK 6+', this)">HSK 6+</button>
+                </div>
+                <div class="filter-group">
+    <span class="filter-label" data-i18n="filter_topic">主题:</span>
+    <button class="filter-btn active" data-type="topic" data-val="all" data-i18n="topic_all" onclick="applyFilter('topic', 'all', this)">所有</button>
+    <button class="filter-btn" data-type="topic" data-val="job" data-i18n="topic_job" onclick="applyFilter('topic', 'job', this)">工作</button>
+    <button class="filter-btn" data-type="topic" data-val="life" data-i18n="topic_life" onclick="applyFilter('topic', 'life', this)">生活</button>
+    <button class="filter-btn" data-type="topic" data-val="food" data-i18n="topic_food" onclick="applyFilter('topic', 'food', this)">食物</button>
+    <button class="filter-btn" data-type="topic" data-val="culture" data-i18n="topic_culture" onclick="applyFilter('topic', 'culture', this)">文化</button>
+    
+    <!-- 👇 注意这里加了 data-i18n，并且 data-val 建议首字母小写 -->
+    <button class="filter-btn" data-type="topic" data-val="thoughts" data-i18n="topic_thoughts" onclick="applyFilter('topic', 'thoughts', this)">感想</button>
+    <button class="filter-btn" data-type="topic" data-val="shopping" data-i18n="topic_shopping" onclick="applyFilter('topic', 'shopping', this)">购物</button>
+    <button class="filter-btn" data-type="topic" data-val="fashion" data-i18n="topic_fashion" onclick="applyFilter('topic', 'fashion', this)">穿搭</button>
+    <button class="filter-btn" data-type="topic" data-val="travel" data-i18n="topic_travel" onclick="applyFilter('topic', 'travel', this)">旅行</button>
+    <button class="filter-btn" data-type="topic" data-val="beauty" data-i18n="topic_beauty" onclick="applyFilter('topic', 'beauty', this)">护肤化妆</button>
+    <button class="filter-btn" data-type="topic" data-val="sports" data-i18n="topic_sports" onclick="applyFilter('topic', 'sports', this)">运动</button>
+    <button class="filter-btn" data-type="topic" data-val="study" data-i18n="topic_study" onclick="applyFilter('topic', 'study', this)">学习</button>
+</div>
+            </div>
+        </header>
+
+        <div class="content-scroll">
+            <div class="grid" id="videoGrid"></div>
+        </div>
+    </div>
+
+    <!-- === 个人中心弹窗 (已添加多语言标签) === -->
+    <div id="profileModal" class="modal-overlay" style="display: none;">
+        <div class="profile-card">
+            <div class="modal-close" onclick="closeProfile()">×</div>
+            
+            <!-- 1. 头部 -->
+            <div class="profile-header">
+                <div class="avatar-circle">
+                    <i class="fas fa-user-astronaut"></i> <!-- 换了个宇航员图标，更像学习者 -->
+                </div>
+                <div class="profile-info">
+                    <div class="user-email" id="p-email">student@vip.com</div>
+                    <!-- 加上 data-i18n -->
+                    <div class="user-role" data-i18n="p_role">HSK 4 学习者</div>
+                </div>
+            </div>
+
+            <!-- 2. 会员状态卡 -->
+            <div class="vip-card">
+                <div class="vip-row">
+                    <!-- 加上 data-i18n -->
+                    <span class="vip-label"><i class="fas fa-crown"></i> <span data-i18n="p_status_label">会员状态</span></span>
+                    <span class="vip-status active" id="p-status" data-i18n="p_active">生效中</span>
+                </div>
+                <div class="vip-row">
+                    <!-- 加上 data-i18n -->
+                    <span class="vip-label" data-i18n="p_expire_label">到期时间</span>
+                    <span class="vip-date" id="p-expire">2025-12-31</span>
+                </div>
+            </div>
+
+            <!-- 3. 操作列表 -->
+            <div class="action-list">
+                <div class="action-item" onclick="syncData()">
+                    <!-- 加上 data-i18n -->
+                    <div class="act-left"><i class="fas fa-cloud-upload-alt" style="color:#3b82f6;"></i> <span data-i18n="p_sync">同步进度到云端</span></div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="action-item" onclick="downloadData()">
+    <div class="act-left">
+        <!-- 换了个绿色的下载图标 -->
+        <i class="fas fa-cloud-download-alt" style="color:#10b981;"></i> 
+        <span data-i18n="p_download">从云端恢复进度</span>
+    </div>
+    <i class="fas fa-chevron-right"></i>
+</div>
+                <div class="action-item" onclick="alert('请联系老师重置密码')">
+                    <!-- 加上 data-i18n -->
+                    <div class="act-left"><i class="fas fa-lock" style="color:#f59e0b;"></i> <span data-i18n="p_password">修改密码</span></div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+
+            <!-- 4. 退出按钮 -->
+            <div class="menu-item" onclick="forceLogout()" style="color:var(--red); cursor:pointer;">
+    <i class="fas fa-sign-out-alt"></i> <span data-i18n="menu_logout">退出登录</span>
+</div>
+    </div>
+
+    <script>
+        // 🔴🔴🔴 1. 补全云端配置 (必须放在最前面！) 🔴🔴🔴
+        const SUPABASE_URL = 'https://tcrayyqmozfqrfagvusp.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcmF5eXFtb3pmcXJmYWd2dXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTY0NjYsImV4cCI6MjA4MTgzMjQ2Nn0.G4ei36j_DgvIRaa3wzO89YI8lj67MQs9ZbrsDFzxi1M';
+
+        // 🟢 修改点：将变量名 supabase 改为 supabaseClient，避免和库名冲突
+        let supabaseClient = null;
+        
+        // 检查库是否加载
+        if (window.supabase && window.supabase.createClient) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("✅ 云端服务已连接");
+        } else {
+            console.error("❌ Supabase 库未加载，请检查 CDN");
+        }
+
+
+        // === 1. 初始化变量 ===
+        let allVideos = [];
+        let currentFilters = { hsk: 'all', topic: 'all', menu: 'all', search: '', batch: 'all' };
+        let currentLang = 'ru'; 
+
+        // === 2. 加载数据 ===
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("读取本地数据...");
+            // 🟢 自动静默拉取数据
+            if (typeof window.downloadData === 'function') {
+                setTimeout(() => window.downloadData(true), 1000); // 延迟1秒执行，不打扰用户
+    }
+            if (typeof updateUserAccess === 'function') {
+                updateUserAccess();
+    }
+
+            if (window.lessonDatabase) {
+                allVideos = Object.keys(window.lessonDatabase).map(id => {
+                    const item = window.lessonDatabase[id];
+                    item.id = id;
+                    item.searchStr = (item.title + item.desc + item.author + (item.topic||'')).toLowerCase();
+                    return item;
+                });
+                updateLanguage();
+                
+                // 🟢 新增：计算真实数据
+                calculateStats();
+                
+                // 渲染日历
+                renderMonthCalendar();
+            } else {
+                alert("❌ 错误：找不到本地课程数据！请检查 lesson_001.js");
+            }
+                
+        });
+
+        // === 🟢 核心功能：计算真实学习数据 ===
+        function calculateStats() {
+            // 🟢 修复：强制使用 YYYY-M-D 格式，不依赖浏览器语言
+            const now = new Date();
+            const todayKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+            
+            let studyDates = JSON.parse(localStorage.getItem('my_study_days') || '[]');
+            if (!studyDates.includes(todayKey)) {
+                studyDates.push(todayKey);
+                localStorage.setItem('my_study_days', JSON.stringify(studyDates));
+            }
+            document.getElementById('stat-days').innerText = studyDates.length;
+
+            // ... (下面的代码保持不变) ...
+            let startedVideos = 0, totalSeconds = 0, totalVocab = 0;
+            allVideos.forEach(v => {
+                // ... (保持不变) ...
+                const progress = parseInt(localStorage.getItem('progress_' + v.id) || 0);
+                if (progress > 0) {
+                    startedVideos++;
+                    if (v.flashcards) totalVocab += v.flashcards.length;
+                    if (v.duration && v.duration.includes(':')) {
+                        const parts = v.duration.split(':');
+                        totalSeconds += (parseInt(parts[0]) * 60 + parseInt(parts[1])) * (progress / 100);
+                    }
+                }
+            });
+            document.getElementById('stat-videos').innerText = startedVideos;
+            document.getElementById('stat-hours').innerText = (totalSeconds / 3600).toFixed(1) + 'h';
+            document.getElementById('stat-vocab').innerText = totalVocab;
+        }
+        
+        // === 个人中心逻辑 ===
+        
+        function openProfile() {
+            // 1. 获取用户信息 (目前先用假数据演示效果)
+            // 等你恢复 auth.js 后，这里会从 Supabase 读取真实数据
+            const user = {
+                email: "student@vip.com", 
+                expire: "2025-12-31" 
+            };
+            
+            // 2. 填入数据
+            document.getElementById('p-email').innerText = user.email;
+            document.getElementById('p-expire').innerText = user.expire;
+            
+            // 3. 显示弹窗
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+
+        function closeProfile() {
+            document.getElementById('profileModal').style.display = 'none';
+        }
+
+        // === 🟢 完美版：同步进度到 user_progress 表 ===
+window.syncData = async function() {
+    console.log("点击了同步...");
+
+    // 1. 检查客户端 (注意这里用 supabaseClient)
+    if (!supabaseClient) return alert("❌ 服务器连接失败，请刷新重试");
+    
+    // 2. 获取用户
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return alert("⚠️ 请先登录账号");
+
+    // 3. 打包本地数据 (更聪明的筛选)
+    const dataToUpload = {};
+    let count = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        // 🚨 关键修改：排除掉 'my_session' 和 'sb-' 开头的系统数据，只传学习记录
+        if (key.includes('session') || key.includes('sb-') || key.includes('token')) {
+    continue; 
+}
+
+// 🟢 2. 核心修改：如果是 'my_access_tags' (权限)，绝对不要上传！
+if (key === 'my_access_tags') {
+    continue;
+}
+
+// 3. 保存其他数据
+if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my_')) {
+    dataToUpload[key] = localStorage.getItem(key);
+    count++;
+}
+
+        // 只提取进度、完成状态、生词本、权限标签
+        if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my_')) {
+            dataToUpload[key] = localStorage.getItem(key);
+            count++;
+        }
+    }
+
+    if (count === 0) return alert("本地没有学习记录，无需同步。");
+
+    // UI 反馈
+    const btnText = document.querySelector('.action-item span[data-i18n="p_sync"]');
+    const originalText = btnText ? btnText.innerText : "同步";
+    if(btnText) btnText.innerText = "⏳ 上传中...";
+
+    try {
+        // 4. 上传到 user_progress 表
+        // 使用 upsert：如果 user_id 存在就更新，不存在就新建
+        const { error } = await supabaseClient
+            .from('user_progress')
+            .upsert({ 
+                user_id: user.id, 
+                data: dataToUpload,
+                updated_at: new Date().toISOString() // 如果你的表有这个字段最好，没有也没事
+            }, { onConflict: 'user_id' }); // 根据 user_id 查重
+
+        if (error) throw error;
+        
+        alert(`✅ 同步成功！\n已备份 ${count} 条数据到专属记录表。`);
+    } catch (e) {
+        console.error(e);
+        alert("❌ 同步失败: " + e.message);
+    } finally {
+        if(btnText) btnText.innerText = originalText;
+    }
+};
+// === 🟢 修复版：从云端下载 (带日期合并功能) ===
+        window.downloadData = async function(isSilent = false) {
+            if (!supabaseClient) return;
+            
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                if(!isSilent) alert("请先登录！");
+                return;
+            }
+
+            const btnSpan = document.querySelector('.action-item span[data-i18n="p_download"]');
+            const originalText = btnSpan ? btnSpan.innerText : "恢复进度";
+            if(!isSilent && btnSpan) btnSpan.innerText = "⏳ 下载中...";
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_progress')
+                    .select('data')
+                    .eq('user_id', user.id)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (data && data.data) {
+                    let count = 0;
+                    for (const key in data.data) {
+                        // 1. 跳过权限标签 (防打架)
+                        if (key === 'my_access_tags') continue;
+
+                        // 🟢 2. 核心修复：如果是日历数据，进行【合并】而不是【覆盖】
+                        if (key === 'my_study_days') {
+                            try {
+                                // 拿出本地现有的
+                                const localList = JSON.parse(localStorage.getItem('my_study_days') || '[]');
+                                // 拿出云端存的
+                                const cloudList = JSON.parse(data.data[key] || '[]');
+                                // 合并并去重 (Set大法)
+                                const mergedList = [...new Set([...localList, ...cloudList])];
+                                // 存回去
+                                localStorage.setItem(key, JSON.stringify(mergedList));
+                                count++;
+                                continue; // 跳过默认覆盖逻辑
+                            } catch(e) {
+                                console.warn("日期合并出错，将执行覆盖", e);
+                            }
+                        }
+
+                        // 3. 其他数据 (进度等) 直接覆盖
+                        localStorage.setItem(key, data.data[key]);
+                        count++;
+                    }
+                    console.log(`✅ 已同步 ${count} 项数据 (日期已合并)`);
+                    
+                    // 刷新界面
+                    if (typeof calculateStats === 'function') calculateStats();
+                    if (typeof renderMonthCalendar === 'function') renderMonthCalendar(); // 立即刷新日历
+                    if (typeof renderVideos === 'function' && typeof getFilteredVideos === 'function') {
+                        renderVideos(getFilteredVideos());
+                    }
+                    
+                    if(!isSilent) alert(`✅ 同步成功！`);
+                } else {
+                    if(!isSilent) alert("☁️ 云端暂无备份数据");
+                }
+            } catch (e) {
+                console.error(e);
+                if(!isSilent) alert("❌ 下载失败: " + e.message);
+            } finally {
+                if(!isSilent && btnSpan) btnSpan.innerText = originalText;
+            }
+        };
+
+        
+        // 点击遮罩层也可以关闭
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProfile();
+        });
+
+        // === 3. 语言字典 ===
+        const uiDict = {
+            ru: {
+                // 原有词条
+                my_data: "Мои данные", days: "Дней", hours: "Часов", videos: "Видео", vocab: "Слов",
+                heatmap: "Активность", today: "Сегодня",
+                menu_records: "Записи", menu_all: "Все видео", menu_fav: "Избранное", menu_done: "Завершено", menu_review: "Повторение", menu_account: "Аккаунт", menu_profile: "Профиль", menu_logout: "Выйти",
+                video_lib: "Библиотека", filter_level: "Уровень:", filter_topic: "Тема:",
+                status_done: "Завершено", status_watch: "Просмотр", status_new: "Новое", review: "Повторить",
+                topic_job: "Работа", topic_life: "Жизнь", topic_food: "Еда", topic_culture: "Культура", topic_thoughts: "Мысли", topic_shopping: "Покупки",
+                sort_new: "Сорт: Новые", sort_prog: "Сорт: Прогресс",
+                
+                // 🟢 新增：个人中心词条
+                p_role: "Студент HSK 4",
+                p_status_label: "Статус",
+                p_active: "Активен",
+                p_expire_label: "Истекает",
+                p_sync: "Синхронизация прогресса",
+                p_password: "Сменить пароль",
+                sidebar_batch: "Сезоны",
+                batch_s1: "Сезон 1(12/100)",
+                batch_s2: "Сезон 2(-)",
+                status_lock: "Закрыто",
+                msg_lock: "Этот курс доступен в полной версии. Свяжитесь с учителем!",
+                menu_rules: "⚠️ВНИМАНИЕ и СОВЕТЫ⚠️", // 🟢 新增
+                p_sync: "Синхронизация (Upload)",
+                p_download: "Восстановить (Download)",
+                batch_s3: "201-300 (Новый)",
+                batch_drama: "Сериалы",
+                batch_talk_show: "ток-шоу（4/30）",
+                topic_fashion: "Мода",
+                topic_travel: "Путешествия",
+                topic_beauty: "Красота",
+                topic_sports: "Спорт",
+                topic_study: "Учёба",
+               
+            },
+            en: {
+                // 原有词条
+                my_data: "My Data", days: "Days", hours: "Hours", videos: "Videos", vocab: "Vocab",
+                heatmap: "Heatmap", today: "Today",
+                menu_records: "Records", menu_all: "All Courses", menu_fav: "Favorites", menu_done: "Completed", menu_review: "Review", menu_account: "Account", menu_profile: "Profile", menu_logout: "Logout",
+                video_lib: "Video Library", filter_level: "Level:", filter_topic: "Topic:",
+                status_done: "Done", status_watch: "Watched", status_new: "New", review: "Review",
+                topic_job: "Work", topic_life: "Life", topic_food: "Food", topic_culture: "Culture", topic_thoughts: "Thoughts", topic_shopping: "Shopping",
+
+                sort_new: "Sort: Newest", sort_prog: "Sort: Progress",
+
+                // 🟢 新增：个人中心词条
+                p_role: "HSK 4 Student",
+                p_status_label: "Membership",
+                p_active: "Active",
+                p_expire_label: "Expires",
+                p_sync: "Sync Learning Progress to Cloud",
+                p_password: "Change Password",
+                sidebar_batch: "Seasons",
+                batch_s1: "Season 1（12/100）",
+                batch_s2: "Season 2（-)",
+                status_lock: "Locked",
+                msg_lock: "This course is locked. Please contact the teacher to unlock!",
+                menu_rules: "⚠️Rules & Tips⚠️", // 🟢 新增
+                p_sync: "Sync to Cloud",
+                p_download: "Restore from Cloud", 
+                batch_s3: "201-300 (New)",
+                batch_drama: "TV Series",
+                batch_talk_show: "talk_show（4/30）",
+                topic_fashion: "Fashion",
+                topic_travel: "Travel",
+                topic_beauty: "Beauty",
+                topic_sports: "Sports",
+                topic_study: "Study",
+            },
+            cn: {
+                // 原有词条
+                my_data: "我的学习数据", days: "天数", hours: "时长", videos: "已看", vocab: "词汇",
+                heatmap: "学习热力图", today: "今天",
+                menu_records: "学习记录", menu_all: "全部课程", menu_fav: "我的收藏", menu_done: "已完成", menu_review: "艾宾浩斯复习", menu_account: "账户", menu_profile: "个人中心", menu_logout: "退出登录",
+                video_lib: "视频内容展示", filter_level: "难度:", filter_topic: "主题:",
+                status_done: "已完成", status_watch: "已看", status_new: "未开始", review: "需复习",
+                topic_job: "职场", topic_life: "生活", topic_food: "美食", topic_culture: "文化", topic_thoughts: "感想", topic_shopping: "购物",
+                sort_new: "排序：最新", sort_prog: "排序：进度",
+               
+
+                // 🟢 新增：个人中心词条
+                p_role: "HSK 4 学习者",
+                p_status_label: "会员状态",
+                p_active: "生效中",
+                p_expire_label: "到期时间",
+                p_sync: "同步进度到云端",
+                p_password: "修改密码",
+                sidebar_batch: "按期数浏览",
+                batch_s1: "第一季（12/100）",
+                batch_s2: "第二季（-）",
+                status_lock: "需解锁",
+                msg_lock: "🔒 该课程需要解锁，请联系老师购买！",
+                menu_rules: "⚠️使用须知⚠️", // 🟢 新增
+                p_sync: "同步进度到云端",
+                p_download: "从云端恢复进度", 
+                batch_s3: "第三季（-）",
+                batch_drama: "电视剧",
+                batch_talk_show: "脱口秀（4/30）",
+                topic_fashion: "穿搭",
+                topic_travel: "旅行",
+                topic_beauty: "美妆护肤",
+                topic_sports: "运动",
+                 topic_study: "学习",
+            }
+        };
+
+        // === 4. 功能函数 ===
+        function toggleLang() {
+            if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            let label = '🇷🇺 RU'; if (currentLang === 'en') label = '🇺🇸 EN'; if (currentLang === 'cn') label = '🇨🇳 CN';
+            document.getElementById('langLabel').innerText = label;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
+            });
+            
+            const sortSel = document.getElementById('sortSelect');
+            if(sortSel && sortSel.options.length>0) {
+                 sortSel.options[0].text = uiDict[currentLang].sort_new;
+                 sortSel.options[1].text = uiDict[currentLang].sort_prog;
+            }
+
+            renderVideos(getFilteredVideos());
+        }
+
+        // === 🟢 商业版：带锁的视频渲染 ===
+        // === 🟢 修复版：显示 HSK 和 作者 ===
+        function renderVideos(videos) {
+            const grid = document.getElementById('videoGrid');
+            grid.innerHTML = ''; 
+            
+            if (videos.length === 0) {
+                grid.innerHTML = '<div class="empty-state">没有找到相关视频</div>';
+                return;
+            }
+
+            let userAccess = [];
+            try {
+                userAccess = JSON.parse(localStorage.getItem('my_access_tags') || '["season_1"]');
+            } catch (e) { userAccess = ["season_1"]; }
+            
+            videos.forEach(v => {
+                const isLocked = v.batch && !userAccess.includes(v.batch);
+                
+                // 进度条逻辑
+                const savedProgress = localStorage.getItem('progress_' + v.id);
+                if (savedProgress) v.progress = parseInt(savedProgress);
+                const savedDone = localStorage.getItem('done_' + v.id);
+                if (savedDone === 'true') { v.isDone = true; v.progress = 100; }
+
+                // 样式处理
+                let coverStyle = v.cover ? `background-image: url('${v.cover}');` : `background-color: #ddd;`;
+                let topicKey = 'topic_' + (v.topic || 'life'); // 暂时用默认
+                let topicLabel = v.topic || "Topic"; // 直接显示原数据，或者你可以去字典里查
+
+                let cardClickAction = `location.href='index.html?id=${v.id}'`;
+                let statusHtml = ''; 
+                let lockOverlay = '';
+
+                if (isLocked) {
+                    coverStyle += 'filter: grayscale(100%);'; 
+                    lockOverlay = `<div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:40px;"><i class="fas fa-lock"></i></div>`;
+                    cardClickAction = `alert('🔒 该课程需要解锁 (需购买 ${v.batch})')`;
+                    statusHtml = `<span style="color:#666"><i class="fas fa-lock"></i> 需解锁</span>`;
+                } else {
+                    if (v.isDone) statusHtml = `<span class="status-text done"><i class="fas fa-check-circle"></i> 已完成</span>`;
+                    else if (v.progress > 0) statusHtml = `<span class="status-text watching"><i class="far fa-clock"></i> 观看至 ${v.progress}%</span>`;
+                    else statusHtml = `<span class="status-text" style="color:#999">未开始</span>`;
+                }
+
+                // 🟢 重点修改了这里的 HTML 结构
+                const html = `
+                <div class="card" onclick="${cardClickAction}">
+                    <div class="card-cover" style="${coverStyle}">
+                        ${lockOverlay}
+                        ${!isLocked ? `<div class="duration-tag">${v.duration || '00:00'}</div>` : ''}
+                        ${!isLocked ? `<div class="fav-btn ${v.isFav ? 'active' : ''}" onclick="toggleFav(${v.id}, this, event)"><i class="fas fa-heart"></i></div>` : ''}
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <!-- 👇 新增：作者和等级标签 -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-size:11px; background:#f3f4f6; color:#666; padding:2px 6px; border-radius:4px; font-weight:bold;">
+                                    ${v.hsk || 'HSK?'}
+                                </span>
+                                <span style="font-size:11px; color:#999;">
+                                    <i class="fas fa-user"></i> ${v.author || 'Vlogger'}
+                                </span>
+                            </div>
+                            <!-- 👆 新增结束 -->
+
+                            <div class="card-title" style="${isLocked ? 'color:#999' : ''}">${v.title}</div>
+                            <div class="status-row">${statusHtml}</div>
+                            <div class="card-desc">${v.desc}</div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="tag-row">
+                                <span class="pill-tag">${v.batch || '免费'}</span>
+                                <span class="pill-tag pill-topic">${topicLabel}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                grid.innerHTML += html;
+            });
+        }
+
+        // === 🟢 修复版：筛选逻辑 ===
+        
+        // 1. 点击按钮触发
+        function applyFilter(type, value, btn) {
+            // UI 切换：把同组的其他按钮样式去掉，给自己加上
+            const group = btn.parentElement;
+            group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // 逻辑更新
+            currentFilters[type] = value;
+            
+            // 立即重新渲染
+            const result = getFilteredVideos();
+            renderVideos(result);
+        }
+
+        // === 升级版：支持分期筛选 ===
+        // === 🟢 修复版：支持中英文+表情包的模糊匹配 ===
+        function getFilteredVideos() {
+            // 🟢 1. 建立“近义词”映射表 (让 job 能搜到 工作)
+            // 注意：这里左边的 key 必须和按钮上的 data-val 一致 (小写)
+            const topicMap = {
+                'job': ['job', 'work', '工作', '职场', 'career'],
+                'life': ['life', 'daily', '生活', '日常', 'vlog'],
+                'food': ['food', 'cooking', '食物', '美食', '做饭', '超市'],
+                'culture': ['culture', 'history', '文化', '传统'],
+                'thoughts': ['thoughts', 'thinking', '感想', '观点', '聊天'],
+                'shopping': ['shopping', 'buy', '购物', '买东西', '🛍️'],
+                'fashion': ['fashion', 'outfit', 'clothes', '穿搭', '衣服', 'OOTD', '👗'],
+                'travel': ['travel', 'trip', 'tour', '旅行', '旅游', '去哪玩', '✈️'],
+                'beauty': ['beauty', 'makeup', 'skincare', '护肤', '化妆', '美妆', '💄'],
+                'sports': ['sports', 'gym', 'exercise', '运动', '健身', '减肥', '⚽️'],
+                'study': ['study', 'learn', '学习', '中文', '考试', '📚']
+            };
+
+            return allVideos.filter(v => {
+                // 搜索框逻辑
+                if (currentFilters.search && !v.searchStr.includes(currentFilters.search)) return false;
+                
+                // HSK 逻辑
+                if (currentFilters.hsk !== 'all') {
+                    const dataLevel = (v.hsk || '').toLowerCase().replace(/\s/g, ''); 
+                    const filterLevel = currentFilters.hsk.toLowerCase().replace(/\s/g, ''); 
+                    if (currentFilters.hsk === 'HSK 6+') { 
+                        if (dataLevel !== 'hsk6' && dataLevel !== 'hsk6+') return false; 
+                    } else { 
+                        if (dataLevel !== filterLevel) return false; 
+                    }
+                }
+
+                // 🟢 Topic 筛选逻辑 (使用映射表)
+                if (currentFilters.topic !== 'all') {
+                    const videoTopic = (v.topic || '').toLowerCase(); // 视频数据的 topic 转小写
+                    const btnKey = currentFilters.topic.toLowerCase(); // 按钮的值转小写
+                    
+                    // 拿出这个按钮对应的所有同义词
+                    const keywords = topicMap[btnKey] || [btnKey];
+                    
+                    // 只要视频 topic 包含任意一个关键词，就通过
+                    const isMatch = keywords.some(k => videoTopic.includes(k.toLowerCase()));
+                    
+                    if (!isMatch) return false;
+                }
+                
+                // 其他逻辑
+                if (currentFilters.menu === 'fav' && !v.isFav) return false;
+                if (currentFilters.menu === 'done' && !v.isDone) return false;
+                if (currentFilters.batch !== 'all' && v.batch !== currentFilters.batch) return false;
+
+                return true;
+            });
+        }
+        
+        function searchVideo(val) { currentFilters.search = val.toLowerCase(); renderVideos(getFilteredVideos()); }
+        // === 🟢 修复版：菜单筛选 (重置所有条件) ===
+        function filterByMenu(type, btn) {
+            // 1. 样式切换
+            document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            currentFilters.menu = type;
+            
+            // 2. 如果点击的是“全部课程”，必须重置所有细分筛选
+            if(type === 'all') {
+                currentFilters.hsk = 'all'; 
+                currentFilters.topic = 'all';
+                currentFilters.batch = 'all'; // 🟢 关键！把分期也重置回 "all"
+                
+                // 重置顶部的筛选按钮样式
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                // 让每组的第一个按钮变亮 (All)
+                const firstBtns = document.querySelectorAll('.filter-group .filter-btn:first-child');
+                firstBtns.forEach(b => b.classList.add('active'));
+            }
+            
+            renderVideos(getFilteredVideos());
+        }
+        function filterByBatch(batchName, btn) {
+        // 1. UI 变色
+        // 先把所有 menu-item 的激活状态去掉
+        document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
+        // 给当前点击的按钮加上激活状态
+        btn.classList.add('active');
+
+        // 2. 重置其他大类筛选，避免冲突 (可选)
+        currentFilters.menu = 'all'; 
+
+        // 3. 设定分期
+        currentFilters.batch = batchName;
+
+        // 4. 刷新视频列表
+        renderVideos(getFilteredVideos());
+    }
+        function sortVideos(sortType) {
+            let result = getFilteredVideos();
+            if (sortType === 'new') result.sort((a, b) => new Date(b.date) - new Date(a.date));
+            else if (sortType === 'progress') result.sort((a, b) => b.progress - a.progress);
+            renderVideos(result); 
+        }
+        function toggleFav(id, btn, event) {
+            event.stopPropagation();
+            const video = allVideos.find(v => v.id == id);
+            if (video) { video.isFav = !video.isFav; if (video.isFav) btn.classList.add('active'); else btn.classList.remove('active'); }
+        }
+        // === 侧边栏开关 (手机/电脑自动识别) ===
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            
+            // 判断屏幕宽度
+            if (window.innerWidth <= 768) {
+                // 📱 手机端：切换 mobile-open 类 (滑出/滑入)
+                // 还要强制移除 collapsed 防止冲突
+                sidebar.classList.remove('collapsed');
+                sidebar.classList.toggle('mobile-open');
+                
+                // 点击遮罩层关闭逻辑 (可选优化)
+                // 如果打开了，点击内容区应该能关闭 (简单起见先不做)
+            } else {
+                // 💻 电脑端：切换 collapsed 类 (折叠/展开)
+                sidebar.classList.remove('mobile-open');
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
+        // === 🟢 修复版：只显示真实活跃度 ===
+        function renderMonthCalendar() {
+            const container = document.getElementById('calendarGrid');
+            const monthLabel = document.getElementById('currentMonthStr');
+            if(!container || !monthLabel) return;
+            container.innerHTML = ''; 
+
+            const now = new Date();
+            const year = now.getFullYear(); 
+            const month = now.getMonth(); 
+            monthLabel.innerText = `${year}.${month + 1}`;
+
+            const studyDates = JSON.parse(localStorage.getItem('my_study_days') || '[]');
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div'); 
+                empty.style.visibility = 'hidden'; 
+                container.appendChild(empty);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const div = document.createElement('div');
+                let level = 0;
+                
+                // 🟢 修复：使用和保存时完全一样的拼装逻辑
+                const checkDate = `${year}-${month + 1}-${day}`;
+                
+                if (studyDates.includes(checkDate)) {
+                    level = 3; 
+                }
+
+                div.className = `cal-day lvl-${level}`; 
+                div.innerText = day; 
+                div.setAttribute('data-date', `${month+1}月${day}日`);
+                // 恢复你的提示框
+                if(level===3) div.setAttribute('data-tip', '已打卡'); 
+                
+                container.appendChild(div);
+            }
+        }
+        
+        // === 🟢 暴力强制退出函数 (不依赖 auth.js) ===
+        function forceLogout() {
+            if(confirm("确定要退出登录吗？")) {
+                console.log("执行强制退出...");
+                
+                // 1. 清空所有本地存储 (包括 Supabase 的令牌和你的学习进度缓存)
+                // 如果你想保留学习进度，只清空 Supabase 相关的 key 也可以，
+                // 但为了安全，全部清空最稳妥。或者只清空 session。
+                localStorage.removeItem('sb-tcrayyqmozfqrfagvusp-auth-token'); // 清除 Supabase token
+                localStorage.removeItem('my_session_token'); // 清除互踢 token
+                sessionStorage.clear(); // 清除会话
+                
+                // 2. 强制跳转
+                alert("已退出账号");
+                window.location.href = 'login.html';
+            }
+        }
+
+        // === 🟢 商业核心：从云端获取用户的购买权限 ===
+async function updateUserAccess() {
+    if (!supabaseClient) return;
+    
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) return; 
+
+    try {
+        // 去 profiles 表查 access_tags
+        const { data, error } = await supabaseClient
+            .from('profiles') 
+            .select('access_tags')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (data && data.access_tags) {
+            // 拿到权限列表 (比如 ['season_1', 'season_2'])
+            const tags = data.access_tags;
+            
+            // 存入本地，供渲染使用
+            localStorage.setItem('my_access_tags', JSON.stringify(tags));
+            
+            console.log("✅ 权限已更新:", tags);
+            
+            // 立即刷新视频列表（把刚解锁的锁头去掉）
+            if (typeof renderVideos === 'function' && typeof getFilteredVideos === 'function') {
+                renderVideos(getFilteredVideos());
+            }
+        }
+    } catch (e) {
+        console.error("无法获取权限:", e);
+    }
+}
+
+    </script>
+</body>
+</html>
