@@ -14,7 +14,7 @@
     <!-- 2. 引入 Auth -->
     <script src="auth.js"></script>
     
-    <!-- 3. 🔴 关键：引入所有课程数据 (为了查字典) -->
+    <!-- 3. 引入所有课程数据 (查字典用) -->
     <script src="lesson_001.js"></script>
     <script src="lesson_002.js"></script> 
     <script src="lesson_003.js"></script>
@@ -33,7 +33,7 @@
     <script src="lesson_403.js"></script>
     <script src="lesson_404.js"></script>
 
-    <!-- 4. 配置 Supabase (解决变量冲突) -->
+    <!-- 4. 配置 Supabase -->
     <script>
         const SUPABASE_URL = 'https://tcrayyqmozfqrfagvusp.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcmF5eXFtb3pmcXJmYWd2dXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTY0NjYsImV4cCI6MjA4MTgzMjQ2Nn0.G4ei36j_DgvIRaa3wzO89YI8lj67MQs9ZbrsDFzxi1M';
@@ -111,6 +111,7 @@
             box-shadow: 2px 4px 12px rgba(0,0,0,0.03); 
             display: flex; flex-direction: column; gap: 12px;
             border-top: 4px solid #ddd; transition: transform 0.2s;
+            position: relative; /* 🟢 关键：为了让删除按钮绝对定位 */
         }
         .word-card:hover { transform: translateY(-3px); box-shadow: 4px 8px 20px rgba(0,0,0,0.06); }
         
@@ -144,6 +145,22 @@
 
         .empty { grid-column: 1 / -1; text-align: center; color: #aaa; margin-top: 50px; }
 
+        /* 🔴 修复：删除按钮样式 (绝对定位) */
+        .trash-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #e5e7eb; /* 默认浅灰 */
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .trash-btn:hover {
+            color: var(--red); /* 悬停变红 */
+            transform: scale(1.2);
+        }
+
         @media (max-width: 768px) {
             body { flex-direction: column; height: auto; overflow-y: auto; background: var(--bg); }
             .sidebar { 
@@ -165,18 +182,6 @@
             .chart-wrapper { height: 200px; }
             .vocab-grid { grid-template-columns: 1fr; gap: 15px; }
             .word-card { padding: 15px; }
-        }
-        /* 🔴 新增：删除按钮样式 */
-        .btn-trash {
-            color: #ccc;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            margin-left: 10px; /* 和喇叭拉开点距离 */
-        }
-        .btn-trash:hover {
-            color: var(--red); /* 悬停变红 */
-            transform: scale(1.2);
         }
     </style>
 </head>
@@ -247,7 +252,6 @@
 
         const REVIEW_INTERVALS = [5*60*1000, 24*60*60*1000, 3*24*60*60*1000, 7*24*60*60*1000, 15*24*60*60*1000];
 
-        // 语言字典
         const uiDict = {
             ru: {
                 page_title: "Кривая забывания", 
@@ -284,18 +288,18 @@
             }
         };
 
-        // 🟢 1. 页面加载：先同步，再渲染
+        // 1. 初始化
         document.addEventListener('DOMContentLoaded', async () => {
             updateLanguage(); 
             initChart();      
             
-            // 核心修复：等待云端同步完成后再渲染
+            // 先同步云端，再渲染本地
             await syncFromCloud();
             loadLocalData();
             render();
         });
 
-        // 🟢 2. 从云端拉取生词并合并
+        // 2. 云端同步 (智能合并)
         async function syncFromCloud() {
             if (!supabaseClient) return;
             const { data: { user } } = await supabaseClient.auth.getUser();
@@ -309,14 +313,13 @@
                     .maybeSingle();
 
                 if (data && data.data) {
-                    // 合并逻辑：云端 + 本地去重
+                    // 合并列表
                     const cloudList = JSON.parse(data.data['my_vocab_list'] || '[]');
                     const localList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
                     const mergedList = [...new Set([...cloudList, ...localList])];
                     localStorage.setItem('my_vocab_list', JSON.stringify(mergedList));
                     
-                    // 合并元数据 (保留最新的记录)
-                    // 这里简化处理：直接合并，本地覆盖云端旧值
+                    // 合并元数据
                     const cloudMeta = JSON.parse(data.data['my_vocab_meta'] || '{}');
                     const localMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
                     const mergedMeta = { ...cloudMeta, ...localMeta };
@@ -327,30 +330,31 @@
             } catch (e) { console.error("同步出错:", e); }
         }
 
-        // 🟢 3. 加载本地数据
+        // 3. 加载数据
         function loadLocalData() {
             myVocab = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
             vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
             const now = Date.now();
             myVocab.forEach(word => {
+                // 如果没有元数据，就初始化它
                 if (!vocabMeta[word]) {
                     vocabMeta[word] = { created: now, nextReview: now, level: 0, note: "" };
                 }
             });
-            saveMeta(false); // 这一步只保存本地，不触发上传，避免循环
+            // 只保存本地，不触发循环上传
+            saveMeta(false); 
         }
 
-        // 🟢 4. 保存数据 (操作后上传)
+        // 4. 保存与上传
         async function saveMeta(upload = true) { 
             localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
-            localStorage.setItem('my_vocab_list', JSON.stringify(myVocab)); // 列表也可能变
+            localStorage.setItem('my_vocab_list', JSON.stringify(myVocab)); 
             
-            // 顺手存到云端
             if (upload && supabaseClient) {
                 const { data: { user } } = await supabaseClient.auth.getUser();
                 if (user) {
                     try {
-                        // 读取现有云端大包
+                        // 先拉取云端大对象
                         const { data } = await supabaseClient
                             .from('user_progress')
                             .select('data')
@@ -359,11 +363,11 @@
                         
                         const currentData = data ? data.data : {};
                         
-                        // 更新这两个字段
+                        // 更新生词相关字段
                         currentData['my_vocab_list'] = localStorage.getItem('my_vocab_list');
                         currentData['my_vocab_meta'] = localStorage.getItem('my_vocab_meta');
                         
-                        // 推送
+                        // 推送覆盖
                         await supabaseClient
                             .from('user_progress')
                             .upsert({ 
@@ -371,7 +375,7 @@
                                 data: currentData,
                                 updated_at: new Date().toISOString() 
                             });
-                        console.log("✅ 操作已同步到云端");
+                        console.log("✅ 操作已强制同步到云端");
                     } catch (e) { console.error(e); }
                 }
             }
@@ -384,8 +388,7 @@
             meta.level = Math.min(meta.level + 1, REVIEW_INTERVALS.length);
             meta.nextReview = Date.now() + (REVIEW_INTERVALS[meta.level] || 30*24*60*60*1000);
             
-            // 保存并上传
-            saveMeta(true);
+            saveMeta(true); // 上传进度
             
             btn.classList.add('checked');
             btn.innerHTML = '<i class="fas fa-check"></i> OK';
@@ -396,7 +399,7 @@
         function saveUserNote(word, el) { 
             if(vocabMeta[word]) { 
                 vocabMeta[word].note = el.value; 
-                saveMeta(true); // 笔记修改也要上传
+                saveMeta(true); // 上传笔记
             } 
         }
 
@@ -407,6 +410,7 @@
             render();
         }
 
+        // 🟢 修复后的 Render 函数
         function render() {
             const container = document.getElementById('grid');
             container.innerHTML = '';
@@ -415,6 +419,8 @@
 
             const listToShow = myVocab.filter(word => {
                 const meta = vocabMeta[word];
+                if (!meta) return false; // 防错
+                
                 countTotal++;
                 
                 const isDue = meta.nextReview <= now;
@@ -446,7 +452,7 @@
                 const isDue = meta.nextReview <= now;
                 const isMaster = meta.level >= 4;
                 
-                // 🔍 查字典：遍历所有 lesson 文件
+                // 查词典
                 let details = { py: "", mean: "" };
                 if (window.lessonDatabase) {
                     for (let id in window.lessonDatabase) {
@@ -464,13 +470,13 @@
                 const unit = uiDict[currentLang].times_label; 
                 const countDisplay = `<i class="fas fa-check-double"></i> ${meta.level} ${unit}`;
 
+                // 🔴 修复：这里正确使用了模板字符串，没有重复 card.innerHTML
                 card.innerHTML = `
-                    card.innerHTML = `
-                    <!-- 👇 这一行是新增的删除按钮 -->
                     <div class="trash-btn" onclick="deleteWord('${word}')"><i class="fas fa-trash-alt"></i></div>
-                    
+
                     <div class="wc-top">
                         <span class="wc-hz">${word}</span>
+                        <span class="wc-py">${details.py || ''}</span>
                         <i class="fas fa-volume-up" style="color:#ccc; cursor:pointer" onclick="speak('${word}')"></i>
                     </div>
                     <div class="wc-mean">${details.mean || '...'}</div>
@@ -553,28 +559,23 @@
                 }
             });
         }
-        // === 🔴 新增：彻底删除单词逻辑 ===
-        function deleteWord(word) {
-            // 1. 二次确认防止手滑
-            if (!confirm(`确定要删除生词 "${word}" 吗？\n删除后复习进度也将清空。`)) return;
 
-            // 2. 从内存数组中移除
-            myVocab = myVocab.filter(item => item !== word);
-            
-            // 3. 从元数据对象中移除
-            if (vocabMeta[word]) {
-                delete vocabMeta[word];
-            }
+        // === 🔴 新增：彻底删除生词 (同步删除云端) ===
+        async function deleteWord(word) {
+            if (!confirm(`确定要删除 "${word}" 吗？\n删除后将无法恢复。`)) return;
 
-            // 4. 🟢 关键：立即保存到本地 + 强制同步到云端
-            // 这样云端的数据也会变成“不包含该词”的新状态
-            saveMeta(true);
+            // 1. 本地删除
+            myVocab = myVocab.filter(w => w !== word);
+            delete vocabMeta[word];
 
-            // 5. 重新渲染界面
+            // 2. 存本地
+            localStorage.setItem('my_vocab_list', JSON.stringify(myVocab));
+            localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
+
+            // 3. 🟢 强制推送到云端 (防止复活)
+            await saveMeta(true);
+
             render();
-            
-            // 6. 稍微更新一下统计图
-            initChart();
         }
     </script>
 </body>
