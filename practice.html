@@ -340,7 +340,51 @@ audio {
         function prevCard() { currentCardIdx = (currentCardIdx - 1 + lesson.flashcards.length) % lesson.flashcards.length; loadCardData(currentCardIdx); }
         function playWordAudio(e) { e.stopPropagation(); const u = new SpeechSynthesisUtterance(lesson.flashcards[currentCardIdx].cn); u.lang = 'zh-CN'; speechSynthesis.speak(u); }
         function jumpToVideoContext(e) { e.stopPropagation(); video.currentTime = lesson.flashcards[currentCardIdx].time; video.play(); setTimeout(() => video.pause(), 4000); }
-        function addToLib() { alert("Saved!"); }
+        // === 🟢 修复版：真实加入生词本 (带动画反馈) ===
+        function addToLib() {
+            // 1. 获取当前卡片上的单词
+            if (!lesson || !lesson.flashcards) return;
+            const currentWordObj = lesson.flashcards[currentCardIdx];
+            if (!currentWordObj) return;
+            
+            const word = currentWordObj.cn; // 获取汉字
+
+            // 2. 读取并更新列表 (List)
+            let vocabList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
+            if (!vocabList.includes(word)) {
+                vocabList.push(word);
+                localStorage.setItem('my_vocab_list', JSON.stringify(vocabList));
+            }
+
+            // 3. 初始化复习进度 (Meta) - 这一步让复习页能识别它
+            let vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+            if (!vocabMeta[word]) {
+                vocabMeta[word] = {
+                    created: Date.now(),
+                    nextReview: Date.now(), // 立即加入复习队列
+                    level: 0,
+                    note: ""
+                };
+                localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
+            }
+
+            // 4. UI 视觉反馈 (按钮变绿，提升体验)
+            const btn = document.querySelector('.add-btn');
+            const originalHTML = btn.innerHTML; // 记住原来的文字
+            
+            btn.innerHTML = '<i class="fas fa-check"></i> 已加入';
+            btn.style.background = '#4ade80'; // 变绿色
+            btn.style.color = 'white';
+            btn.disabled = true; // 防止重复点击
+
+            // 1.5秒后恢复原样
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = ''; // 恢复 CSS 里的默认黄色
+                btn.style.color = '';
+                btn.disabled = false;
+            }, 1500);
+        }
 
         function initCloze() {
             const list = document.getElementById('clozeList'); list.innerHTML = '';
