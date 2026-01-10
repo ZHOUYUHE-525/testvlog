@@ -14,7 +14,7 @@
     <!-- 2. 引入 Auth -->
     <script src="auth.js"></script>
     
-    <!-- 3. 引入所有课程数据 -->
+    <!-- 3. 引入所有课程数据 (查字典用) -->
     <script src="lesson_001.js"></script>
     <script src="lesson_002.js"></script> 
     <script src="lesson_003.js"></script>
@@ -111,7 +111,7 @@
             box-shadow: 2px 4px 12px rgba(0,0,0,0.03); 
             display: flex; flex-direction: column; gap: 12px;
             border-top: 4px solid #ddd; transition: transform 0.2s;
-            position: relative; 
+            position: relative; /* 🟢 关键：为了让删除按钮绝对定位 */
         }
         .word-card:hover { transform: translateY(-3px); box-shadow: 4px 8px 20px rgba(0,0,0,0.06); }
         
@@ -119,14 +119,9 @@
         .status-due { border-top-color: var(--red); } 
         .status-master { border-top-color: var(--yellow); } 
         
-        .wc-top { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: baseline; /* 底部对齐，拼音更好看 */
-        }
-        
+        .wc-top { display: flex; justify-content: space-between; align-items: baseline; }
         .wc-hz { font-size: 24px; font-weight: bold; color: var(--text); font-family: "Songti SC", serif; }
-        .wc-py { color: #888; font-family: monospace; font-size: 14px; margin-left: 10px; }
+        .wc-py { color: #888; font-family: monospace; font-size: 14px; }
         .wc-mean { font-size: 14px; color: #555; background: #fbfbfb; padding: 8px; border-radius: 6px; border: 1px dashed #eee; }
         
         .note-area { 
@@ -150,17 +145,20 @@
 
         .empty { grid-column: 1 / -1; text-align: center; color: #aaa; margin-top: 50px; }
 
-        /* 图标通用 */
-        .icon-btn { cursor: pointer; font-size: 16px; transition: all 0.2s; color: #ccc; }
-        .icon-btn:hover { color: var(--primary); transform: scale(1.2); }
-        
-        /* 🔴 修复：垃圾桶移到左下角 */
-        .btn-trash {
-            font-size: 13px;
-            color: #e5e7eb; /* 默认极淡 */
+        /* 🔴 修复：删除按钮样式 (绝对定位) */
+        .trash-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #e5e7eb; /* 默认浅灰 */
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            z-index: 10;
         }
-        .btn-trash:hover {
-            color: var(--red) !important; /* 悬停变红 */
+        .trash-btn:hover {
+            color: var(--red); /* 悬停变红 */
+            transform: scale(1.2);
         }
 
         @media (max-width: 768px) {
@@ -294,12 +292,14 @@
         document.addEventListener('DOMContentLoaded', async () => {
             updateLanguage(); 
             initChart();      
+            
+            // 先同步云端，再渲染本地
             await syncFromCloud();
             loadLocalData();
             render();
         });
 
-        // 2. 云端同步
+        // 2. 云端同步 (智能合并)
         async function syncFromCloud() {
             if (!supabaseClient) return;
             const { data: { user } } = await supabaseClient.auth.getUser();
@@ -313,34 +313,39 @@
                     .maybeSingle();
 
                 if (data && data.data) {
+                    // 合并列表
                     const cloudList = JSON.parse(data.data['my_vocab_list'] || '[]');
                     const localList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
                     const mergedList = [...new Set([...cloudList, ...localList])];
                     localStorage.setItem('my_vocab_list', JSON.stringify(mergedList));
                     
+                    // 合并元数据
                     const cloudMeta = JSON.parse(data.data['my_vocab_meta'] || '{}');
                     const localMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
                     const mergedMeta = { ...cloudMeta, ...localMeta };
                     localStorage.setItem('my_vocab_meta', JSON.stringify(mergedMeta));
+                    
                     console.log("✅ 复习本已与云端合并");
                 }
             } catch (e) { console.error("同步出错:", e); }
         }
 
-        // 3. 加载本地
+        // 3. 加载数据
         function loadLocalData() {
             myVocab = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
             vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
             const now = Date.now();
             myVocab.forEach(word => {
+                // 如果没有元数据，就初始化它
                 if (!vocabMeta[word]) {
                     vocabMeta[word] = { created: now, nextReview: now, level: 0, note: "" };
                 }
             });
+            // 只保存本地，不触发循环上传
             saveMeta(false); 
         }
 
-        // 4. 保存
+        // 4. 保存与上传
         async function saveMeta(upload = true) { 
             localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
             localStorage.setItem('my_vocab_list', JSON.stringify(myVocab)); 
@@ -349,6 +354,7 @@
                 const { data: { user } } = await supabaseClient.auth.getUser();
                 if (user) {
                     try {
+                        // 先拉取云端大对象
                         const { data } = await supabaseClient
                             .from('user_progress')
                             .select('data')
@@ -356,9 +362,12 @@
                             .maybeSingle();
                         
                         const currentData = data ? data.data : {};
+                        
+                        // 更新生词相关字段
                         currentData['my_vocab_list'] = localStorage.getItem('my_vocab_list');
                         currentData['my_vocab_meta'] = localStorage.getItem('my_vocab_meta');
                         
+                        // 推送覆盖
                         await supabaseClient
                             .from('user_progress')
                             .upsert({ 
@@ -366,6 +375,7 @@
                                 data: currentData,
                                 updated_at: new Date().toISOString() 
                             });
+                        console.log("✅ 操作已强制同步到云端");
                     } catch (e) { console.error(e); }
                 }
             }
@@ -374,9 +384,12 @@
         function markReviewed(word, btn) {
             const meta = vocabMeta[word];
             if(!meta) return;
+            
             meta.level = Math.min(meta.level + 1, REVIEW_INTERVALS.length);
             meta.nextReview = Date.now() + (REVIEW_INTERVALS[meta.level] || 30*24*60*60*1000);
-            saveMeta(true); 
+            
+            saveMeta(true); // 上传进度
+            
             btn.classList.add('checked');
             btn.innerHTML = '<i class="fas fa-check"></i> OK';
             btn.disabled = true;
@@ -386,7 +399,7 @@
         function saveUserNote(word, el) { 
             if(vocabMeta[word]) { 
                 vocabMeta[word].note = el.value; 
-                saveMeta(true); 
+                saveMeta(true); // 上传笔记
             } 
         }
 
@@ -397,6 +410,7 @@
             render();
         }
 
+        // 🟢 修复后的 Render 函数
         function render() {
             const container = document.getElementById('grid');
             container.innerHTML = '';
@@ -405,12 +419,16 @@
 
             const listToShow = myVocab.filter(word => {
                 const meta = vocabMeta[word];
-                if (!meta) return false; 
+                if (!meta) return false; // 防错
+                
                 countTotal++;
+                
                 const isDue = meta.nextReview <= now;
                 const isMaster = meta.level >= 4; 
+
                 if (isDue) countDue++;
                 if (isMaster) countMaster++;
+
                 if (currentFilter === 'due') return isDue;
                 if (currentFilter === 'master') return isMaster;
                 return true;
@@ -434,6 +452,7 @@
                 const isDue = meta.nextReview <= now;
                 const isMaster = meta.level >= 4;
                 
+                // 查词典
                 let details = { py: "", mean: "" };
                 if (window.lessonDatabase) {
                     for (let id in window.lessonDatabase) {
@@ -451,27 +470,20 @@
                 const unit = uiDict[currentLang].times_label; 
                 const countDisplay = `<i class="fas fa-check-double"></i> ${meta.level} ${unit}`;
 
-                // 🟢 布局优化：左边汉字拼音，右边喇叭
-                // 🔴 底部左边：次数+垃圾桶
+                // 🔴 修复：这里正确使用了模板字符串，没有重复 card.innerHTML
                 card.innerHTML = `
-                    <div class="wc-top">
-                        <div style="display:flex; align-items:baseline;">
-                            <span class="wc-hz">${word}</span>
-                            <span class="wc-py">${details.py || ''}</span>
-                        </div>
-                        <i class="fas fa-volume-up icon-btn" onclick="speak('${word}')"></i>
-                    </div>
+                    <div class="trash-btn" onclick="deleteWord('${word}')"><i class="fas fa-trash-alt"></i></div>
 
+                    <div class="wc-top">
+                        <span class="wc-hz">${word}</span>
+                        <span class="wc-py">${details.py || ''}</span>
+                        <i class="fas fa-volume-up" style="color:#ccc; cursor:pointer" onclick="speak('${word}')"></i>
+                    </div>
                     <div class="wc-mean">${details.mean || '...'}</div>
                     <textarea class="note-area" placeholder="✍️..." onchange="saveUserNote('${word}', this)">${meta.note || ''}</textarea>
                     
                     <div class="wc-foot">
-                        <!-- 次数和垃圾桶放在一起 -->
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <span style="color:#888; font-size:11px;">${countDisplay}</span>
-                            <i class="fas fa-trash-alt icon-btn btn-trash" onclick="deleteWord('${word}')" title="删除"></i>
-                        </div>
-
+                        <span style="color:#888; font-size:11px;">${countDisplay}</span>
                         ${isDue ? 
                             `<button class="btn-check" onclick="markReviewed('${word}', this)">${uiDict[currentLang].btn_check}</button>` 
                             : 
@@ -495,6 +507,7 @@
         function updateLanguage() {
             let label = '🇷🇺 RU'; if (currentLang === 'en') label = '🇺🇸 EN'; if (currentLang === 'cn') label = '🇨🇳 CN';
             document.getElementById('langLabel').innerText = label;
+            
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
@@ -547,13 +560,21 @@
             });
         }
 
+        // === 🔴 新增：彻底删除生词 (同步删除云端) ===
         async function deleteWord(word) {
-            if (!confirm(`确定要删除 "${word}" 吗？`)) return;
+            if (!confirm(`确定要删除 "${word}" 吗？\n删除后将无法恢复。`)) return;
+
+            // 1. 本地删除
             myVocab = myVocab.filter(w => w !== word);
             delete vocabMeta[word];
+
+            // 2. 存本地
             localStorage.setItem('my_vocab_list', JSON.stringify(myVocab));
             localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
+
+            // 3. 🟢 强制推送到云端 (防止复活)
             await saveMeta(true);
+
             render();
         }
     </script>
