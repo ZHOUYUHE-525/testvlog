@@ -14,7 +14,10 @@
     <!-- 2. 引入 Auth -->
     <script src="auth.js"></script>
     
-    <!-- 3. 引入所有课程数据 -->
+    <!-- 3. 引入 HSK 数据库 (新!) -->
+    <script src="hsk_level.js"></script>
+    
+    <!-- 4. 引入所有课程数据 -->
     <script src="lesson_001.js"></script>
     <script src="lesson_002.js"></script> 
     <script src="lesson_003.js"></script>
@@ -27,13 +30,12 @@
     <script src="lesson_010.js"></script>
     <script src="lesson_011.js"></script>
     <script src="lesson_012.js"></script>
-    
     <script src="lesson_401.js"></script>
     <script src="lesson_402.js"></script>
     <script src="lesson_403.js"></script>
     <script src="lesson_404.js"></script>
 
-    <!-- 4. 配置 Supabase -->
+    <!-- 5. 配置 Supabase -->
     <script>
         const SUPABASE_URL = 'https://tcrayyqmozfqrfagvusp.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcmF5eXFtb3pmcXJmYWd2dXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTY0NjYsImV4cCI6MjA4MTgzMjQ2Nn0.G4ei36j_DgvIRaa3wzO89YI8lj67MQs9ZbrsDFzxi1M';
@@ -122,11 +124,39 @@
         .wc-top { 
             display: flex; 
             justify-content: space-between; 
-            align-items: baseline; /* 底部对齐，拼音更好看 */
+            align-items: center; /* 垂直居中 */
+        }
+        
+        /* 左侧：汉字+拼音+HSK标签 */
+        .wc-left {
+            display: flex;
+            align-items: center; /* 拼音和汉字对齐 */
+            gap: 10px;
         }
         
         .wc-hz { font-size: 24px; font-weight: bold; color: var(--text); font-family: "Songti SC", serif; }
-        .wc-py { color: #888; font-family: monospace; font-size: 14px; margin-left: 10px; }
+        .wc-py { color: #888; font-family: monospace; font-size: 14px; }
+        
+        /* 🟢 HSK 标签样式 (复古莫兰迪) */
+        .hsk-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 5px; /* 在汉字左边或右边 */
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .hsk-1 { background-color: #E8D5B5; color: #8C7A5B; border:1px solid #D6C2A0; } /* 米色 */
+        .hsk-2 { background-color: #E0C9A6; color: #856E4B; border:1px solid #D1B894; } /* 驼色 */
+        .hsk-3 { background-color: #A7C957; color: white; } /* 抹茶绿 */
+        .hsk-4 { background-color: #6A994E; color: white; } /* 森林绿 */
+        .hsk-5 { background-color: #E9C46A; color: white; } /* 芥末黄 */
+        .hsk-6 { background-color: #F4A261; color: white; } /* 陶土色 */
+        .hsk-7-9 { background-color: #E76F51; color: white; } /* 砖红 */
+        .hsk-unknown { background-color: #f3f4f6; color: #9ca3af; } /* 灰色 */
+
         .wc-mean { font-size: 14px; color: #555; background: #fbfbfb; padding: 8px; border-radius: 6px; border: 1px dashed #eee; }
         
         .note-area { 
@@ -150,17 +180,15 @@
 
         .empty { grid-column: 1 / -1; text-align: center; color: #aaa; margin-top: 50px; }
 
-        /* 图标通用 */
         .icon-btn { cursor: pointer; font-size: 16px; transition: all 0.2s; color: #ccc; }
         .icon-btn:hover { color: var(--primary); transform: scale(1.2); }
         
-        /* 🔴 修复：垃圾桶移到左下角 */
         .btn-trash {
             font-size: 13px;
-            color: #e5e7eb; /* 默认极淡 */
+            color: #e5e7eb; 
         }
         .btn-trash:hover {
-            color: var(--red) !important; /* 悬停变红 */
+            color: var(--red) !important; 
         }
 
         @media (max-width: 768px) {
@@ -294,10 +322,8 @@
         document.addEventListener('DOMContentLoaded', async () => {
             updateLanguage(); 
             initChart();      
-            
-            // await syncFromCloud(); // <--- 我把它删掉了，不再自动拉取旧数据
-            
-            loadLocalData(); // 只读取本地最新的状态
+            await syncFromCloud();
+            loadLocalData();
             render();
         });
 
@@ -443,6 +469,17 @@
                         if (dict && dict[word]) { details = dict[word]; break; }
                     }
                 }
+                
+                // 🟢 自动获取 HSK 级别
+                let levelHtml = '';
+                if (window.HSK_DB) {
+                    const level = window.HSK_DB[word];
+                    if (level) {
+                        // 简单的映射：如果包含数字，就用对应的颜色类，否则用 unknown
+                        const levelClass = `hsk-${level}`;
+                        levelHtml = `<span class="hsk-tag ${levelClass}">HSK ${level}</span>`;
+                    }
+                }
 
                 const card = document.createElement('div');
                 let statusClass = 'status-new';
@@ -453,22 +490,26 @@
                 const unit = uiDict[currentLang].times_label; 
                 const countDisplay = `<i class="fas fa-check-double"></i> ${meta.level} ${unit}`;
 
-                // 🟢 布局优化：左边汉字拼音，右边喇叭
-                // 🔴 底部左边：次数+垃圾桶
+                // 🟢 布局优化：
+                // 左上：汉字+标签
+                // 左下：拼音
+                // 右上：喇叭
                 card.innerHTML = `
                     <div class="wc-top">
-                        <div style="display:flex; align-items:baseline;">
+                        <div class="wc-left">
                             <span class="wc-hz">${word}</span>
-                            <span class="wc-py">${details.py || ''}</span>
+                            ${levelHtml}
                         </div>
                         <i class="fas fa-volume-up icon-btn" onclick="speak('${word}')"></i>
                     </div>
+                    
+                    <!-- 拼音单独一行 -->
+                    <div style="font-family:monospace; color:#888; font-size:14px; margin-bottom:5px;">${details.py || ''}</div>
 
                     <div class="wc-mean">${details.mean || '...'}</div>
                     <textarea class="note-area" placeholder="✍️..." onchange="saveUserNote('${word}', this)">${meta.note || ''}</textarea>
                     
                     <div class="wc-foot">
-                        <!-- 次数和垃圾桶放在一起 -->
                         <div style="display:flex; align-items:center; gap:10px;">
                             <span style="color:#888; font-size:11px;">${countDisplay}</span>
                             <i class="fas fa-trash-alt icon-btn btn-trash" onclick="deleteWord('${word}')" title="删除"></i>
