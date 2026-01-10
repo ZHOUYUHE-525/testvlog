@@ -166,6 +166,18 @@
             .vocab-grid { grid-template-columns: 1fr; gap: 15px; }
             .word-card { padding: 15px; }
         }
+        /* 🔴 新增：删除按钮样式 */
+        .btn-trash {
+            color: #ccc;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            margin-left: 10px; /* 和喇叭拉开点距离 */
+        }
+        .btn-trash:hover {
+            color: var(--red); /* 悬停变红 */
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -453,9 +465,12 @@
                 const countDisplay = `<i class="fas fa-check-double"></i> ${meta.level} ${unit}`;
 
                 card.innerHTML = `
+                    card.innerHTML = `
+                    <!-- 👇 这一行是新增的删除按钮 -->
+                    <div class="trash-btn" onclick="deleteWord('${word}')"><i class="fas fa-trash-alt"></i></div>
+                    
                     <div class="wc-top">
                         <span class="wc-hz">${word}</span>
-                        <span class="wc-py">${details.py}</span>
                         <i class="fas fa-volume-up" style="color:#ccc; cursor:pointer" onclick="speak('${word}')"></i>
                     </div>
                     <div class="wc-mean">${details.mean || '...'}</div>
@@ -537,6 +552,29 @@
                     scales: { y: { display: false }, x: { grid: { display: false } } }
                 }
             });
+        }
+        // === 🔴 新增：彻底删除单词逻辑 ===
+        function deleteWord(word) {
+            // 1. 二次确认防止手滑
+            if (!confirm(`确定要删除生词 "${word}" 吗？\n删除后复习进度也将清空。`)) return;
+
+            // 2. 从内存数组中移除
+            myVocab = myVocab.filter(item => item !== word);
+            
+            // 3. 从元数据对象中移除
+            if (vocabMeta[word]) {
+                delete vocabMeta[word];
+            }
+
+            // 4. 🟢 关键：立即保存到本地 + 强制同步到云端
+            // 这样云端的数据也会变成“不包含该词”的新状态
+            saveMeta(true);
+
+            // 5. 重新渲染界面
+            render();
+            
+            // 6. 稍微更新一下统计图
+            initChart();
         }
     </script>
 </body>
