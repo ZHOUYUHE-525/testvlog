@@ -596,10 +596,7 @@
         // === 2. 加载数据 ===
         document.addEventListener('DOMContentLoaded', () => {
             console.log("读取本地数据...");
-            // 🟢 自动静默拉取数据
-            if (typeof window.downloadData === 'function') {
-                setTimeout(() => window.downloadData(true), 1000); // 延迟1秒执行，不打扰用户
-    }
+            
             if (typeof updateUserAccess === 'function') {
                 updateUserAccess();
     }
@@ -746,7 +743,8 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
         if(btnText) btnText.innerText = originalText;
     }
 };
-// === 🟢 修复版：从云端下载 (带日期合并功能) ===
+        
+// === 🟢 修复版：智能合并下载 (Smart Merge) ===
         window.downloadData = async function(isSilent = false) {
             if (!supabaseClient) return;
             
@@ -761,6 +759,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
             if(!isSilent && btnSpan) btnSpan.innerText = "⏳ 下载中...";
 
             try {
+                // 1. 从云端拉取数据
                 const { data, error } = await supabaseClient
                     .from('user_progress')
                     .select('data')
@@ -770,43 +769,65 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 if (error) throw error;
 
                 if (data && data.data) {
+                    const cloudData = data.data;
                     let count = 0;
-                    for (const key in data.data) {
-                        // 1. 跳过权限标签 (防打架)
+
+                    // 2. 开始智能合并
+                    for (const key in cloudData) {
+                        const cloudVal = cloudData[key];
+                        const localVal = localStorage.getItem(key);
+
+                        // 🚨 绝对跳过：权限数据 (以本地实时获取的 profiles 为准)
                         if (key === 'my_access_tags') continue;
 
-                        // 🟢 2. 核心修复：如果是日历数据，进行【合并】而不是【覆盖】
-                        if (key === 'my_study_days') {
+                        // 🧠 情况 A：数组类型数据 (生词本、日历) -> 合并并去重
+                        if (key === 'my_vocab_list' || key === 'my_study_days') {
                             try {
-                                // 拿出本地现有的
-                                const localList = JSON.parse(localStorage.getItem('my_study_days') || '[]');
-                                // 拿出云端存的
-                                const cloudList = JSON.parse(data.data[key] || '[]');
-                                // 合并并去重 (Set大法)
-                                const mergedList = [...new Set([...localList, ...cloudList])];
-                                // 存回去
-                                localStorage.setItem(key, JSON.stringify(mergedList));
+                                const localArr = localVal ? JSON.parse(localVal) : [];
+                                const cloudArr = JSON.parse(cloudVal || '[]');
+                                // Set 去重合并
+                                const mergedArr = [...new Set([...localArr, ...cloudArr])];
+                                localStorage.setItem(key, JSON.stringify(mergedArr));
                                 count++;
-                                continue; // 跳过默认覆盖逻辑
-                            } catch(e) {
-                                console.warn("日期合并出错，将执行覆盖", e);
-                            }
+                            } catch(e) { console.warn("数组合并失败", e); }
+                            continue;
                         }
 
-                        // 3. 其他数据 (进度等) 直接覆盖
-                        localStorage.setItem(key, data.data[key]);
-                        count++;
+                        // 🧠 情况 B：进度数据 (progress_xxx) -> 取最大值
+                        if (key.startsWith('progress_')) {
+                            const localNum = parseInt(localVal || 0);
+                            const cloudNum = parseInt(cloudVal || 0);
+                            if (cloudNum > localNum) {
+                                localStorage.setItem(key, cloudNum);
+                                count++;
+                            }
+                            continue;
+                        }
+
+                        // 🧠 情况 C：完成状态 (done_xxx) -> 只要有一个是 true 就 true
+                        if (key.startsWith('done_')) {
+                            if (cloudVal === 'true' && localVal !== 'true') {
+                                localStorage.setItem(key, 'true');
+                                count++;
+                            }
+                            continue;
+                        }
+
+                        // 🧠 情况 D：其他普通数据 -> 如果本地没有，才写入；如果本地有，保留本地的(本地优先)
+                        if (!localVal) {
+                            localStorage.setItem(key, cloudVal);
+                            count++;
+                        }
                     }
-                    console.log(`✅ 已同步 ${count} 项数据 (日期已合并)`);
-                    
-                    // 刷新界面
+
+                    // 3. 刷新界面
                     if (typeof calculateStats === 'function') calculateStats();
-                    if (typeof renderMonthCalendar === 'function') renderMonthCalendar(); // 立即刷新日历
+                    if (typeof renderMonthCalendar === 'function') renderMonthCalendar();
                     if (typeof renderVideos === 'function' && typeof getFilteredVideos === 'function') {
                         renderVideos(getFilteredVideos());
                     }
                     
-                    if(!isSilent) alert(`✅ 同步成功！`);
+                    if(!isSilent) alert(`✅ 恢复成功！\n已智能合并 ${count} 项新进度。`);
                 } else {
                     if(!isSilent) alert("☁️ 云端暂无备份数据");
                 }
