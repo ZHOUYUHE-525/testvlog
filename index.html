@@ -390,9 +390,9 @@
             document.getElementById('d-mean').innerHTML = html;
         }
 
-        // === 🟢 新增：加入生词本逻辑 ===
+        // === 🟢 修复版：加入生词本 (同时初始化复习进度) ===
         function addToNotebook(word) {
-            // 1. 读取旧数据
+            // 1. 读取旧列表
             let vocabList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
             
             // 2. 查重
@@ -401,11 +401,25 @@
                 return;
             }
             
-            // 3. 保存
+            // 3. 保存到列表
             vocabList.push(word);
             localStorage.setItem('my_vocab_list', JSON.stringify(vocabList));
+
+            // 4. 🟢 关键：同时初始化“元数据” (让复习页能立即识别)
+            let vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+            const now = Date.now();
+            // 如果 Meta 里没有这个词，就初始化它
+            if (!vocabMeta[word]) {
+                vocabMeta[word] = { 
+                    created: now,      // 创建时间
+                    nextReview: now,   // 下次复习时间 (立即)
+                    level: 0,          // 记忆等级 0
+                    note: ""           // 笔记
+                };
+                localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
+            }
             
-            // 4. 反馈
+            // 5. 反馈
             alert(`✅ 已将 "${word}" 加入生词本！\n(当前共 ${vocabList.length} 个词)`);
         }
 
@@ -423,8 +437,21 @@
         if(lesson) {
             document.getElementById('lessonTitle').innerText = lesson.title;
             video.src = lesson.video;
-            window.currentSubtitles = lesson.subs; // 注意：这里用的是 subs
+            window.currentSubtitles = lesson.subs; 
             updateLanguage();
+
+            // 🟢 新增：断点续播 (读取本地进度)
+            const savedTimePercent = localStorage.getItem('progress_' + id);
+            if (savedTimePercent && parseInt(savedTimePercent) > 0 && parseInt(savedTimePercent) < 100) {
+                // 等视频元数据加载完再跳转，防止黑屏
+                video.addEventListener('loadedmetadata', () => {
+                    const jumpTime = video.duration * (parseInt(savedTimePercent) / 100);
+                    if(jumpTime > 0) {
+                        video.currentTime = jumpTime;
+                        console.log(`已恢复进度到: ${parseInt(savedTimePercent)}%`);
+                    }
+                }, { once: true }); // 只执行一次
+            }
         }
 
         function toggleLang() {
