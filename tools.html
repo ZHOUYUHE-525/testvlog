@@ -127,15 +127,12 @@
             <i class="fas fa-chevron-left"></i> <span data-i18n="back_home">返回首页</span>
         </div>
         
+        <!-- 按钮 A: 拼音助手 (默认选中) -->
         <div class="tool-nav-item active" onclick="switchTool('pinyin', this)">
             <i class="fas fa-font"></i> <span data-i18n="tool_pinyin">拼音助手</span>
         </div>
 
-        <div class="tool-nav-item" onclick="switchTool('grammar', this)">
-            <i class="fas fa-spell-check"></i> <span data-i18n="tool_grammar">语法纠错</span>
-            <span class="badge-new">NEW</span>
-        </div>
-        
+        <!-- 按钮 C: 更多 -->
         <div class="tool-nav-item" onclick="alert('Coming Soon...')">
             <i class="fas fa-plus-circle"></i> <span data-i18n="tool_more">更多工具</span>
         </div>
@@ -167,7 +164,6 @@
                 </div>
             </div>
             
-            <!-- 🟢 重点：contenteditable="true" 允许用户直接在上面修改错误 -->
             <div id="display" class="display-area mode-pinyin" contenteditable="true" spellcheck="false"></div>
 
             <div class="input-area">
@@ -183,35 +179,27 @@
             </div>
         </div>
 
-        <!-- B: 语法纠错 (占位) -->
-        <div id="tool-grammar" class="tool-container tool-module">
-            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#999;">
-                <i class="fas fa-robot" style="font-size:50px; margin-bottom:20px; color:#ddd;"></i>
-                <p data-i18n="grammar_msg">AI 语法纠错功能即将上线...</p>
-            </div>
-        </div>
-
     </div>
 
     <script>
         // === 1. 多语言字典 ===
         const uiDict = {
             cn: {
-                back_home: "返回首页", tool_pinyin: "拼音助手", tool_grammar: "语法纠错", tool_more: "更多工具",
+                back_home: "返回首页", tool_pinyin: "拼音助手", tool_more: "更多工具",
                 pinyin_title: "🛠️ 汉字转拼音/声调", mode_py: "📖 拼音模式", mode_tone: "🎼 声调模式",
-                btn_copy: "复制结果", btn_clear: "清空", grammar_msg: "AI 语法纠错功能即将上线...",
+                btn_copy: "复制结果", btn_clear: "清空",
                 input_ph: "请在此输入汉字...", copy_ok: "✅ 内容已复制！"
             },
             en: {
-                back_home: "Back Home", tool_pinyin: "Pinyin Helper", tool_grammar: "Grammar AI", tool_more: "More",
+                back_home: "Back Home", tool_pinyin: "Pinyin Helper", tool_more: "More",
                 pinyin_title: "🛠️ Hanzi to Pinyin/Tone", mode_py: "📖 Pinyin Mode", mode_tone: "🎼 Tone Mode",
-                btn_copy: "Copy", btn_clear: "Clear", grammar_msg: "AI Grammar Check Coming Soon...",
+                btn_copy: "Copy", btn_clear: "Clear",
                 input_ph: "Type Chinese here...", copy_ok: "✅ Copied!"
             },
             ru: {
-                back_home: "На главную", tool_pinyin: "Пиньинь", tool_grammar: "Грамматика", tool_more: "Ещё",
+                back_home: "На главную", tool_pinyin: "Пиньинь", tool_more: "Ещё",
                 pinyin_title: "🛠️ Ханзи в Пиньинь", mode_py: "📖 Текст", mode_tone: "🎼 Тоны",
-                btn_copy: "Копия", btn_clear: "Сброс", grammar_msg: "Скоро: AI проверка грамматики...",
+                btn_copy: "Копия", btn_clear: "Сброс",
                 input_ph: "Введите китайский текст...", copy_ok: "✅ Скопировано!"
             }
         };
@@ -306,7 +294,7 @@
             }, 50);
         }
 
-        // === 3. 智能复制逻辑 (核心修复) ===
+        // === 3. 智能复制逻辑 ===
         function copyResult() {
             if(!input.value) return;
             const { pinyin } = pinyinPro;
