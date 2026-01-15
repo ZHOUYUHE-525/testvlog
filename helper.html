@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语拼音声调自动生成器</title>
+    <!-- 🟢 1. 引入图标库 (为了显示返回箭头) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* --- 莫兰迪配色 --- */
+        :root {
+            --bg-color: #fcf9f2;      
+            --card-bg: #fffbf5;       
+            --main-brown: #aa8366;    
+            --soft-green: #c9d6ba;    
+            --cream: #f2ecde;         
+            --text-dark: #5a4a42;     
+            --text-light: #8c7b70;    
+            --accent-red: #d16b5b;    
+        }
+
+        body { 
+            font-family: "STKaiti", "KaiTi", "SimKai", "FangSong", serif;
+            background-color: var(--bg-color); 
+            color: var(--text-dark);
+            margin: 0; 
+            padding: 0; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        /* 🟢 2. 返回按钮样式 */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            color: var(--main-brown);
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            z-index: 1000;
+        }
+        .back-btn:hover {
+            transform: translateX(-5px);
+            background: var(--main-brown);
+            color: white;
+        }
+
+        .container { 
+            width: 90%; 
+            max-width: 1000px; 
+            height: 92vh; 
+            background: #ffffff; 
+            border: 8px solid var(--cream); 
+            border-radius: 30px; 
+            box-shadow: 0 10px 40px rgba(170, 131, 102, 0.1); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            position: relative;
+        }
+
+        /* 模式切换栏 */
+        .mode-switch {
+            background: var(--cream);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            border-bottom: 2px dashed var(--soft-green);
+            user-select: none; 
+        }
+
+        .mode-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 20px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 20px;
+            border: 2px solid transparent;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+        
+        .mode-switch input[type="radio"] { display: none; }
+
+        .mode-switch input[type="radio"]:checked + .mode-label {
+            background: #fff;
+            border-color: var(--main-brown);
+            color: var(--main-brown);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* 展示区 */
+        .display-area {
+            flex: 1; 
+            background: #fff;
+            padding: 40px 50px;
+            overflow-y: auto; 
+            color: var(--text-dark);
+            outline: none; 
+            border-bottom: 2px solid transparent;
+            scroll-behavior: smooth;
+        }
+        
+        /* 模式1：拼音模式样式 */
+        .display-area.mode-pinyin {
+            font-size: 32px; 
+            line-height: 1.8; 
+            white-space: pre-wrap; 
+            display: block; 
+        }
+        .mode-pinyin .py-text {
+            color: var(--main-brown);
+            margin-left: 8px; 
+            font-size: 0.9em; 
+        }
+
+        /* 模式2：声调模式样式 */
+        .display-area.mode-tone {
+            display: flex;
+            flex-wrap: wrap; 
+            align-content: flex-start; 
+            gap: 10px 0; 
+        }
+
+        .char-box {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            margin: 0 2px; 
+            min-width: 30px; 
+        }
+
+        .tone-mark {
+            font-family: "Arial", sans-serif; 
+            font-size: 24px;
+            color: var(--accent-red); 
+            height: 30px;
+            line-height: 30px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+
+        .hanzi-text {
+            font-size: 48px; 
+            line-height: 1.2;
+            text-align: center;
+        }
+        
+        .break-line {
+            width: 100%;
+            height: 0;
+            margin: 5px 0;
+        }
+
+        /* 操作区 */
+        .input-wrapper {
+            height: 160px; 
+            background: var(--cream); 
+            padding: 20px 30px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            border-top: 2px dashed var(--soft-green); 
+        }
+
+        textarea {
+            flex: 1;
+            height: 100%;
+            border: 2px solid transparent;
+            background: rgba(255,255,255, 0.6); 
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 20px;
+            color: var(--text-dark);
+            font-family: "STKaiti", "KaiTi", serif; 
+            resize: none; 
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+        textarea:focus { 
+            background: #fff;
+            border-color: var(--main-brown); 
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+            width: 140px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            font-family: "STKaiti", "KaiTi", serif;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-copy { background: var(--main-brown); flex: 2; } 
+        .btn-clear { background: var(--soft-green); flex: 1; font-size: 18px; color: #fff; } 
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+
+        .toast { 
+            position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); 
+            background: var(--text-dark); color: #fff; padding: 15px 40px; 
+            border-radius: 50px; font-size: 18px; font-family: "STKaiti", serif;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
+        }
+    </style>
+    <!-- 引入拼音库 -->
+    <script src="https://unpkg.com/pinyin-pro"></script>
+</head>
+<body>
+
+    <!-- 🟢 3. 返回首页按钮 -->
+    <div class="back-btn" onclick="location.href='home.html'">
+        <i class="fas fa-arrow-left"></i> 返回首页
+    </div>
+
+    <div class="container">
+        <!-- 模式切换开关 -->
+        <div class="mode-switch">
+            <label>
+                <input type="radio" name="mode" value="pinyin" checked onchange="updateDisplay()">
+                <div class="mode-label">📖 拼音模式</div>
+            </label>
+            <label>
+                <input type="radio" name="mode" value="tone" onchange="updateDisplay()">
+                <div class="mode-label">🎼 声调模式</div>
+            </label>
+        </div>
+
+        <!-- 展示区 -->
+        <div id="display" class="display-area mode-pinyin" contenteditable="true" spellcheck="false"><span style="color:#b0a49d;">请输入汉字...</span></div>
+
+        <!-- 输入区 -->
+        <div class="input-wrapper">
+            <textarea id="input" placeholder="请在此输入文本..."></textarea>
+            
+            <div class="btn-group">
+                <button class="btn btn-copy" onclick="copyResult()">复 制</button>
+                <button class="btn btn-clear" onclick="clearAll()">清 空</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">已复制内容</div>
+
+    <script>
+        const input = document.getElementById('input');
+        const display = document.getElementById('display');
+        const toast = document.getElementById('toast');
+        let currentMode = 'pinyin';
+
+        input.addEventListener('input', updateDisplay);
+
+        const toneMap = {
+            1: 'ˉ', 2: 'ˊ', 3: 'ˇ', 4: 'ˋ', 5: '˙', 0: '˙'
+        };
+
+        function updateDisplay() {
+            if (typeof pinyinPro === 'undefined') return;
+            const { pinyin } = pinyinPro;
+
+            const modes = document.getElementsByName('mode');
+            for(let m of modes) { if(m.checked) currentMode = m.value; }
+            
+            display.classList.remove('mode-pinyin', 'mode-tone');
+            display.classList.add(currentMode === 'pinyin' ? 'mode-pinyin' : 'mode-tone');
+
+            const text = input.value;
+            if (!text) {
+                if(display.innerText.trim() === "") {
+                    display.innerHTML = '<span style="color:#b0a49d;">请输入汉字...</span>';
+                }
+                return;
+            }
+
+            if (currentMode === 'pinyin') {
+                renderPinyinMode(text, pinyin);
+            } else {
+                renderToneMode(text, pinyin);
+            }
+
+            setTimeout(() => { display.scrollTop = display.scrollHeight; }, 0);
+        }
+
+        function renderPinyinMode(text, pinyinFunc) {
+            const lines = text.split('\n');
+            const processedLines = lines.map(line => {
+                if (!line.trim()) return "";
+                const py = pinyinFunc(line, { toneType: 'symbol', type: 'string', nonZh: 'spaced' });
+                return line + " <span class='py-text'>" + py + "</span>"; 
+            });
+            display.innerHTML = processedLines.join('\n');
+        }
+
+        function renderToneMode(text, pinyinFunc) {
+            let html = '';
+            const lines = text.split('\n');
+            
+            lines.forEach((line, lineIndex) => {
+                if (!line) { 
+                    html += '<div class="break-line"></div>'; 
+                    return;
+                }
+
+                const chars = line.split('');
+                chars.forEach(char => {
+                    if (/[\u4e00-\u9fa5]/.test(char)) {
+                        let toneSymbol = '&nbsp;'; 
+                        try {
+                            const pyArr = pinyinFunc(char, { pattern: 'num', type: 'array' });
+                            if (pyArr && pyArr.length > 0) {
+                                const toneNum = parseInt(pyArr[0].slice(-1));
+                                if (!isNaN(toneNum)) toneSymbol = toneMap[toneNum] || '˙';
+                                else toneSymbol = '˙';
+                            }
+                        } catch(e) {}
+
+                        html += `<div class="char-box"><div class="tone-mark">${toneSymbol}</div><div class="hanzi-text">${char}</div></div>`;
+                    } else {
+                        html += `<div class="char-box"><div class="tone-mark">&nbsp;</div><div class="hanzi-text">${char}</div></div>`;
+                    }
+                });
+                
+                if(lineIndex < lines.length - 1) html += '<div class="break-line"></div>';
+            });
+            display.innerHTML = html;
+        }
+
+        function copyResult() {
+            if(!input.value) return;
+            const { pinyin } = pinyinPro;
+
+            if (currentMode === 'pinyin') {
+                const textToCopy = display.innerText;
+                navigator.clipboard.writeText(textToCopy).then(() => showToast("已复制拼音内容"));
+                return;
+            }
+
+            if (currentMode === 'tone') {
+                let finalString = "";
+                const lines = input.value.split('\n');
+
+                lines.forEach(line => {
+                    if (!line.trim()) {
+                        finalString += "\n";
+                        return;
+                    }
+                    let toneLine = "";
+                    let charLine = "";
+                    const chars = line.split('');
+                    chars.forEach(char => {
+                        charLine += char + " "; 
+                        let toneSymbol = " "; 
+                        if (/[\u4e00-\u9fa5]/.test(char)) {
+                             try {
+                                const pyArr = pinyin(char, { pattern: 'num', type: 'array' });
+                                if (pyArr && pyArr.length > 0) {
+                                    const toneNum = parseInt(pyArr[0].slice(-1));
+                                    toneSymbol = toneMap[toneNum] || '˙';
+                                } else { toneSymbol = '˙'; }
+                            } catch(e) {}
+                        }
+                        toneLine += toneSymbol + " "; 
+                    });
+                    finalString += toneLine.trimEnd() + "\n" + charLine.trimEnd() + "\n";
+                });
+
+                navigator.clipboard.writeText(finalString).then(() => {
+                    showToast("已复制双行格式 (可粘贴至PPT)");
+                });
+            }
+        }
+
+        function clearAll() {
+            input.value = "";
+            display.innerHTML = '<span style="color:#b0a49d;">请输入汉字...</span>';
+            input.focus();
+        }
+
+        function showToast(msg) {
+            toast.innerText = msg;
+            toast.style.opacity = 1;
+            setTimeout(() => { toast.style.opacity = 0; }, 2000);
+        }
+
+        window.onload = function() {
+            if(input.value) updateDisplay();
+        }
+    </script>
+</body>
+</html>
