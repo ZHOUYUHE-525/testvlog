@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语 Vlog | 学习工具箱</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 引入拼音库 -->
+    <script src="https://unpkg.com/pinyin-pro"></script>
+    <!-- 引入 Supabase (保持登录状态用) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+
+    <style>
+        :root { --primary: #6CAD9C; --bg: #F9F7F2; --white: #FFFFFF; --text: #4A3B32; --gray: #9ca3af; --cream: #f2ecde; }
+        body { margin: 0; font-family: "PingFang SC", sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+
+        /* === 左侧边栏 === */
+        .sidebar { width: 240px; background: var(--white); border-right: 1px solid #eee; display: flex; flex-direction: column; padding: 20px; }
+        .logo { font-size: 18px; font-weight: 800; color: #8B3A3A; margin-bottom: 30px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        
+        .tool-nav-item { 
+            display: flex; align-items: center; gap: 12px; padding: 12px 15px; 
+            border-radius: 10px; cursor: pointer; color: #666; margin-bottom: 8px; transition: 0.2s; font-size: 14px;
+        }
+        .tool-nav-item:hover { background: #fdfdfd; color: var(--primary); }
+        .tool-nav-item.active { background: var(--cream); color: #8B3A3A; font-weight: bold; }
+        
+        .badge-new { background: #ff4757; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: auto; }
+
+        /* === 右侧主内容 === */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        /* 工具容器 */
+        .tool-container { 
+            background: white; border-radius: 20px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
+            flex: 1; display: flex; flex-direction: column; overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        /* --- 拼音助手特定样式 --- */
+        .pinyin-header {
+            padding: 15px 25px; border-bottom: 1px solid #eee; background: #fffbf5;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .mode-switch { display: flex; gap: 15px; }
+        .mode-switch label { cursor: pointer; font-size: 14px; color: #888; display: flex; align-items: center; gap: 5px; }
+        .mode-switch input:checked + span { color: var(--primary); font-weight: bold; }
+
+        .display-area {
+            flex: 1; padding: 30px; overflow-y: auto; font-size: 24px; line-height: 1.8;
+            font-family: "KaiTi", "楷体", serif; white-space: pre-wrap; color: #333;
+        }
+        .py-text { color: #8B3A3A; margin-left: 5px; font-size: 0.8em; }
+        
+        /* 声调模式 */
+        .char-box { display: inline-flex; flex-direction: column; align-items: center; margin: 0 4px; }
+        .tone-mark { color: #d16b5b; font-size: 16px; height: 20px; font-weight: bold; }
+        
+        .input-area {
+            height: 120px; padding: 20px; background: #f9f9f9; border-top: 1px solid #eee;
+            display: flex; gap: 15px;
+        }
+        textarea {
+            flex: 1; border: 1px solid #ddd; border-radius: 10px; padding: 10px;
+            resize: none; outline: none; font-size: 16px;
+        }
+        textarea:focus { border-color: var(--primary); }
+        
+        .action-btns { display: flex; flex-direction: column; gap: 10px; width: 100px; }
+        .btn-tool {
+            border: none; padding: 10px; border-radius: 8px; cursor: pointer; color: white; font-weight: bold;
+        }
+        .btn-copy { background: var(--primary); }
+        .btn-clear { background: #ccc; }
+        .btn-tool:hover { opacity: 0.9; }
+
+        /* 隐藏的工具模块 */
+        .tool-module { display: none; height: 100%; flex-direction: column; }
+        .tool-module.active { display: flex; }
+
+        /* 手机适配 */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { 
+                width: 100%; height: auto; flex-direction: row; padding: 10px; 
+                overflow-x: auto; border-bottom: 1px solid #eee; border-right: none;
+            }
+            .logo { display: none; }
+            .tool-nav-item { margin-bottom: 0; white-space: nowrap; }
+            .main-content { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 侧边栏菜单 -->
+    <div class="sidebar">
+        <div class="logo" onclick="location.href='home.html'">
+            <i class="fas fa-chevron-left"></i> 返回首页
+        </div>
+        
+        <!-- 按钮 A: 拼音助手 -->
+        <div class="tool-nav-item active" onclick="switchTool('pinyin', this)">
+            <i class="fas fa-font"></i> 拼音标注助手
+        </div>
+
+        <!-- 按钮 B: 语法检查 (预留) -->
+        <div class="tool-nav-item" onclick="switchTool('grammar', this)">
+            <i class="fas fa-spell-check"></i> AI 语法纠错
+            <span class="badge-new">NEW</span>
+        </div>
+        
+        <!-- 按钮 C: 更多 -->
+        <div class="tool-nav-item" onclick="alert('开发中...')">
+            <i class="fas fa-plus-circle"></i> 更多工具...
+        </div>
+    </div>
+
+    <!-- 2. 主内容区 -->
+    <div class="main-content">
+        
+        <!-- 工具 1: 拼音助手 (默认显示) -->
+        <div id="tool-pinyin" class="tool-container tool-module active">
+            <div class="pinyin-header">
+                <div style="font-weight:bold; color:#555;">🛠️ 汉字转拼音/声调</div>
+                <div class="mode-switch">
+                    <label><input type="radio" name="mode" value="pinyin" checked onchange="updateDisplay()"> <span>📖 拼音</span></label>
+                    <label><input type="radio" name="mode" value="tone" onchange="updateDisplay()"> <span>🎼 声调</span></label>
+                </div>
+            </div>
+            
+            <div id="display" class="display-area"></div>
+
+            <div class="input-area">
+                <textarea id="input" placeholder="请在此粘贴或输入汉字..." oninput="updateDisplay()"></textarea>
+                <div class="action-btns">
+                    <button class="btn-tool btn-copy" onclick="copyResult()">复制</button>
+                    <button class="btn-tool btn-clear" onclick="clearAll()">清空</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工具 2: 语法纠错 (占位) -->
+        <div id="tool-grammar" class="tool-container tool-module">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#999;">
+                <i class="fas fa-robot" style="font-size:50px; margin-bottom:20px; color:#ddd;"></i>
+                <p>AI 语法纠错功能即将上线...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // === 页面逻辑 ===
+        
+        // 1. 切换工具 Tab
+        function switchTool(toolId, btn) {
+            // UI 变色
+            document.querySelectorAll('.tool-nav-item').forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+
+            // 内容切换
+            document.querySelectorAll('.tool-module').forEach(el => el.classList.remove('active'));
+            document.getElementById('tool-' + toolId).classList.add('active');
+        }
+
+        // === 拼音助手逻辑 (从 helper.html 移植) ===
+        const input = document.getElementById('input');
+        const display = document.getElementById('display');
+        let currentMode = 'pinyin';
+        const toneMap = { 1: 'ˉ', 2: 'ˊ', 3: 'ˇ', 4: 'ˋ', 5: '˙', 0: '˙' };
+
+        function updateDisplay() {
+            if (typeof pinyinPro === 'undefined') return;
+            const { pinyin } = pinyinPro;
+
+            const modes = document.getElementsByName('mode');
+            for(let m of modes) { if(m.checked) currentMode = m.value; }
+            
+            const text = input.value;
+            if (!text) {
+                display.innerHTML = '<span style="color:#ccc;">预览区域...</span>';
+                return;
+            }
+
+            if (currentMode === 'pinyin') {
+                const lines = text.split('\n');
+                const processedLines = lines.map(line => {
+                    if (!line.trim()) return "";
+                    const py = pinyin(line, { toneType: 'symbol', type: 'string', nonZh: 'spaced' });
+                    return line + " <span class='py-text'>" + py + "</span>"; 
+                });
+                display.innerHTML = processedLines.join('\n');
+            } else {
+                let html = '';
+                const lines = text.split('\n');
+                lines.forEach((line) => {
+                    if (!line) { html += '<div style="height:20px;"></div>'; return; }
+                    const chars = line.split('');
+                    chars.forEach(char => {
+                        if (/[\u4e00-\u9fa5]/.test(char)) {
+                            let toneSymbol = '˙'; 
+                            try {
+                                const pyArr = pinyin(char, { pattern: 'num', type: 'array' });
+                                if (pyArr && pyArr.length > 0) {
+                                    const toneNum = parseInt(pyArr[0].slice(-1));
+                                    toneSymbol = toneMap[toneNum] || '˙';
+                                }
+                            } catch(e) {}
+                            html += `<div class="char-box"><div class="tone-mark">${toneSymbol}</div><div>${char}</div></div>`;
+                        } else {
+                            html += `<div class="char-box"><div class="tone-mark">&nbsp;</div><div>${char}</div></div>`;
+                        }
+                    });
+                    html += '<br>';
+                });
+                display.innerHTML = html;
+            }
+        }
+
+        function copyResult() {
+            if(!input.value) return;
+            // 简单复制文本内容
+            navigator.clipboard.writeText(display.innerText).then(() => alert("已复制内容！"));
+        }
+
+        function clearAll() {
+            input.value = "";
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
