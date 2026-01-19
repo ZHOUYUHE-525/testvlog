@@ -196,33 +196,36 @@
 
             /* 4. 【核心修复】关闭按钮：放大感应区并置顶 */
             .modal-close {
-                position: fixed !important;
-                top: 10px !important;
-                right: 10px !important;
-                width: 44px !important; /* 手机端标准的最小点击区域 */
-                height: 44px !important;
-                background: #eee !important; /* 灰色圆圈背景 */
-                color: #000 !important;
+                position: fixed !important; /* 脱离文档流，防止被遮挡 */
+                top: 5px !important;
+                right: 5px !important;
+                width: 40px !important; /* 增加点击宽度 */
+                height: 40px !important; /* 增加点击高度 */
+                line-height: 40px !important;
+                text-align: center !important;
+                background: rgba(0,0,0,0.1) !important; /* 给个淡淡的圆圈背景，方便学生看清 */
                 border-radius: 50% !important;
-                border: 1px solid #ccc !important;
-                font-size: 28px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                z-index: 200000 !important; /* 设置到一个天文数字，确保绝对在最前 */
-                -webkit-appearance: none !important; /* 消除 button 的默认样式 */
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+                z-index: 100000 !important; /* 比弹窗还要高 */
+                font-size: 24px !important;
+                color: #333 !important;
             }
 
-            /* 2. 标题栏避让，防止拦截点击 */
+            /* 5. 标题栏和内容区分屏滑动 */
+            #reader-modal .profile-card { height: 100vh !important; display: flex !important; flex-direction: column !important; }
             .reader-tools { 
-                padding: 10px 60px 5px 10px !important; /* 右边空出 60px，彻底避开 X */
-                pointer-events: auto !important;
+                padding: 10px 10px 5px 10px !important; 
+                flex-direction: column !important; 
+                gap: 5px !important;
+                background: #fdfdfd !important;
+                border-bottom: 1px solid #eee !important;
+                padding-right: 50px !important; /* 为右侧的关闭按钮留出空间 */
             }
-
-            /* 3. 强制阅读器 modal 捕获点击 */
-            #reader-modal {
-                pointer-events: auto !important;
+            #reader-title { font-size: 13px !important; font-weight: bold !important; width: 100% !important; }
+            
+            /* 内容平分屏幕 */
+            #reader-modal .profile-card > div:last-child {
+                display: flex !important; flex-direction: column !important;
+                height: calc(100vh - 90px) !important; overflow: hidden !important;
             }
             #script-content {
                 height: 50% !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch;
@@ -527,7 +530,7 @@
 <!-- 剧本阅读器弹窗 (放在 main 里面最后面即可) -->
 <div id="reader-modal" class="modal-overlay" style="display:none; background: white; z-index: 9999; overflow: auto;">
     <div class="profile-card" style="width: 95%; max-width: 1100px; height: 90vh; background: white; display:flex; flex-direction:column; padding:0; overflow:hidden;">
-        <button class="modal-close" onclick="closeReader();" aria-label="Close" style="cursor: pointer;">×</button>
+        <div class="modal-close" onclick="closeReader()" style="top:10px; right:20px; z-index:100;">×</div>
         
         <div class="reader-tools" style="padding: 15px 25px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:#fdfdfd;">
     <div id="reader-title" style="font-weight:bold; font-size:18px; color:var(--blue);">课程标题</div>
@@ -1071,14 +1074,6 @@ function openReader(id) {
 }
 
 // 修改保存函数
-        // 核心修复：增加丢失的关闭阅读器功能
-function closeReader() {
-    const modal = document.getElementById('reader-modal');
-    if (modal) {
-        // 让弹窗彻底消失
-        modal.style.display = 'none';
-    }
-}
 async function saveCurrentNote() {
     const note = document.getElementById('lesson-note-area').value;
     if (!currentReadingLessonId) return;
