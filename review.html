@@ -1072,7 +1072,13 @@ function openReader(id) {
     
     document.getElementById('reader-modal').style.display = 'flex';
 }
-
+function closeReader() {
+    const modal = document.getElementById('reader-modal');
+    if (modal) {
+        // 让弹窗彻底消失
+        modal.style.display = 'none';
+    }
+}
 // 修改保存函数
 async function saveCurrentNote() {
     const note = document.getElementById('lesson-note-area').value;
