@@ -51,51 +51,61 @@ async function logVisit(user) {
 async function checkLogin() {
     if (!authClient) return;
 
-    // 1. 绿色通道 (刚登录跳转过来的，免检)
+    // 1. 绿色通道
     if (window.location.href.includes('from_login=1')) {
         const newUrl = window.location.href.replace(/[\?&]from_login=1/, '');
         window.history.replaceState({}, document.title, newUrl);
         return; 
     }
 
-    // 🔵 2. 尝试获取本地用户
+    // 2. 获取用户状态
     const { data: { user } } = await authClient.auth.getUser();
 
+    // 如果没登录，踢去登录页
     if (!user) {
-        if (!window.location.href.includes('login')) {
+        if (!window.location.href.includes('login.html')) {
             window.location.replace('login.html');
         }
         return;
     }
 
-    // 🔴 3. 【杀手锏】强制数据库实名核对 (Heartbeat)
-    // 既然 User 还在，我就拿着 ID 去 profiles 表里硬查。
-    // 如果你删了号，profiles 里的那一行一定没了，这个查询会返回空。
-    const { data: alive, error } = await authClient
+    // 🔵 3. 【互踢+删号检查】去数据库查最新的存根
+    const { data: profile, error } = await authClient
         .from('profiles')
-        .select('id')
+        .select('session_token')
         .eq('id', user.id)
         .maybeSingle();
 
-    // 🟢 核心逻辑：如果库里查不到对应的 profile，说明人已经被“干掉”了
-    if (error || !alive) {
-        console.error("🚨 数据库核对失败：该用户已被彻底注销");
-        
-        // 暴力清理，不留任何痕迹
+    // --- 情况 A：账号被删了 (查不到 profile) ---
+    if (!profile) {
         localStorage.clear();
-        sessionStorage.clear();
-        
-        // 只有在非登录页才弹窗提醒并跳转
-        if (!window.location.href.includes('login')) {
-            alert("您的账号已失效或已被管理员移除。");
+        if (!window.location.href.includes('login.html')) {
+            alert("账号已失效。");
             window.location.replace('login.html');
         }
         return;
     }
 
-    // 🔵 4. 账号依然活跃，继续后续逻辑
+    // --- 情况 B：互踢检查 (查到了 profile，但编号对不上) ---
+    const myLocalToken = localStorage.getItem('my_session_token');
+    
+    // 如果本地有存根，且云端的存根和我手里的不一样 -> 踢掉！
+    if (myLocalToken && profile.session_token && profile.session_token !== myLocalToken) {
+        console.warn("🚨 检测到异地登录，强制退出");
+        
+        // 1. 清空本地，防止闪回
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // 2. 弹窗并跳转
+        alert("⚠️ 您的账号已在其他设备登录，本设备已自动下线。");
+        window.location.replace('login.html');
+        return;
+    }
+
+    // 4. 正常登录状态：记录日志并放行
     logVisit(user);
-    if (window.location.href.includes('login')) {
+    if (window.location.href.includes('login.html')) {
         window.location.replace('home.html');
     }
 }
