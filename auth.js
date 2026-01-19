@@ -1,4 +1,4 @@
-// === auth.js (CTO 手机防闪死/防循环 稳定版) ===
+// === auth.js (CTO 彻底停火/零循环 终极稳定版) ===
 
 let authClient = null;
 const AUTH_SUPABASE_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
@@ -12,6 +12,18 @@ async function initAuth() {
     if (!authClient) {
         authClient = window.supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
     }
+
+    // 🔴 第一步：立即判断是否在登录页（支持多种路径格式）
+    const path = window.location.pathname;
+    const isLoginPage = path.includes('login') || path === '/' || path === '';
+
+    // 🔴 第二步：如果在登录页，保安直接“下班”，不准执行任何跳转逻辑！
+    if (isLoginPage) {
+        console.log("📍 已进入登录阵地，保安停止干预，防止循环。");
+        return; 
+    }
+
+    // 第三步：如果不在登录页，再检查登录状态
     checkLogin();
 }
 
@@ -20,34 +32,24 @@ initAuth();
 async function checkLogin() {
     if (!authClient) return;
 
-    const isLoginPage = window.location.href.includes('login.html');
-
-    // 🟢 1. 登录成功绿色通道
+    // 1. 登录成功的绿色通道
     if (window.location.href.includes('from_login=1')) {
-        console.log("🛡️ 登录成功，放行");
         const newUrl = window.location.href.replace(/[\?&]from_login=1/, '');
         window.history.replaceState({}, document.title, newUrl);
         return; 
     }
 
-    // 🔴 2. 核心修正：如果在登录页，且没有成功登录信号，【禁止】保安自动跳转
-    // 这样就切断了无限刷新的循环
-    if (isLoginPage) {
-        console.log("📍 当前在登录页，保安保持静默，等待用户操作");
-        return; 
-    }
+    // 2. 获取用户
+    const { data: { user }, error } = await authClient.auth.getUser();
 
-    // 🔵 3. 获取用户状态（仅在非登录页才执行联网检查）
-    const { data: { user } } = await authClient.auth.getUser();
-
-    // 3.1 没登录：踢去登录页
-    if (!user) {
-        console.log("🚫 未登录，跳转入口");
+    // 3. 没登录，送去登录
+    if (!user || error) {
+        console.log("🚫 无票，踢回登录");
         window.location.replace('login.html');
         return;
     }
 
-    // 3.2 已登录：核对互踢存根和账号有效性
+    // 4. 已登录，核对存根
     const { data: profile } = await authClient
         .from('profiles')
         .select('session_token')
@@ -55,25 +57,21 @@ async function checkLogin() {
         .maybeSingle();
 
     if (!profile) {
-        console.warn("🚨 账号失效");
         localStorage.clear();
-        sessionStorage.clear();
-        alert("账号已注销或失效。");
         window.location.replace('login.html');
         return;
     }
 
     const myLocalToken = localStorage.getItem('my_session_token');
     if (myLocalToken && profile.session_token && profile.session_token !== myLocalToken) {
-        console.warn("🚨 异地登录");
         localStorage.clear();
         sessionStorage.clear();
-        alert("⚠️ 您的账号已在其他设备登录，本设备已自动下线。");
+        alert("⚠️ 您的账号已在其他设备登录，本设备已下线。");
         window.location.replace('login.html');
         return;
     }
 
-    // 4. 放行并记录日志
+    // 5. 正常放行：记录日志
     logVisit(user);
 }
 
@@ -90,7 +88,6 @@ async function logVisit(user) {
 
 window.globalLogout = async function() {
     if(!confirm("确定要退出登录吗？")) return;
-    // 退出前把所有本地存根清空
     localStorage.clear();
     sessionStorage.clear();
     if (authClient) await authClient.auth.signOut();
