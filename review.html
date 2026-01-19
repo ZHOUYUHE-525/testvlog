@@ -1,4 +1,4 @@
-<script src="lesson_013.js"></script><!DOCTYPE html>
+</script><!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -171,66 +171,28 @@
         }
 
        @media (max-width: 768px) {
-    /* 1. 阅读器外壳：充满屏幕，去掉边距 */
-    #reader-modal .profile-card {
-        width: 100% !important;
-        height: 100vh !important;
-        max-width: none !important;
-        border-radius: 0 !important;
+    /* 1. 剧本馆封面：一行显示两个 */
+    .library-compact-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
     }
+    .library-card img { height: 100px !important; }
 
-    /* 2. 顶部工具栏：改为上下两行排版，解决标题重叠 */
-    .reader-tools {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        padding: 10px 15px !important;
-        gap: 12px !important;
-    }
+    /* 2. 显示手机提示语 */
+    #mobile-notice { display: block !important; }
 
-    #reader-title {
-        font-size: 16px !important;
-        line-height: 1.2 !important;
-        width: 100% !important;
-        word-break: break-all !important;
-    }
+    /* 3. 手机适配结构 */
+    body { flex-direction: column !important; height: auto !important; overflow-y: auto !important; }
+    .sidebar { width: 100% !important; flex-direction: row !important; overflow-x: auto !important; position: sticky !important; top: 0 !important; z-index: 1000 !important; background: white !important; height: auto !important; border-right: none !important; border-bottom: 1px solid #eee !important; }
+    .logo { display: none !important; }
+    .nav-btn { margin-bottom: 0 !important; margin-right: 8px !important; white-space: nowrap !important; }
+    #reader-modal .profile-card > div:last-child { flex-direction: column !important; overflow-y: auto !important; }
+    #script-content, .reader-note-sidebar { width: 100% !important; flex: none !important; border-right: none !important; }
+}
 
-    /* 3. 按钮和开关：在一行内平铺，如果太挤就自动换行 */
-    .reader-tools > div:last-child {
-        width: 100% !important;
-        justify-content: flex-start !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-
-    /* 缩小开关和打印按钮，适应手机 */
-    .toggle-circle { width: 28px !important; height: 28px !important; font-size: 11px !important; }
-    .reader-tools .btn-check { padding: 4px 8px !important; font-size: 11px !important; }
-
-    /* 4. 核心改动：把左右并排（Flex Row）改为上下排版（Flex Column） */
-    #reader-modal .profile-card > div:last-child {
-        flex-direction: column !important;
-        overflow-y: auto !important; /* 让整个容器可以上下滚动 */
-    }
-
-    /* 5. 课文区域：宽度占满，取消右边框 */
-    #script-content {
-        flex: none !important;
-        width: 100% !important;
-        padding: 20px 15px !important;
-        border-right: none !important;
-        border-bottom: 8px solid #f0f0f0 !important; /* 加一个分割条 */
-    }
-
-    /* 6. 笔记区域：宽度占满 */
-    .reader-note-sidebar {
-        flex: none !important;
-        width: 100% !important;
-        padding: 20px 15px !important;
-    }
-
-    #lesson-note-area {
-        height: 150px !important; /* 手机上输入框不要太高 */
-    }
+/* 补充一个打印分页修复 */
+@media print {
+    html, body, .main { height: auto !important; overflow: visible !important; }
 }
         @media print {
     /* 1. 解除“只显示课文”的封印 */
@@ -557,20 +519,29 @@
                 <!-- 自动填充台词 -->
             </div>
             <!-- 右侧：学习笔记 -->
+            <!-- 右侧：学习笔记 -->
             <div class="reader-note-sidebar" style="flex:0.8; padding:25px; background:#F9F7F2; display:flex; flex-direction:column;">
                 <h4 style="margin-top:0; color:var(--blue);">
-    <i class="fas fa-pen-fancy"></i> <span data-i18n="my_notes_title">我的精读笔记</span>
-</h4>
-                <textarea id="lesson-note-area" style="flex:1; width:100%; padding:15px; border:1px solid #e0e0e0; border-radius:12px; resize:none; font-size:14px; line-height:1.6; background:white;" placeholder="记录下你在这段 Vlog 里学到的地道表达..."></textarea>
-                <div id="note-print-clone" style="display:none; white-space: pre-wrap; text-align: left; color: black;">
-    <!-- 打印时会自动在笔记前加上这个小标题 -->
-    <h3 style="border-bottom: 2px solid #6CAD9C; padding-bottom: 5px; color: #14507D;">我的笔记：</h3>
-    <div id="note-text-placeholder"></div>
-</div>
+                    <i class="fas fa-pen-fancy"></i> <span data-i18n="my_notes_title">我的精读笔记</span>
+                </h4>
+                
+                <!-- 1. 手机提示语 (独立的一行) -->
+                <div id="mobile-notice" data-i18n="mobile_tip" style="display:none; color:#999; font-size:12px; line-height:1.4; margin-bottom:12px; padding:10px; background:#fff; border:1px solid #eee; border-radius:8px;"></div>
+
+                <!-- 2. 输入框 -->
+                <textarea id="lesson-note-area" style="flex:1; width:100%; padding:15px; border:1px solid #e0e0e0; border-radius:12px; resize:none; font-size:14px; line-height:1.6; background:white;" placeholder="记录下地道表达..."></textarea>
+                
+                <!-- 3. 打印分身 -->
+                <div id="note-print-clone" style="display:none;">
+                    <h3 style="border-bottom: 2px solid #6CAD9C; padding-bottom: 5px; color: #14507D;">我的笔记：</h3>
+                    <div id="note-text-placeholder"></div>
+                </div>
+                
+                <!-- 4. 保存按钮 -->
                 <button class="btn-check" style="margin-top:15px; width:100%; height:45px; background:var(--blue);" onclick="saveCurrentNote()" data-i18n="save_notes_btn">
-    保存并同步笔记
-</button>
-            </div>
+                    保存并同步笔记
+                </button>
+            </div> <!-- 这里关闭笔记区 -->
         </div>
     </div>
 </div>
@@ -609,7 +580,10 @@
         </div>
     </div>
 
-    <script>
+
+
+
+<script>
         let myChart = null; 
         let myVocab = [];
         let vocabMeta = {};
@@ -636,7 +610,7 @@
     btn_print_all: "Печать урока",
         btn_print_notes: "Только заметки",
         my_notes_title: "Мои заметки",
-        save_notes_btn: "Сохранить заметки"
+        save_notes_btn: "Сохранить заметки",
             },
             en: {
                 page_title: "Forgetting Curve", 
