@@ -4,13 +4,25 @@
 const AUTH_SUPABASE_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
 const AUTH_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
 
-// 2. 初始化
-let authClient = null;
-if (typeof window.supabase !== 'undefined') {
-    authClient = window.supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
-} else {
-    console.error("❌ 错误：Supabase 库未加载，auth.js 无法工作！");
+// === auth.js 测试站专用加强版 ===
+
+async function initAuth() {
+    // 1. 如果工具箱还没加载好，等 100 毫秒再试 (解决加载顺序问题)
+    if (typeof window.supabase === 'undefined') {
+        setTimeout(initAuth, 100);
+        return;
+    }
+
+    if (!authClient) {
+        authClient = window.supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
+    }
+    
+    // 2. 工具箱好了，再让保安查房
+    checkLogin();
 }
+
+// 启动！
+initAuth();
 
 // === 功能 A: 记录登录日志 ===
 async function logVisit(user) {
