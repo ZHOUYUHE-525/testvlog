@@ -51,45 +51,52 @@ async function logVisit(user) {
 async function checkLogin() {
     if (!authClient) return;
 
-    // 🟢 1. 绿色通道 (刚登录跳转过来的，免检)
+    // 1. 绿色通道 (刚登录跳转过来的，免检)
     if (window.location.href.includes('from_login=1')) {
-        console.log("🛡️ 检测到刚登录，保安放行！");
         const newUrl = window.location.href.replace(/[\?&]from_login=1/, '');
         window.history.replaceState({}, document.title, newUrl);
         return; 
     }
 
-    // 🔵 2. 【核心修改】强制联网核对 (getUser 会直接问云端：这人还在名单上吗？)
-    // 这一步能彻底解决“后台删了号，前台还能进”的缓存漏洞
-    const { data: { user }, error: authError } = await authClient.auth.getUser();
+    // 🔵 2. 尝试获取本地用户
+    const { data: { user } } = await authClient.auth.getUser();
 
-    // 🔴 3. 如果联网核对失败（账号已删、令牌过期等）
-    if (authError || !user) {
-        // 如果我们不在登录页，就得执行强踢
+    if (!user) {
         if (!window.location.href.includes('login')) {
-            console.warn("🚨 账号已失效或已被注销");
-            
-            // 暴力清空所有本地缓存，烧掉那张“鬼票”
-            localStorage.clear();
-            sessionStorage.clear();
-            
-            alert("您的账号已过期或失效，请联系老师。");
             window.location.replace('login.html');
         }
-        return; // 保安拒绝放行
+        return;
     }
 
-    // 🟢 4. 如果联网核对成功，说明账号还在，我们再拿 Session 走后面的互踢逻辑
-    const { data: { session } } = await authClient.auth.getSession();
-    
-    if (session) {
-        // 记录登录日志
-        logVisit(session.user);
+    // 🔴 3. 【杀手锏】强制数据库实名核对 (Heartbeat)
+    // 既然 User 还在，我就拿着 ID 去 profiles 表里硬查。
+    // 如果你删了号，profiles 里的那一行一定没了，这个查询会返回空。
+    const { data: alive, error } = await authClient
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
 
-        // 如果在登录页，送去首页
-        if (window.location.href.includes('login')) {
-            window.location.href = 'home.html';
+    // 🟢 核心逻辑：如果库里查不到对应的 profile，说明人已经被“干掉”了
+    if (error || !alive) {
+        console.error("🚨 数据库核对失败：该用户已被彻底注销");
+        
+        // 暴力清理，不留任何痕迹
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // 只有在非登录页才弹窗提醒并跳转
+        if (!window.location.href.includes('login')) {
+            alert("您的账号已失效或已被管理员移除。");
+            window.location.replace('login.html');
         }
+        return;
+    }
+
+    // 🔵 4. 账号依然活跃，继续后续逻辑
+    logVisit(user);
+    if (window.location.href.includes('login')) {
+        window.location.replace('home.html');
     }
 }
 
