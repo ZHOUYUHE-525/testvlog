@@ -1071,6 +1071,14 @@ function openReader(id) {
 }
 
 // 修改保存函数
+        // 核心修复：增加丢失的关闭阅读器功能
+function closeReader() {
+    const modal = document.getElementById('reader-modal');
+    if (modal) {
+        // 让弹窗彻底消失
+        modal.style.display = 'none';
+    }
+}
 async function saveCurrentNote() {
     const note = document.getElementById('lesson-note-area').value;
     if (!currentReadingLessonId) return;
