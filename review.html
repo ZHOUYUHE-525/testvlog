@@ -171,65 +171,40 @@
         }
 
        @media (max-width: 768px) {
-    /* 1. 阅读器外壳：充满屏幕，去掉边距 */
-    #reader-modal .profile-card {
-        width: 100% !important;
-        height: 100vh !important;
-        max-width: none !important;
-        border-radius: 0 !important;
+    /* 1. 显示手机提示 */
+    #mobile-notice {
+        display: block !important;
     }
 
-    /* 2. 顶部工具栏：改为上下两行排版，解决标题重叠 */
-    .reader-tools {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        padding: 10px 15px !important;
-        gap: 12px !important;
-    }
-
-    #reader-title {
-        font-size: 16px !important;
-        line-height: 1.2 !important;
-        width: 100% !important;
-        word-break: break-all !important;
-    }
-
-    /* 3. 按钮和开关：在一行内平铺，如果太挤就自动换行 */
-    .reader-tools > div:last-child {
-        width: 100% !important;
-        justify-content: flex-start !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-
-    /* 缩小开关和打印按钮，适应手机 */
-    .toggle-circle { width: 28px !important; height: 28px !important; font-size: 11px !important; }
-    .reader-tools .btn-check { padding: 4px 8px !important; font-size: 11px !important; }
-
-    /* 4. 核心改动：把左右并排（Flex Row）改为上下排版（Flex Column） */
+    /* 2. 阅读器改为上下堆叠，不再左右硬挤 */
     #reader-modal .profile-card > div:last-child {
         flex-direction: column !important;
-        overflow-y: auto !important; /* 让整个容器可以上下滚动 */
+        overflow-y: auto !important;
     }
 
-    /* 5. 课文区域：宽度占满，取消右边框 */
-    #script-content {
-        flex: none !important;
+    /* 3. 课文和笔记各占 100% 宽度 */
+    #script-content, .reader-note-sidebar {
         width: 100% !important;
-        padding: 20px 15px !important;
+        flex: none !important;
         border-right: none !important;
-        border-bottom: 8px solid #f0f0f0 !important; /* 加一个分割条 */
     }
 
-    /* 6. 笔记区域：宽度占满 */
-    .reader-note-sidebar {
-        flex: none !important;
-        width: 100% !important;
-        padding: 20px 15px !important;
+    /* 4. 缩小顶部标题，防止重叠 */
+    #reader-title {
+        font-size: 14px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
     }
 
-    #lesson-note-area {
-        height: 150px !important; /* 手机上输入框不要太高 */
+    /* 5. 缩小按钮，让顶部工具栏能放得下 */
+    .reader-tools {
+        padding: 10px !important;
+    }
+    .reader-tools .btn-check {
+        padding: 4px 8px !important;
+        font-size: 10px !important;
     }
 }
         @media print {
@@ -561,6 +536,10 @@
                 <h4 style="margin-top:0; color:var(--blue);">
     <i class="fas fa-pen-fancy"></i> <span data-i18n="my_notes_title">我的精读笔记</span>
 </h4>
+<!-- 🟢 新增：手机端专属提示 -->
+    <div id="mobile-notice" data-i18n="mobile_tip" style="display:none; color:#999; font-size:12px; line-height:1.4; margin-bottom:15px; padding:10px; background:#f5f5f5; border-radius:8px;">
+        <!-- 文字由 JS 自动填充 -->
+    </div>
                 <textarea id="lesson-note-area" style="flex:1; width:100%; padding:15px; border:1px solid #e0e0e0; border-radius:12px; resize:none; font-size:14px; line-height:1.6; background:white;" placeholder="记录下你在这段 Vlog 里学到的地道表达..."></textarea>
                 <div id="note-print-clone" style="display:none; white-space: pre-wrap; text-align: left; color: black;">
     <!-- 打印时会自动在笔记前加上这个小标题 -->
@@ -631,12 +610,14 @@
                 msg_empty: "🎉 Пока пусто! Добавьте слова из видео." ,
                 btn_print: "Печать",
                 menu_library: "Библиотека скриптов",
+                
     reader_sentences: "фразы",
     trans_label: "RU",
     btn_print_all: "Печать урока",
         btn_print_notes: "Только заметки",
         my_notes_title: "Мои заметки",
-        save_notes_btn: "Сохранить заметки"
+        save_notes_btn: "Сохранить заметки",
+        mobile_tip: "Из-за ограниченного пространства рекомендуется делать заметки на планшете или компьютере. На телефоне лучше использовать горизонтальный режим."
             },
             en: {
                 page_title: "Forgetting Curve", 
@@ -656,6 +637,7 @@
         btn_print_notes: "Notes Only",
         my_notes_title: "My Notes",
         save_notes_btn: "Save & Sync",
+        mobile_tip: "Limited screen space. For a better note-taking experience, please use a tablet or computer, or switch to landscape mode."
             },
             cn: {
                 page_title: "我的艾宾浩斯曲线", 
@@ -675,6 +657,7 @@
         btn_print_notes: "仅打印笔记",
         my_notes_title: "我的精读笔记",
         save_notes_btn: "保存并同步笔记",
+        mobile_tip: "因手机页面空间有限，建议在平板或电脑上做笔记。如需在手机使用，建议横屏。"
             }
         };
 
