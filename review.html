@@ -176,62 +176,65 @@
             .sidebar { 
                 width: 100% !important; padding: 10px !important; border-right: none !important; 
                 flex-direction: row !important; overflow-x: auto !important; position: sticky !important; 
-                top: 0 !important; z-index: 1000 !important; background: white !important; height: auto !important;
+                top: 0 !important; z-index: 500 !important; background: white !important; height: auto !important;
             }
             .logo { display: none !important; }
             .nav-btn { margin-bottom: 0 !important; margin-right: 8px !important; white-space: nowrap !important; }
 
-            /* 2. 剧本馆：封面一行两个 */
+            /* 2. 剧本网格：一行显示两个 */
             .library-compact-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
             .library-card img { height: 100px !important; }
 
-            /* 3. 【重点】阅读器：强制全屏且不准整体滑动 */
-            #reader-modal { position: fixed !important; inset: 0 !important; height: 100vh !important; overflow: hidden !important; }
-            #reader-modal .profile-card { height: 100vh !important; width: 100% !important; display: flex !important; flex-direction: column !important; }
+            /* 3. 阅读器弹窗：全屏且层级最高 */
+            #reader-modal { 
+                position: fixed !important; 
+                inset: 0 !important; 
+                height: 100vh !important; 
+                z-index: 99999 !important; /* 确保在最前面 */
+                background: white !important;
+            }
 
-            /* 4. 【重点】标题栏：压缩高度，不占地方 */
+            /* 4. 【核心修复】关闭按钮：放大感应区并置顶 */
+            .modal-close {
+                position: fixed !important; /* 脱离文档流，防止被遮挡 */
+                top: 5px !important;
+                right: 5px !important;
+                width: 40px !important; /* 增加点击宽度 */
+                height: 40px !important; /* 增加点击高度 */
+                line-height: 40px !important;
+                text-align: center !important;
+                background: rgba(0,0,0,0.1) !important; /* 给个淡淡的圆圈背景，方便学生看清 */
+                border-radius: 50% !important;
+                z-index: 100000 !important; /* 比弹窗还要高 */
+                font-size: 24px !important;
+                color: #333 !important;
+            }
+
+            /* 5. 标题栏和内容区分屏滑动 */
+            #reader-modal .profile-card { height: 100vh !important; display: flex !important; flex-direction: column !important; }
             .reader-tools { 
-                padding: 5px 10px !important; /* 极窄边距 */
-                flex-direction: row !important; /* 强制按钮横排，省空间 */
-                flex-wrap: wrap !important;
+                padding: 10px 10px 5px 10px !important; 
+                flex-direction: column !important; 
                 gap: 5px !important;
                 background: #fdfdfd !important;
-                min-height: 80px !important; /* 固定一个较小的高度 */
+                border-bottom: 1px solid #eee !important;
+                padding-right: 50px !important; /* 为右侧的关闭按钮留出空间 */
             }
-            #reader-title { font-size: 13px !important; width: 100% !important; margin-bottom: 5px !important; }
-            .toggle-circle { width: 26px !important; height: 26px !important; font-size: 10px !important; }
-            .reader-tools .btn-check { padding: 3px 6px !important; font-size: 10px !important; }
-
-            /* 5. 【核心】内容容器：平分剩下的屏幕空间 */
+            #reader-title { font-size: 13px !important; font-weight: bold !important; width: 100% !important; }
+            
+            /* 内容平分屏幕 */
             #reader-modal .profile-card > div:last-child {
-                display: flex !important;
-                flex-direction: column !important;
-                height: calc(100vh - 85px) !important; /* 减去标题栏高度 */
-                overflow: hidden !important;
+                display: flex !important; flex-direction: column !important;
+                height: calc(100vh - 90px) !important; overflow: hidden !important;
             }
-
-            /* 字幕区：占 55%，独立滑动 */
             #script-content {
-                height: 55% !important; 
-                overflow-y: auto !important; 
-                -webkit-overflow-scrolling: touch; /* 解决 iOS 滑动不顺 */
-                padding: 15px !important;
-                border-bottom: 2px solid #6CAD9C !important; 
-                background: white !important;
-                flex: none !important;
+                height: 50% !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch;
+                padding: 15px !important; border-bottom: 2px solid #6CAD9C !important; flex: none !important;
             }
-
-            /* 笔记区：占 45%，独立滑动 */
             .reader-note-sidebar {
-                height: 45% !important; 
-                overflow-y: auto !important; 
-                padding: 15px !important;
-                background: #F9F7F2 !important;
-                flex: none !important;
+                height: 50% !important; overflow-y: auto !important;
+                padding: 15px !important; background: #F9F7F2 !important; flex: none !important;
             }
-
-            /* 手机提示语缩小 */
-            #mobile-notice { font-size: 11px !important; padding: 5px !important; margin-bottom: 8px !important; }
         }
         @media print {
     /* 1. 解除“只显示课文”的封印 */
