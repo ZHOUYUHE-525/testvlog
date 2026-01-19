@@ -1,5 +1,6 @@
 // === auth.js (最终修复版：修复语法错误) ===
 
+let authClient = null; // 🟢 必须有这一行，否则会报错！
 // 1. 配置 Supabase
 const AUTH_SUPABASE_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
 const AUTH_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
@@ -61,7 +62,23 @@ async function checkLogin() {
 
     // 🔵 2. 检查是否登录 (基本门票)
     const { data: { session } } = await authClient.auth.getSession();
+    
+if (session) {
+        const { data: profile } = await authClient
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .maybeSingle();
 
+        // 如果查不到对应的 profile，说明账号已被老师注销
+        if (!profile) {
+            console.warn("🚨 账号已在数据库中被注销");
+            alert("您的账号已失效，请联系老师。");
+            window.globalLogout(true); // 强制静默退出，不弹确认框
+            return;
+        }
+    }
+    
     // 如果没登录
     if (!session) {
         // 如果当前不在登录页，踢去登录页
