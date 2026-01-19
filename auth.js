@@ -54,41 +54,44 @@ async function checkLogin() {
     // 🟢 1. 绿色通道 (刚登录跳转过来的，免检)
     if (window.location.href.includes('from_login=1')) {
         console.log("🛡️ 检测到刚登录，保安放行！");
-        // 悄悄去掉网址尾巴，不刷新页面
         const newUrl = window.location.href.replace(/[\?&]from_login=1/, '');
         window.history.replaceState({}, document.title, newUrl);
-        return; // 直接结束，不查了
+        return; 
     }
 
-    // 🔵 2. 检查是否登录 (基本门票)
+    // 🔵 2. 【核心修改】强制联网核对 (getUser 会直接问云端：这人还在名单上吗？)
+    // 这一步能彻底解决“后台删了号，前台还能进”的缓存漏洞
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
+
+    // 🔴 3. 如果联网核对失败（账号已删、令牌过期等）
+    if (authError || !user) {
+        // 如果我们不在登录页，就得执行强踢
+        if (!window.location.href.includes('login')) {
+            console.warn("🚨 账号已失效或已被注销");
+            
+            // 暴力清空所有本地缓存，烧掉那张“鬼票”
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            alert("您的账号已过期或失效，请联系老师。");
+            window.location.replace('login.html');
+        }
+        return; // 保安拒绝放行
+    }
+
+    // 🟢 4. 如果联网核对成功，说明账号还在，我们再拿 Session 走后面的互踢逻辑
     const { data: { session } } = await authClient.auth.getSession();
     
-if (session) {
-        const { data: profile } = await authClient
-            .from('profiles')
-            .select('id')
-            .eq('id', session.user.id)
-            .maybeSingle();
+    if (session) {
+        // 记录登录日志
+        logVisit(session.user);
 
-        // 如果查不到对应的 profile，说明账号已被老师注销
-        if (!profile) {
-            console.warn("🚨 账号已在数据库中被注销");
-            alert("您的账号已失效，请联系老师。");
-            window.globalLogout(true); // 强制静默退出，不弹确认框
-            return;
+        // 如果在登录页，送去首页
+        if (window.location.href.includes('login')) {
+            window.location.href = 'home.html';
         }
     }
-    
-    // 如果没登录
-    if (!session) {
-        // 如果当前不在登录页，踢去登录页
-        // (这里用 includes('login') 是为了兼容 login.html 和 无后缀的 login)
-        if (!window.location.href.includes('login')) {
-            console.log("🚫 未登录，跳转登录页");
-            window.location.href = 'login.html';
-        }
-        return;
-    }
+}
 
     // 🔴 3. 互踢检查 (只有在非登录页才检查)
     if (!window.location.href.includes('login')) {
