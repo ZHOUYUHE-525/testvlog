@@ -171,33 +171,56 @@
         }
 
        @media (max-width: 768px) {
-            /* 1. 整体布局：从并排改为上下堆叠 */
-            body { flex-direction: column !important; height: auto !important; overflow-y: auto !important; }
-            
-            /* 2. 侧边栏：变为顶部横向导航 */
+            /* 1. 整体排版：侧边栏变顶部导航 */
+            body { flex-direction: column !important; height: auto !important; }
             .sidebar { 
-                width: 100% !important; padding: 10px !important; 
-                border-right: none !important; border-bottom: 1px solid rgba(0,0,0,0.05) !important; 
-                flex-direction: row !important; overflow-x: auto !important; 
-                position: sticky !important; top: 0 !important; z-index: 999 !important; background: white !important;
+                width: 100% !important; padding: 10px !important; border-right: none !important; 
+                border-bottom: 1px solid #eee !important; flex-direction: row !important; 
+                overflow-x: auto !important; position: sticky !important; top: 0 !important; 
+                z-index: 999 !important; background: white !important;
             }
             .logo { display: none !important; }
             .nav-btn { padding: 6px 12px !important; margin-bottom: 0 !important; margin-right: 8px !important; white-space: nowrap !important; }
 
-            /* 3. 主内容区：占满宽度 */
-            .main { padding: 15px !important; }
-
-            /* 4. 剧本馆图片：强制一行两个 */
-            .library-compact-grid {
-                grid-template-columns: 1fr 1fr !important;
-                gap: 10px !important;
-            }
+            /* 2. 剧本网格图片：一行显示两个 */
+            .library-compact-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
             .library-card img { height: 100px !important; }
 
-            /* 5. 阅读器弹窗：手机全屏显示 */
-            #reader-modal .profile-card { width: 100% !important; height: 100vh !important; border-radius: 0 !important; }
-            #reader-modal .profile-card > div:last-child { flex-direction: column !important; overflow-y: auto !important; }
-            #script-content, .reader-note-sidebar { width: 100% !important; flex: none !important; border-right: none !important; }
+            /* 3. 【核心修改】剧本阅读器：实现上下分屏滑动 */
+            #reader-modal .profile-card { height: 100vh !important; display: flex !important; flex-direction: column !important; }
+            
+            /* 让内容容器不再整体滑动，而是内部各自分屏 */
+            #reader-modal .profile-card > div:last-child {
+                flex-direction: column !important;
+                overflow: hidden !important; /* 禁用整体滑动 */
+                height: calc(100vh - 120px) !important; /* 减去顶部标题栏的高度 */
+            }
+
+            /* 字幕区域：固定高度（占屏幕一半），独立滑动 */
+            #script-content {
+                height: 45vh !important; /* 占屏幕高度的 45% */
+                overflow-y: auto !important; /* 允许内部滑动 */
+                width: 100% !important;
+                flex: none !important;
+                border-right: none !important;
+                border-bottom: 2px solid #6CAD9C !important; /* 加一条绿色分割线，更好看 */
+                padding: 20px 15px !important;
+                background: white !important;
+            }
+
+            /* 笔记区域：占据剩下的一半，也可以滑动 */
+            .reader-note-sidebar {
+                height: 40vh !important; /* 占屏幕高度的 40% */
+                overflow-y: auto !important;
+                width: 100% !important;
+                flex: none !important;
+                padding: 15px !important;
+                background: #F9F7F2 !important;
+            }
+
+            /* 缩小标题和工具栏，给分屏腾空间 */
+            .reader-tools { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; padding: 10px 15px !important; }
+            #reader-title { font-size: 14px !important; line-height: 1.2 !important; }
         }
         @media print {
     /* 1. 解除“只显示课文”的封印 */
