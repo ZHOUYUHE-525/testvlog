@@ -42,8 +42,8 @@
 
     <!-- 4. 配置 Supabase -->
     <script>
-        const SUPABASE_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
+        const SUPABASE_URL = 'https://tcrayyqmozfqrfagvusp.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcmF5eXFtb3pmcXJmYWd2dXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNTY0NjYsImV4cCI6MjA4MTgzMjQ2Nn0.G4ei36j_DgvIRaa3wzO89YI8lj67MQs9ZbrsDFzxi1M';
 
         let supabaseClient = null;
         if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
@@ -192,6 +192,248 @@
             .vocab-grid { grid-template-columns: 1fr; gap: 15px; }
             .word-card { padding: 15px; }
         }
+        @media print {
+    /* 1. 解除“只显示课文”的封印 */
+    body * { visibility: visible !important; }
+    
+    /* 2. 隐藏不需要的网页杂质 */
+    .sidebar, .header-area, .chart-card, .list-header, .vocab-grid, 
+    .modal-close, .reader-tools, .library-tools, .btn-check, #readerTransLabel {
+        display: none !important;
+    }
+
+    /* 3. 去掉黑背景和弹窗定位，让它像普通文档一样排列 */
+    .modal-overlay {
+    background: white !important;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 改为从顶部开始，更像文档 */
+    padding-top: 20px;
+}
+
+/* 2. 让阅读器区域稍微深一点点边框，防止全白分不清边缘 */
+#reader-modal .profile-card {
+    border: 1px solid #f0f0f0 !important;
+    box-shadow: 0 0 20px rgba(0,0,0,0.02) !important;
+    width: 100% !important;
+    max-width: 1200px !important; /* 限制一下最大宽度，别撑得太死 */
+    height: 95vh !important;
+}
+
+/* 3. 重点：调整那个关闭按钮 'X' 的颜色和位置 */
+/* 因为背景变白了，'X' 必须是深色的才能看见 */
+.modal-close {
+    color: #666 !important;
+    font-size: 32px !important;
+    top: 10px !important;
+    right: 20px !important;
+    font-weight: normal !important;
+}
+
+.modal-close:hover {
+    color: #ff4d4f !important; /* 鼠标指上去变红，方便操作 */
+}
+
+    /* 4. 笔记打印逻辑：藏起输入框，显示分身 */
+    #lesson-note-area { display: none !important; }
+    #note-print-clone { 
+        display: block !important; 
+        white-space: pre-wrap !important; 
+        color: black !important;
+        font-size: 14pt !important;
+        border: 1px solid #eee !important;
+        padding: 15px !important;
+    }
+
+    /* 5. 左右排版 */
+    #script-content { width: 60% !important; float: left !important; border-right: 1px solid #eee; }
+    .reader-note-sidebar { width: 35% !important; float: right !important; }
+    
+    /* 仅打印笔记模式 */
+    body.print-notes-only #script-content { display: none !important; }
+    body.print-notes-only .reader-note-sidebar { width: 100% !important; float: none !important; }
+}
+/* 阅读器显隐控制 */
+.hide-reader-py .script-py { display: none; }
+.hide-reader-cn .script-cn { display: none; }
+.hide-reader-trans .script-trans { display: none; }
+
+/* 复用视频页的圆圈样式（如果 review 页没有的话请加上） */
+.toggle-circle { 
+    width: 36px; height: 36px; border-radius: 50%; background: #eee; color: #999; 
+    display: inline-flex; align-items: center; justify-content: center; 
+    font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; 
+}
+.toggle-circle.on { background: var(--primary); color: white; }
+/* 精读课文配色方案 */
+.script-py {
+    color: #A77046 !important; /* 拼音：典雅棕 */
+    font-family: "Courier New", monospace;
+    font-size: 15px;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.script-cn {
+    color: #2c3e50 !important; /* 汉字：深石板色，比纯黑更高级 */
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.script-trans {
+    color: #7f8c8d !important; /* 翻译：烟灰色 */
+    font-size: 14px;
+    font-style: italic;
+    font-weight: normal;
+}
+
+/* 序号数字的样式 */
+.script-num {
+    font-size: 12px;
+    color: #cbd5e1;
+    margin-bottom: 5px;
+    font-family: Arial, sans-serif;
+}
+/* 紧凑型剧本馆网格 */
+.library-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* 缩小到200px一格 */
+    gap: 15px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.library-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #eee;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.library-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.library-card img {
+    width: 100%;
+    height: 120px; /* 固定封面高度，防止错位 */
+    object-fit: cover;
+}
+
+.library-card-info {
+    padding: 10px;
+}
+
+.library-card-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 最多显示两行标题 */
+    line-clamp: 2; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 40px; /* 固定标题高度 */
+}
+@media print {
+    /* 1. 解开所有容器的高度封印，允许溢出分页 */
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .main {
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* 2. 隐藏不需要打印的杂项 */
+    .sidebar, .header-area, .chart-card, .list-header, .vocab-grid, 
+    #library-view, .library-tools, .modal-close, .reader-tools, .btn-check, #readerTransLabel {
+        display: none !important;
+    }
+
+    /* 3. 修复阅读器容器：不能是 fixed 也不可以是 90vh */
+    .modal-overlay {
+        position: static !important;
+        display: block !important;
+        background: white !important;
+        padding: 0 !important;
+    }
+
+    #reader-modal {
+        position: static !important;
+        display: block !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+
+    .profile-card {
+        position: static !important;
+        display: block !important; /* 打印时弃用 flex，防止分页失效 */
+        height: auto !important;
+        width: 100% !important;
+        max-width: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    /* 4. 排版调整：为了支持多页，我们让笔记排在课文下方，或者通过浮动控制 */
+    #script-content {
+        width: 65% !important;
+        float: left !important;
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        border-right: 1px solid #eee;
+        padding-right: 20px !important;
+    }
+
+    .reader-note-sidebar {
+        width: 30% !important;
+        float: right !important;
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        background: none !important;
+    }
+
+    /* 5. 笔记分身显示 */
+    #lesson-note-area { display: none !important; }
+    #note-print-clone {
+        display: block !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        color: black !important;
+        font-size: 14pt !important;
+        line-height: 1.6;
+        border: 1px dashed #ccc;
+        padding: 10px;
+    }
+
+    /* 仅打印笔记模式 */
+    body.print-notes-only #script-content { display: none !important; }
+    body.print-notes-only .reader-note-sidebar { 
+        width: 100% !important; 
+        float: none !important; 
+    }
+
+    /* 清除浮动，确保分页正常 */
+    .profile-card::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
     </style>
 </head>
 <body>
@@ -214,9 +456,84 @@
             <i class="fas fa-medal"></i> <span data-i18n="filter_master">已掌握</span>
             <span class="badge" id="badge-master" style="background:var(--yellow); color:#5a3a1a">0</span>
         </div>
+        <div class="nav-btn" onclick="showLibrary(this)">
+    <i class="fas fa-file-alt"></i> <span data-i18n="menu_library">精读剧本馆</span>
+</div>
     </div>
 
     <div class="main">
+        <!-- 剧本馆主界面 -->
+<div id="library-view" style="display:none;">
+    <!-- 🟢 新增：搜索工具栏 -->
+    <div class="library-tools" style="max-width: 900px; margin: 0 auto 20px auto; display: flex; gap: 10px;">
+        <div class="search-box" style="flex: 1; position: relative;">
+            <i class="fas fa-search" style="position: absolute; left: 12px; top: 12px; color: #999;"></i>
+            <input type="text" id="librarySearchInput" 
+                   style="width: 100%; padding: 10px 10px 10px 35px; border-radius: 10px; border: 1px solid #ddd; outline: none;" 
+                   placeholder="搜索课程标题或关键词..." 
+                   oninput="renderLibraryGrid()">
+        </div>
+    </div>
+
+    <!-- 🟢 修改：将 grid 的 ID 换一个，以便应用更紧凑的样式 -->
+    <div style="max-height: 480px; overflow-y: auto; padding: 10px; border: 1px solid #f0f0f0; border-radius: 12px; background: #fafafa;">
+        <div id="library-grid" class="library-compact-grid">
+            <!-- 自动填充 -->
+        </div>
+    </div>
+</div>
+
+<!-- 剧本阅读器弹窗 (放在 main 里面最后面即可) -->
+<div id="reader-modal" class="modal-overlay" style="display:none; background: white; z-index: 9999; overflow: auto;">
+    <div class="profile-card" style="width: 95%; max-width: 1100px; height: 90vh; background: white; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+        <div class="modal-close" onclick="closeReader()" style="top:10px; right:20px; z-index:100;">×</div>
+        
+        <div class="reader-tools" style="padding: 15px 25px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:#fdfdfd;">
+    <div id="reader-title" style="font-weight:bold; font-size:18px; color:var(--blue);">课程标题</div>
+    
+    <!-- 🟢 新增：三语切换开关 -->
+    <div style="display:flex; gap:10px; align-items:center;">
+        <div class="toggle-circle on" onclick="toggleReaderVisibility('py', this)" style="width:30px; height:30px; line-height:30px; cursor:pointer;">拼</div>
+        <div class="toggle-circle on" onclick="toggleReaderVisibility('cn', this)" style="width:30px; height:30px; line-height:30px; cursor:pointer;">汉</div>
+        <div class="toggle-circle on" onclick="toggleReaderVisibility('trans', this)" id="readerTransLabel" style="width:30px; height:30px; line-height:30px; cursor:pointer;">RU</div>
+        
+        <div style="width:1px; height:20px; background:#ddd; margin:0 10px;"></div>
+        
+        <div style="display:flex; gap:8px;">
+    <button class="btn-check" onclick="printLibrary('all')" data-i18n="btn_print_all" style="background:#6CAD9C; padding:6px 12px; font-size:12px; height:auto;">
+    <i class="fas fa-print"></i> 打印全课
+</button>
+    <!-- 仅打印笔记 -->
+    <button class="btn-check" onclick="printLibrary('notes')" data-i18n="btn_print_notes" style="background:#A77046; padding:6px 12px; font-size:12px; height:auto;">
+    <i class="fas fa-pen"></i> 仅打印笔记
+</button>
+</div>
+    </div>
+</div>
+
+        <div style="flex:1; display:flex; overflow:hidden;">
+            <!-- 左侧：台词文本 -->
+            <div id="script-content" style="flex:1.5; padding:40px; overflow-y:auto; line-height:2.5; font-size:18px; border-right:1px solid #eee; background: white;">
+                <!-- 自动填充台词 -->
+            </div>
+            <!-- 右侧：学习笔记 -->
+            <div class="reader-note-sidebar" style="flex:0.8; padding:25px; background:#F9F7F2; display:flex; flex-direction:column;">
+                <h4 style="margin-top:0; color:var(--blue);">
+    <i class="fas fa-pen-fancy"></i> <span data-i18n="my_notes_title">我的精读笔记</span>
+</h4>
+                <textarea id="lesson-note-area" style="flex:1; width:100%; padding:15px; border:1px solid #e0e0e0; border-radius:12px; resize:none; font-size:14px; line-height:1.6; background:white;" placeholder="记录下你在这段 Vlog 里学到的地道表达..."></textarea>
+                <div id="note-print-clone" style="display:none; white-space: pre-wrap; text-align: left; color: black;">
+    <!-- 打印时会自动在笔记前加上这个小标题 -->
+    <h3 style="border-bottom: 2px solid #6CAD9C; padding-bottom: 5px; color: #14507D;">我的笔记：</h3>
+    <div id="note-text-placeholder"></div>
+</div>
+                <button class="btn-check" style="margin-top:15px; width:100%; height:45px; background:var(--blue);" onclick="saveCurrentNote()" data-i18n="save_notes_btn">
+    保存并同步笔记
+</button>
+            </div>
+        </div>
+    </div>
+</div>
         <div class="header-area">
             <div class="page-title"><span data-i18n="page_title">我的艾宾浩斯曲线</span></div>
             <div class="lang-switch" onclick="toggleLang()">
@@ -271,7 +588,15 @@
                 btn_check: "Учить", 
                 axis_0:"Сегодня", axis_1:"1д", axis_2:"2д", axis_3:"3д", axis_4:"4д", axis_5:"5д", axis_6:"6д", axis_7:"7д", axis_15:"15д",
                 times_label: "раз",
-                msg_empty: "🎉 Пока пусто! Добавьте слова из видео." 
+                msg_empty: "🎉 Пока пусто! Добавьте слова из видео." ,
+                btn_print: "Печать",
+                menu_library: "Библиотека скриптов",
+    reader_sentences: "фразы",
+    trans_label: "RU",
+    btn_print_all: "Печать урока",
+        btn_print_notes: "Только заметки",
+        my_notes_title: "Мои заметки",
+        save_notes_btn: "Сохранить заметки"
             },
             en: {
                 page_title: "Forgetting Curve", 
@@ -282,7 +607,15 @@
                 btn_check: "Check",
                 axis_0:"Today", axis_1:"1d", axis_2:"2d", axis_3:"3d", axis_4:"4d", axis_5:"5d", axis_6:"6d", axis_7:"7d", axis_15:"15d",
                 times_label: "times",
-                msg_empty: "🎉 Empty here! Go collect words from videos."
+                msg_empty: "🎉 Empty here! Go collect words from videos.",
+                btn_print: "Print",
+                 menu_library: "Script Library",
+    reader_sentences: "sentences",
+    trans_label: "EN",
+    btn_print_all: "Print Lesson",
+        btn_print_notes: "Notes Only",
+        my_notes_title: "My Notes",
+        save_notes_btn: "Save & Sync",
             },
             cn: {
                 page_title: "我的艾宾浩斯曲线", 
@@ -293,7 +626,15 @@
                 btn_check: "打卡复习",
                 axis_0:"今天", axis_1:"1天", axis_2:"2天", axis_3:"3天", axis_4:"4天", axis_5:"5天", axis_6:"6天", axis_7:"7天", axis_15:"15天",
                 times_label: "次",
-                msg_empty: "🎉 空空如也！快去视频里点击单词收藏吧！"
+                msg_empty: "🎉 空空如也！快去视频里点击单词收藏吧！",
+                btn_print: "打印课文",
+                menu_library: "精读剧本馆",
+    reader_sentences: "句精选台词",
+    trans_label: "译",
+    btn_print_all: "打印全课",
+        btn_print_notes: "仅打印笔记",
+        my_notes_title: "我的精读笔记",
+        save_notes_btn: "保存并同步笔记",
             }
         };
 
@@ -400,12 +741,24 @@
         }
 
         function filterList(type, btn) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentFilter = type;
-            render();
-        }
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if(document.getElementById('reader-modal')) document.getElementById('reader-modal').style.display = 'none';
+if(document.getElementById('library-view')) document.getElementById('library-view').style.display = 'none';
+    btn.classList.add('active');
+    currentFilter = type;
 
+    // 🔴 关键：把剧本馆彻底藏起来
+    const libView = document.getElementById('library-view');
+    if (libView) libView.style.display = 'none';
+
+    // 🟢 把生词本的零件一个个全都显示回来
+    document.querySelector('.header-area').style.display = 'flex';
+    document.querySelector('.chart-card').style.display = 'block';
+    document.querySelector('.list-header').style.display = 'flex';
+    document.getElementById('grid').style.display = 'grid';
+
+    render();
+}
         function render() {
             const container = document.getElementById('grid');
             container.innerHTML = '';
@@ -565,6 +918,182 @@
             await saveMeta(true);
             render();
         }
+        let currentReadingLessonId = null;
+
+
+// 显示剧本馆
+function showLibrary(btn) {
+    // 1. 按钮高亮
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // 2. 🟢 新增：隐藏原本那个显示“艾宾浩斯曲线”标题的区域
+    if(document.querySelector('.main > .header-area')) {
+        document.querySelector('.main > .header-area').style.display = 'none';
+    }
+
+    // 3. 隐藏其他视图
+    document.querySelector('.chart-card').style.display = 'none';
+    document.getElementById('grid').style.display = 'none';
+    document.querySelector('.list-header').style.display = 'none';
+
+    // 4. 显示剧本馆
+    const libraryView = document.getElementById('library-view');
+    libraryView.style.display = 'block';
+
+    // 5. 🟢 新增：根据当前语言更新标题和弹窗内的翻译标签
+    document.querySelector('.page-title span').innerText = uiDict[currentLang].menu_library;
+    if(document.getElementById('readerTransLabel')) {
+        document.getElementById('readerTransLabel').innerText = uiDict[currentLang].trans_label || "RU";
+    }
+
+    renderLibraryGrid();
+}
+
+// 渲染封面列表
+function renderLibraryGrid() {
+    const grid = document.getElementById('library-grid');
+    const searchTerm = document.getElementById('librarySearchInput').value.toLowerCase(); // 获取搜索词
+    grid.innerHTML = '';
+    
+    if (!window.lessonDatabase) return;
+
+    const userAccess = JSON.parse(localStorage.getItem('my_access_tags') || '["season_1"]');
+
+    for (const id in window.lessonDatabase) {
+        const lesson = window.lessonDatabase[id];
+        
+        // 🟢 核心逻辑：如果搜索框有词，且标题/描述里不包含这个词，就跳过不显示
+        const lessonSearchStr = (lesson.title + (lesson.desc || "")).toLowerCase();
+        if (searchTerm && !lessonSearchStr.includes(searchTerm)) {
+            continue; 
+        }
+
+        const isLocked = lesson.batch && !userAccess.includes(lesson.batch);
+        const coverImg = lesson.cover.includes('.') ? lesson.cover : lesson.cover + ".jpg";
+
+        const card = document.createElement('div');
+        card.className = 'library-card'; // 使用紧凑样式类名
+        card.style.opacity = isLocked ? '0.6' : '1';
+        
+        card.innerHTML = `
+            <div style="position:relative;">
+                <img src="${coverImg}">
+                ${isLocked ? '<div style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; color:white;"><i class="fas fa-lock"></i></div>' : ''}
+            </div>
+            <div class="library-card-info">
+                <div class="library-card-title">${lesson.title}</div>
+                <div style="font-size:11px; color:#aaa; margin-top:5px;">
+                    <i class="far fa-file-alt"></i> ${lesson.subs ? lesson.subs.length : 0} ${uiDict[currentLang].reader_sentences || 'sentences'}
+                </div>
+            </div>
+        `;
+        
+        if (!isLocked) {
+            card.onclick = () => openReader(id);
+        } else {
+            card.onclick = () => alert("🔒 此剧本需要解锁权限");
+        }
+        grid.appendChild(card);
+    }
+
+    // 如果搜索结果为空
+    if (grid.innerHTML === '') {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#999; padding:40px;">没有找到匹配的课程</div>`;
+    }
+}
+
+// 打开精读阅读器
+// 修改 openReader 函数
+function openReader(id) {
+    currentReadingLessonId = id;
+    const lesson = window.lessonDatabase[id];
+    const scriptDiv = document.getElementById('script-content');
+    document.getElementById('reader-title').innerText = lesson.title;
+    
+    // 渲染文本内容
+    scriptDiv.innerHTML = lesson.subs.map((s, idx) => `
+        <div class="script-item" style="margin-bottom:30px; border-bottom: 1px solid #f9f9f9; padding-bottom:15px;">
+            <div class="script-num">#${idx+1}</div>
+            <div class="script-py">${s.py}</div>
+            <div class="script-cn">${s.cn}</div>
+            <div class="script-trans">${currentLang === 'ru' ? s.ru : (s.en || s.ru)}</div>
+        </div>
+    `).join('');
+    
+    // 🟢 核心修复：确保打开时从本地存储加载最新笔记
+    const savedMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+    const noteKey = `note_lesson_${id}`;
+    document.getElementById('lesson-note-area').value = savedMeta[noteKey] || "";
+    
+    document.getElementById('reader-modal').style.display = 'flex';
+}
+
+// 修改保存函数
+async function saveCurrentNote() {
+    const note = document.getElementById('lesson-note-area').value;
+    if (!currentReadingLessonId) return;
+
+    // 1. 获取本地旧数据并合并新笔记
+    let localMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+    localMeta[`note_lesson_${currentReadingLessonId}`] = note;
+    
+    // 2. 存回 localStorage
+    localStorage.setItem('my_vocab_meta', JSON.stringify(localMeta));
+    
+    // 3. 这里的 vocabMeta 是全局变量，也要同步更新，防止其他函数读取旧值
+    if (typeof vocabMeta !== 'undefined') {
+        vocabMeta = localMeta; 
+    }
+
+    // 4. 调用同步函数上传 Supabase
+    if (typeof saveMeta === 'function') {
+        try {
+            await saveMeta(true);
+            alert("✅ 笔记已永久保存至云端");
+        } catch(e) {
+            alert("⚠️ 笔记已保存到本地，但云端同步失败，请检查网络");
+        }
+    }
+}
+function toggleReaderVisibility(type, btn) {
+    const content = document.getElementById('script-content');
+    const className = 'hide-reader-' + type;
+    
+    if (content.classList.contains(className)) {
+        content.classList.remove(className);
+        btn.classList.add('on');
+    } else {
+        content.classList.add(className);
+        btn.classList.remove('on');
+    }
+}
+// 🟢 专门处理打印逻辑的函数（建议放在 saveCurrentNote 函数下面）
+function printLibrary(mode) {
+    // 1. 同步文字
+    const noteArea = document.getElementById('lesson-note-area');
+    const clone = document.getElementById('note-print-clone');
+    
+    if (!noteArea || !clone) {
+        alert("错误：找不到笔记区域，请检查代码ID是否正确");
+        return;
+    }
+
+    clone.innerText = noteArea.value || "（本次精读暂无笔记）";
+
+    // 2. 模式切换
+    if (mode === 'notes') {
+        document.body.classList.add('print-notes-only');
+    } else {
+        document.body.classList.remove('print-notes-only');
+    }
+    
+    // 3. 执行打印
+    setTimeout(() => {
+        window.print();
+        document.body.classList.remove('print-notes-only');
+    }, 150);
+}
     </script>
 </body>
 </html>
