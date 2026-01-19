@@ -170,28 +170,68 @@
             color: var(--red) !important; /* 悬停变红 */
         }
 
-        @media (max-width: 768px) {
-            body { flex-direction: column; height: auto; overflow-y: auto; background: var(--bg); }
-            .sidebar { 
-                width: 100%; padding: 12px; 
-                border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); 
-                flex-direction: row; overflow-x: auto; align-items: center; gap: 8px;
-                background: white; position: sticky; top: 0; z-index: 999;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-            }
-            .logo { display: none; }
-            .nav-btn { 
-                padding: 6px 12px; font-size: 13px; 
-                white-space: nowrap; margin-bottom: 0; flex-shrink: 0; 
-                background: #f5f5f5; border-radius: 20px;
-            }
-            .nav-btn.active { background: var(--yellow); }
-            .main { padding: 15px; overflow: visible; }
-            .chart-card { padding: 15px; margin-bottom: 25px; }
-            .chart-wrapper { height: 200px; }
-            .vocab-grid { grid-template-columns: 1fr; gap: 15px; }
-            .word-card { padding: 15px; }
-        }
+       @media (max-width: 768px) {
+    /* 1. 阅读器外壳：充满屏幕，去掉边距 */
+    #reader-modal .profile-card {
+        width: 100% !important;
+        height: 100vh !important;
+        max-width: none !important;
+        border-radius: 0 !important;
+    }
+
+    /* 2. 顶部工具栏：改为上下两行排版，解决标题重叠 */
+    .reader-tools {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 10px 15px !important;
+        gap: 12px !important;
+    }
+
+    #reader-title {
+        font-size: 16px !important;
+        line-height: 1.2 !important;
+        width: 100% !important;
+        word-break: break-all !important;
+    }
+
+    /* 3. 按钮和开关：在一行内平铺，如果太挤就自动换行 */
+    .reader-tools > div:last-child {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+    }
+
+    /* 缩小开关和打印按钮，适应手机 */
+    .toggle-circle { width: 28px !important; height: 28px !important; font-size: 11px !important; }
+    .reader-tools .btn-check { padding: 4px 8px !important; font-size: 11px !important; }
+
+    /* 4. 核心改动：把左右并排（Flex Row）改为上下排版（Flex Column） */
+    #reader-modal .profile-card > div:last-child {
+        flex-direction: column !important;
+        overflow-y: auto !important; /* 让整个容器可以上下滚动 */
+    }
+
+    /* 5. 课文区域：宽度占满，取消右边框 */
+    #script-content {
+        flex: none !important;
+        width: 100% !important;
+        padding: 20px 15px !important;
+        border-right: none !important;
+        border-bottom: 8px solid #f0f0f0 !important; /* 加一个分割条 */
+    }
+
+    /* 6. 笔记区域：宽度占满 */
+    .reader-note-sidebar {
+        flex: none !important;
+        width: 100% !important;
+        padding: 20px 15px !important;
+    }
+
+    #lesson-note-area {
+        height: 150px !important; /* 手机上输入框不要太高 */
+    }
+}
         @media print {
     /* 1. 解除“只显示课文”的封印 */
     body * { visibility: visible !important; }
