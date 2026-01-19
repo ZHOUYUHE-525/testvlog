@@ -171,65 +171,27 @@
         }
 
        @media (max-width: 768px) {
-    /* 1. 阅读器外壳：充满屏幕，去掉边距 */
-    #reader-modal .profile-card {
-        width: 100% !important;
-        height: 100vh !important;
-        max-width: none !important;
-        border-radius: 0 !important;
+    /* 1. 让剧本封面在手机上一行显示两个 */
+    .library-compact-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    .library-card img {
+        height: 100px !important;
     }
 
-    /* 2. 顶部工具栏：改为上下两行排版，解决标题重叠 */
-    .reader-tools {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        padding: 10px 15px !important;
-        gap: 12px !important;
-    }
-
-    #reader-title {
-        font-size: 16px !important;
-        line-height: 1.2 !important;
-        width: 100% !important;
-        word-break: break-all !important;
-    }
-
-    /* 3. 按钮和开关：在一行内平铺，如果太挤就自动换行 */
-    .reader-tools > div:last-child {
-        width: 100% !important;
-        justify-content: flex-start !important;
-        flex-wrap: wrap !important;
-        gap: 8px !important;
-    }
-
-    /* 缩小开关和打印按钮，适应手机 */
-    .toggle-circle { width: 28px !important; height: 28px !important; font-size: 11px !important; }
-    .reader-tools .btn-check { padding: 4px 8px !important; font-size: 11px !important; }
-
-    /* 4. 核心改动：把左右并排（Flex Row）改为上下排版（Flex Column） */
-    #reader-modal .profile-card > div:last-child {
-        flex-direction: column !important;
-        overflow-y: auto !important; /* 让整个容器可以上下滚动 */
-    }
-
-    /* 5. 课文区域：宽度占满，取消右边框 */
-    #script-content {
-        flex: none !important;
-        width: 100% !important;
-        padding: 20px 15px !important;
-        border-right: none !important;
-        border-bottom: 8px solid #f0f0f0 !important; /* 加一个分割条 */
-    }
-
-    /* 6. 笔记区域：宽度占满 */
-    .reader-note-sidebar {
-        flex: none !important;
-        width: 100% !important;
-        padding: 20px 15px !important;
-    }
-
-    #lesson-note-area {
-        height: 150px !important; /* 手机上输入框不要太高 */
+    /* 2. 在手机版侧边栏下方（或主内容上方）强行插入提示语 */
+    .main::before {
+        content: "因手机页面空间有限，建议在平板或电脑上做笔记。如需在手机上使用，建议横屏。";
+        display: block;
+        background: #fffbe6;
+        color: #d48806;
+        padding: 12px;
+        font-size: 13px;
+        text-align: center;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ffe58f;
     }
 }
         @media print {
