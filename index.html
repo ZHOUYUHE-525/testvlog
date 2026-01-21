@@ -197,6 +197,169 @@
             /* 查词弹窗 */
             .dict-modal { width: 85%; }
         }
+        /* --- 🔴 只在开启上下布局模式时生效的“补丁” --- */
+
+/* --- 🔴 弹性等高版：上下布局模式 --- */
+
+/* --- 老师专属：功能键拉高美化版 --- */
+
+body.vertical-mode .video-section {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: #fff; 
+    display: flex; 
+    flex-direction: row; 
+    padding: 10px 25px;
+    gap: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    box-sizing: border-box;
+    /* 👈 关键：让右侧面板的高度强制等于左侧视频高度 */
+    align-items: stretch; 
+    justify-content: center;
+}
+
+body.vertical-mode .video-wrapper {
+    flex: 1; 
+    max-width: 1000px; /* 宽屏下允许视频更大 */
+    min-width: 0;
+    border-radius: 12px;
+}
+
+body.vertical-mode .tools-panel {
+    flex: 0 0 160px; /* 固定一个合适的宽度 */
+    background: #fdfaf5;
+    padding: 12px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    /* 👈 关键：让内部的按钮容器占据所有高度 */
+    justify-content: space-between; 
+    box-sizing: border-box;
+}
+
+body.vertical-mode .control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* 👈 关键：让这个容器填满 tools-panel 剩下的空间 */
+    flex: 1; 
+    justify-content: space-between; 
+}
+
+/* 🔴 核心修改：大幅增加按钮高度 */
+body.vertical-mode .control-btn {
+    width: 100%;
+    /* 👈 使用 flex: 1 让按钮自动瓜分高度，但限制一个最大值防止变成砖头 */
+    flex: 1;
+    min-height: 45px; 
+    max-height: 65px; 
+    
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0 15px;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--dark-red);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+body.vertical-mode .btn-play {
+    background: var(--primary);
+    color: white;
+    border: none;
+    justify-content: center;
+    max-height: 80px; /* 播放按钮可以更高一点 */
+}
+
+/* 练习按钮也拉高 */
+body.vertical-mode .practice-btn {
+    height: 60px; /* 固定一个比较大的高度 */
+    flex: none;
+    margin-top: 10px;
+    font-size: 15px;
+    border-radius: 12px;
+}
+
+/* 速度选择框 */
+body.vertical-mode .speed-select {
+    width: 100%;
+    height: 45px;
+    flex: none;
+    border-radius: 10px;
+    border: 1px solid #eee;
+}
+
+/* 针对窄屏的保护逻辑保持不变 */
+@media (max-width: 1150px) {
+    body.vertical-mode .tools-panel { flex: 0 0 70px; padding: 10px 5px; }
+    body.vertical-mode .control-btn span, body.vertical-mode .practice-btn span { display: none; }
+    body.vertical-mode .control-btn { justify-content: center; padding: 0; }
+}
+
+/* --- 🔴 老师专用：上下模式“单行窗口”补丁 --- */
+
+/* 1. 开启上下模式时，锁死网页，禁止整页滚动 */
+body.vertical-mode { 
+    height: 100vh; 
+    overflow: hidden; 
+}
+
+/* --- 🔴 只改动这一块：调整盒子位置、宽度和强制显示开关 --- */
+body.vertical-mode .subtitle-section {
+    position: fixed;
+    top: 580px; /* 👈 往上提一点，确保不挡住标题和开关 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 98%;
+    max-width: 1600px;
+    height: 240px; /* 👈 盒子给够 320px 高度，保证翻译绝对能装下 */
+    background: white;
+    z-index: 900;
+    display: flex !important;
+    flex-direction: column;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* 👈 在刚才那块下面紧接着加上这一小段，强制唤回消失的开关栏 */
+body.vertical-mode .sub-header {
+    display: flex !important;
+    visibility: visible !important;
+    padding: 10px 30px;
+}
+
+/* 3. 核心：让字幕列表在盒子里滚动 */
+body.vertical-mode .subtitle-list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    /* 👈 重点：内边距调小，给“中心”留位置 */
+    padding: 40px 20px !important; 
+    scroll-behavior: smooth;
+}
+
+/* 4. 字幕项在盒子里间距拉大，确保一次只看一句 */
+/* --- 🔴 只改动这一块：压缩字幕块内部间距，让翻译露出来 --- */
+body.vertical-mode .sub-item {
+    /* 👈 重点：每一句之间空出 100px，确保滚动时盒子里只剩这一句 */
+    
+    margin-bottom: 100px !important; 
+    
+    /* 👈 重点：压缩内部，让拼音、汉字、翻译抱得更紧，不留空位 */
+    padding: 0 !important; 
+    
+    background: transparent !important;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px; /* 👈 拼音汉字翻译之间的微小缝隙 */
+}
     </style>
 </head>
 <body>
@@ -211,6 +374,9 @@
                 <i class="fas fa-headphones"></i> <span data-i18n="audio_mode">音频模式</span>
             </button>
             <button class="control-btn" onclick="toggleFullscreen()" id="fullscreenBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; background:var(--bg); border:none;"><i class="fas fa-expand"></i></button>
+            <button class="control-btn" onclick="toggleDesktopLayout()" id="layoutToggleBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; margin-right:10px;">
+    <i class="fas fa-columns"></i> <span id="layoutText">左右布局</span>
+</button>
             <div class="lang-switch" onclick="toggleLang()"><i class="fas fa-globe"></i> <span id="langLabel">RU</span></div>
         </div>
     </header>
@@ -263,11 +429,19 @@
     <script src="lesson_010.js"></script>
     <script src="lesson_011.js"></script>
     <script src="lesson_012.js"></script>
+    <script src="lesson_013.js"></script>
+    <script src="lesson_014.js"></script>
+    <script src="lesson_015.js"></script>
+    <script src="lesson_016.js"></script>
+    <script src="lesson_017.js"></script>
     
     <script src="lesson_401.js"></script>
     <script src="lesson_402.js"></script>
     <script src="lesson_403.js"></script>
     <script src="lesson_404.js"></script>
+    <script src="lesson_405.js"></script>
+    <script src="lesson_406.js"></script>
+    <script src="lesson_407.js"></script>
     
     <!-- === 补丁 1：查词弹窗 (插入在 </body> 之前) === -->
     <div class="overlay" id="overlay" onclick="closeDict()"></div>
@@ -458,6 +632,34 @@
             if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
             updateLanguage();
         }
+        function toggleDesktopLayout() {
+    const container = document.body; // 我们直接给 body 加 class，这样全局都能控制
+    const btnText = document.getElementById('layoutText');
+    const btnIcon = document.querySelector('#layoutToggleBtn i');
+
+    if (container.classList.contains('vertical-mode')) {
+        // 恢复左右布局
+        container.classList.remove('vertical-mode');
+        btnText.innerText = "左右布局";
+        btnIcon.className = "fas fa-columns";
+        localStorage.setItem('pref_layout', 'side');
+    } else {
+        // 进入上下布局
+        container.classList.add('vertical-mode');
+        btnText.innerText = "上下布局";
+        btnIcon.className = "fas fa-grip-lines";
+        localStorage.setItem('pref_layout', 'vertical');
+    }
+    // 强制刷新一下高亮位置
+    activeIndex = -1;
+}
+
+// 页面加载时恢复用户喜欢的布局
+window.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('pref_layout') === 'vertical') {
+        toggleDesktopLayout();
+    }
+});
 
         function updateLanguage() {
             let label = '🇷🇺 RU';
@@ -536,9 +738,11 @@
                 if (activeIndex !== -1) document.getElementById('sub-' + activeIndex)?.classList.remove('active');
                 const activeItem = document.getElementById('sub-' + currentIndex);
                 if (activeItem) { 
-                    activeItem.classList.add('active'); 
-                    activeItem.scrollIntoView({ behavior: "smooth", block: "center" }); 
-                }
+            activeItem.classList.add('active'); 
+            
+            // 无论哪种模式，都让当前字幕滚动到容器（小窗口）的正中间
+            activeItem.scrollIntoView({ behavior: "smooth", block: "center" }); 
+        }
                 activeIndex = currentIndex;
             }
         };
