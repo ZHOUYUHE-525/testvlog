@@ -105,47 +105,44 @@
             }
             .control-row { 
                 display: grid !important; 
-                /* 【旋钮 1：宽度比例】
-                   前 7 个 1fr 是图标，最后的 2.2fr 是语速。
-                   如果觉得语速按钮还是窄，就把 2.2 调大（如 2.5） */
-                grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 2.2fr !important; 
+                /* 🔴 旋钮 1：这里分成了 7 份。
+                   前 6 个图标占 1 份，最后的语速按钮占 1.8 份宽。
+                   如果觉得语速还是窄，就把 1.8 改成 2.2 */
+                grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1.8fr !important; 
                 gap: 3px !important; 
                 width: 100% !important;
                 align-items: center;
+                margin: 0 !important;
             }
             
-            .control-btn, .practice-btn { 
-                /* 【旋钮 2：高度】
-                   调大这个数字（如 36px），所有按钮都会变高变大 */
-                height: 34px !important; 
+            .control-btn { 
+                /* 🔴 旋钮 2：高度。
+                   统一改为 38px，这样点起来才舒服 */
+                height: 38px !important; 
                 font-size: 14px !important;
                 border-radius: 6px !important;
                 box-shadow: none !important;
                 width: 100% !important;
                 margin: 0 !important;
             }
-            /* 强制隐藏文字，只留图标 */
-            .control-btn span, .practice-btn span { display: none !important; }
+            .control-btn span { display: none !important; }
 
-            /* --- 重新排座次 --- */
+            /* --- 重新按 7 个位置排队 --- */
 
-            /* 循环按钮：最左 */
-            #loopBtn { grid-column: 1 / 2 !important; grid-row: 1 !important; }
+            /* 循环按钮（HTML里第6个）：坐第 1 位 */
+            #loopBtn { 
+                grid-column: 1 / 2 !important; 
+                grid-row: 1 !important; 
+            }
 
-            /* 练习按钮：第 7 位 */
-            .practice-btn { 
+            /* 5个播放键：依次坐 2,3,4,5,6 位（会自动排列） */
+            
+            /* 语速选择框（HTML里第7个）：坐第 7 位（最右边） */
+            .speed-select { 
                 grid-column: 7 / 8 !important; 
                 grid-row: 1 !important;
-                background: var(--yellow) !important;
-                color: #4A3B32 !important;
-            }
-            
-            /* 语速按钮：最右位 */
-            .speed-select { 
-                grid-column: 8 / 9 !important; 
-                grid-row: 1 !important;
-                /* 👈 这里的 height 必须和上面的按钮高度（旋钮2）保持一致 */
-                height: 34px !important; 
+                /* 👈 高度必须同步改为 38px */
+                height: 38px !important; 
                 width: 100% !important; 
                 font-size: 11px !important; 
                 padding: 0 2px !important;
@@ -155,6 +152,8 @@
                 background: #fff;
                 text-align: center;
             }
+
+            /* 🔴 重要：请务必删除您代码里剩下的那段 height: 26px 的重复代码 🔴 */
             
             /* 🔴 注意：我删掉了您代码后面那个重复的 height: 26px 的代码块，
                因为它才是导致按钮变小的罪魁祸首 🔴 */
@@ -162,15 +161,7 @@
             /* 中间那 5 个播放控制键会自动坐在 2,3,4,5,6 这几个位置 */
             /* 中间那 5 个播放控制键（上一句、-5s等）会自动填满第 2 到第 6 个位置 */
             
-            /* 按钮缩小：去掉文字，只留图标 */
-            .control-btn, .practice-btn { 
-                height: 26px !important; 
-                padding: 0 !important; 
-                font-size: 12px !important;
-                border-radius: 6px !important;
-                box-shadow: none !important;
-                margin: 0 !important;
-            }
+        
         
             
         
@@ -465,7 +456,9 @@ body.vertical-mode .sub-item .trans {
     <div class="main-container">
         <div class="video-section">
             <div class="video-wrapper">
-                <video id="myVideo" controls><source src="" type="video/mp4"></video>
+                <video id="myVideo" controls playsinline webkit-playsinline>
+    <source src="" type="video/mp4">
+</video>
                 <div class="audio-visualizer" id="audioVisualizer"><div class="wave-container"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div><div class="audio-text">Playing...</div></div>
             </div>
             <div class="tools-panel">
