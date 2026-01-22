@@ -73,126 +73,103 @@
         .dict-btn-add { background: #fef3c7; color: #b45309; }
         .dict-btn-add:hover { background: #fde68a; }
         /* === 📱 视频页手机端：瀑布流式布局 (字幕铺满) === */
+        /* === 📱 手机版：上半部分固定，下半部分滚动 === */
         @media (max-width: 768px) {
-            /* 1. 让整个页面可以滚动 */
+            /* 1. 锁死大网页，禁止晃动 */
             body { 
-                flex-direction: column; 
-                height: auto; /* 不再限制高度，允许内容撑开 */
-                overflow-y: auto; /* 开启系统级滚动 */
-                background: #fff; /* 手机上白色背景更清爽 */
+                height: 100vh !important; 
+                overflow: hidden !important; 
+                display: flex;
+                flex-direction: column;
             }
-            
-            /* 2. 顶部导航 */
-            header { 
-                padding: 10px 15px; 
-                height: auto; 
-                position: sticky; top: 0; z-index: 100; /* 吸顶 */
-                background: white;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            }
-            .logo { font-size: 16px; }
-            .control-btn { font-size: 10px; height: 36px; padding: 0 10px; } /* 顶部按钮变小 */
 
-            /* 3. 主容器 (取消 flex 限制，改为自然流) */
+            /* 2. 容器撑满屏幕 */
             .main-container { 
-                display: block; /* 关键：取消 flex */
-                padding: 0; 
-                overflow: visible; /* 让内容溢出显示 */
+                flex: 1; 
+                display: flex !important; 
+                flex-direction: column !important;
+                padding: 0 !important; 
+                overflow: hidden !important; 
             }
 
-            /* 4. 视频区域 */
-            .video-section { 
-                width: 100%; 
-                padding: 0; 
-                margin-bottom: 0;
-            }
-            .video-wrapper { 
-                border-radius: 0; /* 视频通栏，不要圆角 */
-                border: none;
-                box-shadow: none;
-            }
+            /* 3. 视频区：固定高度 */
+            .video-section { flex: none !important; width: 100%; padding: 0; }
+            .video-wrapper { border-radius: 0; border: none; aspect-ratio: 16/9; }
 
-            /* 5. 按钮控制区 (重新布局！) */
+            /* 4. 🔴 极简功能键栏：8个按钮挤成一行 */
             .tools-panel { 
-                padding: 10px 15px; 
+                padding: 0px 8px !important; 
                 border: none; 
-                background: #f9f9f9; /* 浅灰底色区分 */
-                gap: 8px;
+                background: #f9f9f9; 
+                gap: 0.1 !important; 
+            }
+            .control-row { 
+                display: grid !important; 
+                /* 👈 8列平分，按钮全塞在一行 */
+                grid-template-columns: repeat(7, 1fr) !important; 
+                gap: 6px !important;
+                width: 100% !important;
             }
             
-            /* 1. 重新划分网格，让第二行能放下三个东西 */
-@media (max-width: 768px) {
-    .control-row { 
-        display: grid; 
-        grid-template-columns: 1fr 1fr 1.5fr 1fr 1fr; /* 5列布局 */
-        gap: 8px;
-        width: 100%;
-    }
-
-    /* 2. 重新安排第二行的位置 */
-    #loopBtn { 
-        grid-row: 2; 
-        grid-column: 1 / 2; /* 占第1列 */
-    }
-    
-    .speed-select { 
-        grid-row: 2; 
-        grid-column: 2 / 4; /* 占第2,3列 */
-        height: 40px;
-        width: 100%;
-        margin: 0; /* 清除边距 */
-    }
-
-    /* 3. 🔴 重点：控制手机上练习按钮的大小和位置 */
-    .practice-btn { 
-        grid-row: 2;
-        grid-column: 4 / 6; /* 占第4,5列，就在语速后面 */
-        margin: 0 !important; /* 强制清除之前的大边距 */
-        height: 40px !important; /* 强制变成和语速框一样高 */
-        font-size: 12px !important; /* 字体调小，防止塞不下 */
-        border-radius: 8px !important; /* 统一圆角 */
-        box-shadow: none; /* 去掉阴影，让界面更清爽 */
-    }
-    
-    /* 隐藏按钮文字，只留图标（如果手机屏幕特别窄塞不下的话） */
-    .practice-btn span { display: none; } 
-}
-            
-            /* 特殊处理：循环按钮显示文字 */
-            #loopBtn span { display: inline; margin-left: 4px; }
-
-            /* 练习按钮 */
-            .practice-btn { 
-                margin-top: 10px; 
-                height: 45px; 
-                font-size: 15px; 
-                border-radius: 25px; /* 全圆角 */
+            /* 按钮缩小：去掉文字，只留图标 */
+            .control-btn, .practice-btn { 
+                height: 27px !important; 
+                padding: 0 !important; 
+                font-size: 12px !important;
+                border-radius: 6px !important;
+                box-shadow: none !important;
+                margin: 0 !important;
             }
+            .control-btn span, .practice-btn span { display: none !important; } /* 👈 文字消失 */
+            
+            /* 强制重置网格位置，不准换行 */
+            #loopBtn, .speed-select, .practice-btn { grid-row: 1 !important; grid-column: auto !important; }
+            .speed-select { height: 30px !important; width: 100% !important; font-size: 10px !important; padding: 0 !important; }
 
-            /* 6. 字幕区域 (铺满整页) */
+            /* 5. 🔴 大面积字幕区：占据下方所有空间 */
             .subtitle-section { 
-                border-radius: 0; 
-                border: none; 
-                box-shadow: none;
-                height: auto; /* 自动高度 */
-                min-height: 500px;
+                flex: 1 !important; 
+                display: flex !important;
+                flex-direction: column !important;
+                min-height: 0; 
+                margin: 0 !important;
+                border: none !important;
+                background: #fff !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                position: relative !important;
+                top: 0 !important;
+                transform: none !important;
+                box-shadow: none !important;
             }
+
+            /* 标题栏固定 */
             .sub-header {
-                position: sticky; /* 字幕工具栏吸顶 */
-                top: 60px; /* 放在 header 下面 */
-                background: white;
-                z-index: 90;
-                padding: 10px 15px;
+                flex: none !important;
+                padding: 0px 15px;
                 border-bottom: 1px solid #eee;
+                background: #fff;
             }
+
+            /* 字幕列表：彻底开启，能看多少看多少 */
             .subtitle-list { 
-                padding: 15px; 
-                overflow: visible; /* 关键：不许内部滚动 */
-                height: auto;
+                flex: 1 !important;
+                overflow-y: auto !important; 
+                padding: 10px 15px !important; 
+                height: auto !important;
+                max-height: none !important; /* 👈 解除单行限制 */
+            }
+
+            /* 字幕项：间距回归正常 */
+            .sub-item {
+                margin-bottom: 20px !important; 
+                padding: 5px !important;
+                text-align: center;
+                border-bottom: 1px solid #f5f5f5;
             }
             
-            /* 查词弹窗 */
-            .dict-modal { width: 85%; }
+            /* 查词框适配 */
+            .dict-modal { width: 90% !important; }
         }
         /* --- 🔴 只在开启上下布局模式时生效的“补丁” --- */
 
