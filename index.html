@@ -98,7 +98,6 @@
 
             /* --- 4. 极简功能键栏：8个按钮挤成一行（清理重叠版） --- */
             .tools-panel { 
-                /* 【间距调节】第一个数字 0px 控制视频与按钮的距离 */
                 padding: 0px 6px !important; 
                 border: none; 
                 background: #f9f9f9; 
@@ -106,53 +105,48 @@
             }
             .control-row { 
                 display: grid !important; 
-                /* 划分 8 个等宽座位 */
-                grid-template-columns: repeat(8, 1fr) !important; 
-                /* 按钮之间的左右距离 */
+                /* 🔴 核心修改：前 7 个按钮占 1份宽，最后一个语速占 1.8份宽 */
+                grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1.8fr !important; 
                 gap: 2px !important; 
                 width: 100% !important;
-                margin: 0 !important;
+                align-items: center;
             }
             
-            /* 按钮统一尺寸 */
             .control-btn, .practice-btn { 
-                height: 32px !important; /* 👈 控制按钮高矮 */
-                padding: 0 !important; 
-                font-size: 14px !important; /* 图标大小 */
+                height: 32px !important; 
+                font-size: 14px !important;
                 border-radius: 6px !important;
                 box-shadow: none !important;
-                margin: 0 !important;
-                flex: none !important;
                 width: 100% !important;
             }
-            /* 强制隐藏文字 */
             .control-btn span, .practice-btn span { display: none !important; }
 
-            /* 🔴 重新排座（这是您要的对称效果） 🔴 */
+            /* --- 重新排座 --- */
 
-            /* 1. 循环按钮：坐第 1 位 */
-            #loopBtn { 
-                grid-row: 1 !important; 
-                grid-column: 1 / 2 !important; 
-            }
+            /* 循环按钮：坐第 1 位（最左） */
+            #loopBtn { grid-column: 1 / 2 !important; }
 
-            /* 2. 练习按钮（黄色的）：坐第 7 位 */
+            /* 5个播放控制键：自动坐 2,3,4,5,6 位 */
+
+            /* 练习按钮（黄色的）：坐第 7 位 */
             .practice-btn { 
-                grid-row: 1 !important; 
                 grid-column: 7 / 8 !important; 
+                background: var(--yellow) !important; /* 确保它是黄色的 */
+                color: #4A3B32 !important;
             }
             
-            /* 3. 速度按钮（1.0x）：坐第 8 位（最右边） */
+            /* 速度按钮（1.0x）：坐第 8 位（最右，且凳子最宽） */
             .speed-select { 
-                grid-row: 1 !important; 
                 grid-column: 8 / 9 !important; 
                 height: 32px !important; 
                 width: 100% !important; 
-                font-size: 10px !important; 
-                padding: 0 !important;
+                font-size: 11px !important; /* 👈 字稍微大一点，方便看清 */
+                padding: 0 2px !important;
                 margin: 0 !important;
-                border: 1px solid #eee;
+                border: 1px solid #ddd;
                 border-radius: 6px;
+                background: #fff;
+                text-align: center;
             }
 
             /* 中间那 5 个播放控制键会自动坐在 2,3,4,5,6 这几个位置 */
