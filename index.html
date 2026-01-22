@@ -384,6 +384,40 @@ body.vertical-mode .sub-item {
     flex-direction: column;  
     gap: 1px; /* 👈 拼音汉字翻译之间的微小缝隙 */
 }
+/* --- 🔴 字幕内容醒目化补丁 --- */
+body.vertical-mode .sub-item {
+    margin-bottom: 180px !important; /* 👈 间距拉大到 150，防止大字体干扰 */
+    padding-right: 12% !important; 
+    box-sizing: border-box !important; 
+    text-align: center;
+    display: flex;
+    flex-direction: column;  
+    gap: 1px !important; /* 👈 调大到 8px，防止拼音和汉字挤在一起 */
+}
+
+/* --- 🔴 下面是新增的字体控制： --- */
+
+/* 汉字：宣传视频的主角，要最大、最黑 */
+body.vertical-mode .sub-item .chinese {
+    font-size: 36px !important; /* 👈 调大字号，建议 32px - 40px 之间 */
+    font-weight: 800 !important; /* 👈 加粗到极致 */
+    color: var(--dark-red); /* 保持你的深红色，非常醒目 */
+    line-height: 1.2;
+}
+
+/* 拼音：辅助阅读，适中大小 */
+body.vertical-mode .sub-item .pinyin {
+    font-size: 18px !important; /* 👈 调大到 18px */
+    font-weight: 500;
+    color: var(--brown);
+}
+
+/* 翻译：宣传视频也要看清意思 */
+body.vertical-mode .sub-item .trans {
+    font-size: 16px !important; /* 👈 调大到 16px */
+    color: #666; /* 灰色稍微加深一点 */
+    font-style: italic;
+}
     </style>
 </head>
 <body>
