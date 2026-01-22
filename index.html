@@ -96,59 +96,66 @@
             .video-section { flex: none !important; width: 100%; padding: 0; }
             .video-wrapper { border-radius: 0; border: none; aspect-ratio: 16/9; }
 
-            /* --- 4. 极简功能键栏：8个按钮挤成一行 --- */
+            /* --- 4. 极简功能键栏：8个按钮挤成一行（清理重叠版） --- */
             .tools-panel { 
-                /* 【数值调节】第一个 0px 是控制“视频和按钮”之间的空隙，以及“按钮和字幕”之间的空隙 */
+                /* 【间距调节】第一个数字 0px 控制视频与按钮的距离 */
                 padding: 0px 6px !important; 
                 border: none; 
                 background: #f9f9f9; 
-                /* 【数值调节】0.1 是按钮上下行的极小间距 */
-                gap: 0.1 !important; 
+                gap: 0 !important; 
             }
             .control-row { 
                 display: grid !important; 
-                /* 【列数】repeat(8, 1fr) 表示分成了 8 个凳子 */
+                /* 划分 8 个等宽座位 */
                 grid-template-columns: repeat(8, 1fr) !important; 
-                /* 【数值调节】2px 是按钮与按钮之间的左右距离 */
+                /* 按钮之间的左右距离 */
                 gap: 2px !important; 
                 width: 100% !important;
+                margin: 0 !important;
             }
             
-            /* 按钮基本样式 */
+            /* 按钮统一尺寸 */
             .control-btn, .practice-btn { 
-                height: 30px !important; /* 👈 控制按钮的高矮 */
+                height: 32px !important; /* 👈 控制按钮高矮 */
                 padding: 0 !important; 
-                font-size: 12px !important;
+                font-size: 14px !important; /* 图标大小 */
                 border-radius: 6px !important;
                 box-shadow: none !important;
                 margin: 0 !important;
+                flex: none !important;
+                width: 100% !important;
             }
+            /* 强制隐藏文字 */
             .control-btn span, .practice-btn span { display: none !important; }
 
-            /* 🔴 核心：重新安排“凳子”顺序 🔴 */
+            /* 🔴 重新排座（这是您要的对称效果） 🔴 */
 
-            /* 循环按钮：坐第 1 个凳子 */
+            /* 1. 循环按钮：坐第 1 位 */
             #loopBtn { 
                 grid-row: 1 !important; 
                 grid-column: 1 / 2 !important; 
             }
 
-            /* 练习按钮（黄色的）：坐第 7 个凳子 */
+            /* 2. 练习按钮（黄色的）：坐第 7 位 */
             .practice-btn { 
                 grid-row: 1 !important; 
                 grid-column: 7 / 8 !important; 
             }
             
-            /* 速度按钮（1.0x）：坐第 8 个凳子（最右边） */
+            /* 3. 速度按钮（1.0x）：坐第 8 位（最右边） */
             .speed-select { 
                 grid-row: 1 !important; 
-                grid-column: 8 / 9 !important; /* 👈 调到最后一位 */
-                height: 30px !important; 
-                width: 100% !important; /* 👈 改回100%，防止溢出 */
+                grid-column: 8 / 9 !important; 
+                height: 32px !important; 
+                width: 100% !important; 
                 font-size: 10px !important; 
                 padding: 0 !important;
+                margin: 0 !important;
+                border: 1px solid #eee;
+                border-radius: 6px;
             }
 
+            /* 中间那 5 个播放控制键会自动坐在 2,3,4,5,6 这几个位置 */
             /* 中间那 5 个播放控制键（上一句、-5s等）会自动填满第 2 到第 6 个位置 */
             
             /* 按钮缩小：去掉文字，只留图标 */
@@ -160,11 +167,9 @@
                 box-shadow: none !important;
                 margin: 0 !important;
             }
-            .control-btn span, .practice-btn span { display: none !important; } /* 👈 文字消失 */
+        
             
-            /* 强制重置网格位置，不准换行 */
-            #loopBtn, .speed-select, .practice-btn { grid-row: 1 !important; grid-column: auto !important; }
-            .speed-select { height: 30px !important; width: 120% !important; font-size: 10px !important; padding: 0 !important; }
+        
 
             /* 5. 🔴 大面积字幕区：占据下方所有空间 */
             .subtitle-section { 
