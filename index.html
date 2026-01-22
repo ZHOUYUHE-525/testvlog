@@ -313,34 +313,56 @@ body.vertical-mode {
 /* --- 🔴 只改动这一块：调整盒子位置、宽度和强制显示开关 --- */
 body.vertical-mode .subtitle-section {
     position: fixed;
-    top: 580px; /* 👈 往上提一点，确保不挡住标题和开关 */
+    top: 650px; /* 👈 往上提一点，确保不挡住标题和开关 */
     left: 50%;
     transform: translateX(-50%);
-    width: 98%;
+    width: 100%;
     max-width: 1600px;
-    height: 240px; /* 👈 盒子给够 320px 高度，保证翻译绝对能装下 */
+    height: 160px; /* 👈 盒子给够 320px 高度，保证翻译绝对能装下 */
     background: white;
     z-index: 900;
     display: flex !important;
     flex-direction: column;
     border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     overflow: hidden;
 }
 
-/* 👈 在刚才那块下面紧接着加上这一小段，强制唤回消失的开关栏 */
+/* --- 🔴 修正：用智能对齐取代死数字 gap，实现随屏缩短 --- */
 body.vertical-mode .sub-header {
     display: flex !important;
     visibility: visible !important;
-    padding: 10px 30px;
+    /* 左右内边距：和顶部的 Header 保持一致，这样开关就正好在右侧功能键下方 */
+    padding: 5px 30px !important; 
+    background: #fff;
+    border-bottom: 1px solid #eee;
+
+    /* 1. 👈 核心修改：大屏分居两侧，小屏自动缩短中间空隙 */
+    justify-content: space-between !important; 
+    
+    /* 2. 👈 确保垂直居中对齐 */
+    align-items: center !important;
+    
+    /* 3. 👈 防止文字被挤压成竖排 */
+    white-space: nowrap !important;
+    gap: 20px; /* 保证最挤的时候也有 20px 的缝隙 */
 }
 
-/* 3. 核心：让字幕列表在盒子里滚动 */
+/* 保护标题，防止标题太长挤掉开关 */
+body.vertical-mode .sub-title {
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 标题太长显示省略号 */
+    white-space: nowrap;
+}
+
+/* --- 3. 内部滚动区域（字幕在里面跑的那个空间） --- */
 body.vertical-mode .subtitle-list {
     flex: 1 !important;
     overflow-y: auto !important;
-    /* 👈 重点：内边距调小，给“中心”留位置 */
-    padding: 40px 20px !important; 
+    /* 【内边距】第一个10是上下，第二个1是左右。
+       如果想让第一句字幕出现时不要死贴着标题栏，把第一个10改大（如 30） */
+    padding: 5px 1px !important; 
     scroll-behavior: smooth;
 }
 
@@ -349,16 +371,18 @@ body.vertical-mode .subtitle-list {
 body.vertical-mode .sub-item {
     /* 👈 重点：每一句之间空出 100px，确保滚动时盒子里只剩这一句 */
     
-    margin-bottom: 100px !important; 
+    margin-bottom: 80px !important; 
     
     /* 👈 重点：压缩内部，让拼音、汉字、翻译抱得更紧，不留空位 */
     padding: 0 !important; 
-    
+    padding-left: 0% !important; 
+    padding-right: 15% !important; 
+    box-sizing: border-box !important; 
     background: transparent !important;
     text-align: center;
     display: flex;
-    flex-direction: column;
-    gap: 2px; /* 👈 拼音汉字翻译之间的微小缝隙 */
+    flex-direction: column;  
+    gap: 1px; /* 👈 拼音汉字翻译之间的微小缝隙 */
 }
     </style>
 </head>
