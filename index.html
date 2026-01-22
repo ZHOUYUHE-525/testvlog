@@ -75,6 +75,7 @@
         /* === 📱 视频页手机端：瀑布流式布局 (字幕铺满) === */
         /* === 📱 手机版：上半部分固定，下半部分滚动 === */
         @media (max-width: 768px) {
+            #layoutToggleBtn { display: none !important; }
             /* --- 1. 缩小 Header 边距和高度 --- */
             header { 
                 padding: 0 6px !important; 
@@ -83,7 +84,7 @@
 
             /* --- 2. 缩小 Logo 文字，防止挤压右侧 --- */
             .logo { 
-                font-size: 10px !important; 
+                font-size: 16px !important; 
                 gap: 1px !important; 
             }
 
@@ -241,11 +242,14 @@
                 padding: 5px !important;
                 text-align: center;
                 border-bottom: 1px solid #f5f5f5;
+                
+            
             }
             
             /* 查词框适配 */
             .dict-modal { width: 90% !important; }
         }
+        
         /* --- 🔴 只在开启上下布局模式时生效的“补丁” --- */
 
 /* --- 🔴 弹性等高版：上下布局模式 --- */
