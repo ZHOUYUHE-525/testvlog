@@ -96,20 +96,60 @@
             .video-section { flex: none !important; width: 100%; padding: 0; }
             .video-wrapper { border-radius: 0; border: none; aspect-ratio: 16/9; }
 
-            /* 4. 🔴 极简功能键栏：8个按钮挤成一行 */
+            /* --- 4. 极简功能键栏：8个按钮挤成一行 --- */
             .tools-panel { 
+                /* 【数值调节】第一个 0px 是控制“视频和按钮”之间的空隙，以及“按钮和字幕”之间的空隙 */
                 padding: 0px 6px !important; 
                 border: none; 
                 background: #f9f9f9; 
+                /* 【数值调节】0.1 是按钮上下行的极小间距 */
                 gap: 0.1 !important; 
             }
             .control-row { 
                 display: grid !important; 
-                /* 👈 8列平分，按钮全塞在一行 */
+                /* 【列数】repeat(8, 1fr) 表示分成了 8 个凳子 */
                 grid-template-columns: repeat(8, 1fr) !important; 
-                gap: 2px !important;
+                /* 【数值调节】2px 是按钮与按钮之间的左右距离 */
+                gap: 2px !important; 
                 width: 100% !important;
             }
+            
+            /* 按钮基本样式 */
+            .control-btn, .practice-btn { 
+                height: 30px !important; /* 👈 控制按钮的高矮 */
+                padding: 0 !important; 
+                font-size: 12px !important;
+                border-radius: 6px !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+            }
+            .control-btn span, .practice-btn span { display: none !important; }
+
+            /* 🔴 核心：重新安排“凳子”顺序 🔴 */
+
+            /* 循环按钮：坐第 1 个凳子 */
+            #loopBtn { 
+                grid-row: 1 !important; 
+                grid-column: 1 / 2 !important; 
+            }
+
+            /* 练习按钮（黄色的）：坐第 7 个凳子 */
+            .practice-btn { 
+                grid-row: 1 !important; 
+                grid-column: 7 / 8 !important; 
+            }
+            
+            /* 速度按钮（1.0x）：坐第 8 个凳子（最右边） */
+            .speed-select { 
+                grid-row: 1 !important; 
+                grid-column: 8 / 9 !important; /* 👈 调到最后一位 */
+                height: 30px !important; 
+                width: 100% !important; /* 👈 改回100%，防止溢出 */
+                font-size: 10px !important; 
+                padding: 0 !important;
+            }
+
+            /* 中间那 5 个播放控制键（上一句、-5s等）会自动填满第 2 到第 6 个位置 */
             
             /* 按钮缩小：去掉文字，只留图标 */
             .control-btn, .practice-btn { 
