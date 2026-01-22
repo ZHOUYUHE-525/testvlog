@@ -75,6 +75,41 @@
         /* === 📱 视频页手机端：瀑布流式布局 (字幕铺满) === */
         /* === 📱 手机版：上半部分固定，下半部分滚动 === */
         @media (max-width: 768px) {
+            /* --- 1. 缩小 Header 边距和高度 --- */
+            header { 
+                padding: 0 8px !important; 
+                height: 50px !important; 
+            }
+
+            /* --- 2. 缩小 Logo 文字，防止挤压右侧 --- */
+            .logo { 
+                font-size: 14px !important; 
+                gap: 5px !important; 
+            }
+
+            /* --- 3. 🔴 重点：缩小 Header 右侧按钮的间距 --- */
+            header div[style*="display:flex"] { 
+                gap: 5px !important; /* 把 15px 缩小到 5px */
+            }
+
+            /* --- 4. 缩小 Header 里的控制按钮尺寸 --- */
+            header .control-btn { 
+                width: 32px !important; 
+                height: 32px !important; 
+                padding: 0 !important; 
+                font-size: 12px !important;
+                flex-direction: row !important;
+            }
+            
+            /* 隐藏按钮里的文字，只留图标，腾出最大空间 */
+            header .control-btn span { display: none !important; }
+
+            /* --- 5. 缩小语言切换球的大小 --- */
+            .lang-switch { 
+                padding: 4px 8px !important; 
+                font-size: 11px !important; 
+                white-space: nowrap !important;
+            }
             /* 1. 锁死大网页，禁止晃动 */
             body { 
                 height: 100vh !important; 
