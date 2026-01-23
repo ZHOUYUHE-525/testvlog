@@ -76,15 +76,23 @@
         /* === 📱 手机版：上半部分固定，下半部分滚动 === */
         @media (max-width: 768px) {
             #layoutToggleBtn { display: none !important; }
+            .control-btn i { font-size: 20px !important; }
             /* --- 1. 缩小 Header 边距和高度 --- */
             header { 
+                position: fixed !important; /* 👈 关键：强制固定，不随页面滚动 */
+                top: 0 !important;          /* 👈 紧贴最上方 */
+                left: 0;
+                width: 100% !important;
+                z-index: 2000 !important;   /* 👈 确保层级最高，不被视频盖住 */
+                background: #fff;           /* 确保背景不透明 */
                 padding: 0 6px !important; 
-                height: 40px !important; 
+                height: 44px !important;    /* 稍微固定下高度 */
+                box-sizing: border-box;
             }
 
             /* --- 2. 缩小 Logo 文字，防止挤压右侧 --- */
             .logo { 
-                font-size: 22px !important; 
+                font-size: 16px !important; 
                 gap: 1px !important; 
             }
 
@@ -107,8 +115,8 @@
 
             /* --- 5. 缩小语言切换球的大小 --- */
             .lang-switch { 
-                padding: 2px 6px !important; 
-                font-size: 5px !important; 
+                padding: 3px 6px !important; 
+                font-size: 12px !important; 
                 white-space: nowrap !important;
             }
             /* 1. 锁死大网页，禁止晃动 */
@@ -119,12 +127,12 @@
                 flex-direction: column;
             }
 
-            /* 2. 容器撑满屏幕 */
+            /* --- 2. 补位：防止视频钻到 Header 下面去 --- */
             .main-container { 
+                padding-top: 44px !important; /* 👈 必须加这个，数值等于 header 的高度 */
                 flex: 1; 
                 display: flex !important; 
                 flex-direction: column !important;
-                padding: 0 !important; 
                 overflow: hidden !important; 
             }
 
