@@ -79,15 +79,16 @@
             .control-btn i { font-size: 20px !important; }
             /* --- 1. 缩小 Header 边距和高度 --- */
             header { 
-                position: fixed !important; /* 👈 关键：强制固定，不随页面滚动 */
-                top: 0 !important;          /* 👈 紧贴最上方 */
+                position: fixed !important; /* 👈 改为 fixed */
+                top: 0 !important; 
                 left: 0;
                 width: 100% !important;
-                z-index: 2000 !important;   /* 👈 确保层级最高，不被视频盖住 */
-                background: #fff;           /* 确保背景不透明 */
-                padding: 0 6px !important; 
-                height: 44px !important;    /* 稍微固定下高度 */
-                box-sizing: border-box;
+                z-index: 2500 !important; /* 👈 最高层级 */
+                background: #fff !important; 
+                padding: 0 10px !important; 
+                height: 44px !important; 
+                display: flex !important;
+                align-items: center !important;
             }
 
             /* --- 2. 缩小 Logo 文字，防止挤压右侧 --- */
@@ -127,17 +128,28 @@
                 flex-direction: column;
             }
 
-            /* --- 2. 补位：防止视频钻到 Header 下面去 --- */
-            .main-container { 
-                padding-top: 44px !important; /* 👈 必须加这个，数值等于 header 的高度 */
+            /* 2. 容器撑满屏幕 */
+             .main-container { 
                 flex: 1; 
                 display: flex !important; 
                 flex-direction: column !important;
+                padding: 0 !important; 
+                margin: 0 !important;
                 overflow: hidden !important; 
+                width: 100vw !important; /* 👈 核心：强制占满手机屏幕宽度 */
             }
 
             /* 3. 视频区：固定高度 */
-            .video-section { flex: none !important; width: 100%; padding: 0; }
+            .video-section { 
+                position: fixed !important; /* 👈 核心：焊死在顶部 */
+                top: 44px; /* 👈 刚好在 header 下面 */
+                left: 0;
+                width: 100% !important; 
+                z-index: 2000 !important;
+                background: #fff !important;
+                flex: none !important; 
+                padding: 0; 
+            }
             .video-wrapper { border-radius: 0; border: none; aspect-ratio: 16/9; }
 
             /* --- 4. 极简功能键栏：8个按钮挤成一行（清理重叠版） --- */
