@@ -200,8 +200,8 @@
                 /* 👈 高度必须同步改为 38px */
                 height: 38px !important; 
                 width: 100% !important; 
-                font-size: 11px !important; 
-                padding: 0 2px !important;
+                font-size: 15px !important; 
+                padding: 0 4px !important;
                 margin: 0 !important;
                 border: 1px solid #ddd;
                 border-radius: 6px;
@@ -218,9 +218,6 @@
             /* 中间那 5 个播放控制键（上一句、-5s等）会自动填满第 2 到第 6 个位置 */
             
         
-        
-            
-        
 
             /* 5. 🔴 大面积字幕区：占据下方所有空间 */
             .subtitle-section { 
@@ -228,15 +225,12 @@
                 display: flex !important;
                 flex-direction: column !important;
                 min-height: 0; 
-                margin: 0 !important;
+                /* 🔴 核心：这个数字决定了字幕开始的位置。
+                   根据你的视频高度，建议设为 340px 左右 */
+                margin-top: 340px !important; 
                 border: none !important;
                 background: #fff !important;
                 width: 100% !important;
-                max-width: 100% !important;
-                position: relative !important;
-                top: 0 !important;
-                transform: none !important;
-                box-shadow: none !important;
             }
 
             /* 标题栏固定 */
@@ -355,11 +349,11 @@ body.vertical-mode .practice-btn {
     height: 60px; /* 固定一个比较大的高度 */
     flex: none;
     margin-top: 10px;
-    font-size: 15px;
+    font-size: 10px;
     border-radius: 12px;
 }
 
-/* 速度选择框 */
+/* 速度选择框 *
 body.vertical-mode .speed-select {
     width: 100%;
     height: 45px;
