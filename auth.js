@@ -49,18 +49,37 @@ async function checkLogin() {
         return;
     }
 
-    // 4. 已登录，核对存根
     const { data: profile } = await authClient
         .from('profiles')
-        .select('session_token')
+        .select('session_token, expire_at') // 增加了 expire_at
         .eq('id', user.id)
         .maybeSingle();
 
+    // 1. 检查账号是否被删
     if (!profile) {
         localStorage.clear();
-        window.location.replace('login.html');
+        if (!isLoginPage) {
+            alert("账号已失效。");
+            window.location.replace('login.html');
+        }
         return;
     }
+
+    // 2. 🟢 新增：检查是否到期
+    if (profile.expire_at) {
+        const now = new Date(); // 获取当前时间
+        const expireDate = new Date(profile.expire_at); // 获取数据库存的到期时间
+        
+        if (now > expireDate) {
+            console.warn("🚨 试用期已过");
+            localStorage.clear();
+            sessionStorage.clear();
+            alert("您的账号试用期已满，请联系老师。");
+            window.location.replace('login.html');
+            return;
+        }
+    }
+
 
     const myLocalToken = localStorage.getItem('my_session_token');
     if (myLocalToken && profile.session_token && profile.session_token !== myLocalToken) {
