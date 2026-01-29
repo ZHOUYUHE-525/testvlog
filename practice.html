@@ -1,9 +1,18 @@
-<!DOCTYPE html>
+а<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汉语 Vlog 课堂 | 沉浸练习</title>
+    <!-- 1. 电脑浏览器标签页图标 -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- 2. 苹果/安卓手机“添加到桌面”后的图标 -->
+<link rel="apple-touch-icon" href="logo.png">
+
+<!-- 3. 设置移动端状态栏颜色（让它更像 App） -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
     
     <!-- 1. 引入 Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -190,6 +199,91 @@ audio {
     font-weight: bold;
     min-width: 35px;
 }
+/* --- 新增：全部显示模式的样式 --- */
+.cards-grid {
+    display: none; /* 默认隐藏 */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* 自动网格排版 */
+    gap: 15px;
+    padding: 10px;
+    margin-top: 20px;
+}
+.small-card {
+    background: white;
+    border: 1px solid var(--primary);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    /* --- 新增以下三行 --- */
+    cursor: pointer; 
+    transition: all 0.2s;
+}
+/* --- 新增悬停效果，让它看起来更像按钮 --- */
+.small-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--yellow);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.small-card .sz-hz { font-size: 20px; font-weight: bold; color: var(--red); margin-bottom: 5px; }
+.small-card .sz-py { font-size: 12px; color: #A77046; }
+.small-card .sz-mean { font-size: 13px; color: #666; margin-top: 5px; border-top: 1px dotted #eee; padding-top: 5px;}
+.view-toggle-btn {
+    text-align: right;
+    margin-bottom: 10px;
+}
+.text-link {
+    color: var(--primary);
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+/* --- 新增：网格顶部的开关工具栏 --- */
+.grid-toolbar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f0f0f0;
+    border-radius: 30px;
+}
+
+/* 仿照图中的圆形开关按钮 */
+.toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary); /* 开启时的颜色 */
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 按钮关闭时的样式 */
+.toggle-btn.off {
+    background: #ccc;
+    color: #666;
+}
+
+/* --- 核心控制逻辑：同时管理大卡片和小卡片 --- */
+/* 隐藏汉字 */
+#flashcard.hide-hz .hanzi, 
+#flashcard.hide-hz .sz-hz { opacity: 0; pointer-events: none; } 
+
+/* 隐藏拼音 */
+#flashcard.hide-py .back-py, 
+#flashcard.hide-py .sz-py { display: none; }
+
+/* 隐藏翻译 */
+#flashcard.hide-mean .back-mean, 
+#flashcard.hide-mean .sz-mean { display: none; }
     </style>
 </head>
 <body>
@@ -218,9 +312,19 @@ audio {
     <div class="scroll-content">
         <div class="content-inner">
             <!-- A: 词卡 -->
+            <!-- A: 词卡 -->
             <div id="flashcard" class="module active">
-                <div class="flashcard-stage">
+                <!-- 新增：切换按钮 -->
+                <div class="view-toggle-btn">
+                    <span class="text-link" id="toggleBtn" onclick="toggleAllCardsView()">
+    <i class="fas fa-th-large"></i> <span data-i18n="btn_all">全部显示</span>
+</span>
+                </div>
+
+                <!-- 原有的单张卡片区域 -->
+                <div class="flashcard-stage" id="singleCardView">
                     <div class="card-scene" onclick="flipCard()">
+                        <!-- 这里是原有的 card 内容，保持不变 -->
                         <div class="card" id="cardEl">
                             <div class="card-face card-front">
                                 <div class="hanzi" id="fc-cn">...</div>
@@ -244,6 +348,17 @@ audio {
                         <button class="ctrl-btn" onclick="nextCard()"><i class="fas fa-arrow-right"></i></button>
                     </div>
                 </div>
+
+                <!-- 新增：存放所有小卡片的容器 -->
+                 <!-- 新增：控制开关栏 -->
+<div id="gridToolbar" class="grid-toolbar" style="display:none;">
+    <button id="toggle-hz" class="toggle-btn" onclick="gridToggle('hz')" data-i18n="toggle_hz">汉</button>
+    <button id="toggle-py" class="toggle-btn" onclick="gridToggle('py')" data-i18n="toggle_py">拼</button>
+    <button id="toggle-mean" class="toggle-btn" onclick="gridToggle('mean')" data-i18n="toggle_mean">译</button>
+</div>
+
+<!-- 这是你原有的网格容器 -->
+<div id="allCardsGrid" class="cards-grid"></div>
             </div>
             <!-- B: 填空 -->
             <div id="cloze" class="module">
@@ -285,11 +400,24 @@ audio {
     <script src="lesson_010.js"></script>
     <script src="lesson_011.js"></script>
     <script src="lesson_012.js"></script>
+    <script src="lesson_013.js"></script>
+    <script src="lesson_014.js"></script>
+    <script src="lesson_015.js"></script>
+    <script src="lesson_016.js"></script>
+    <script src="lesson_017.js"></script>
+    <script src="lesson_018.js"></script>
+    <script src="lesson_019.js"></script>
+    <script src="lesson_020.js"></script>
     
     <script src="lesson_401.js"></script>
     <script src="lesson_402.js"></script>
     <script src="lesson_403.js"></script>
-    <script src="lesson_404.js"></script> 
+    <script src="lesson_404.js"></script>
+    <script src="lesson_405.js"></script>
+    <script src="lesson_406.js"></script>
+    <script src="lesson_407.js"></script>
+    <script src="lesson_408.js"></script>
+    <script src="lesson_409.js"></script>
 
     <script>
         const params = new URLSearchParams(window.location.search);
@@ -302,11 +430,37 @@ audio {
         const video = document.getElementById('practiceVideo');
         let currentCardIdx = 0;
         let currentLang = 'ru'; 
+        let isShowAllMode = false; // <--- 把这行挪到这里来，确保它最先被程序认出来
+    
 
         const uiDict = {
-            ru: { back: "Назад", tab_card: "Слова", tab_cloze: "Заполнить", tab_speak: "Говорить", tab_extend: "Расширение", tip_flip: "(Нажмите, чтобы перевернуть)", btn_play: "Слушать", btn_add: "Добавить", tip_cloze: "Слушайте и заполняйте пропуски.", tip_shadow: "Слушать(Синий) -> Запись(Красный) -> Проверка(Желтый)", tip_extend: "Рекомендуемые материалы", check: "Проверить" },
-            en: { back: "Back", tab_card: "Words", tab_cloze: "Cloze", tab_speak: "Speaking", tab_extend: "Extend", tip_flip: "(Click to flip)", btn_play: "Play", btn_add: "Add to list", tip_cloze: "Listen and fill in the blanks.", tip_shadow: "Listen(Blue) -> Record(Red) -> Playback(Yellow)", tip_extend: "Recommended Reading", check: "Check" },
-            cn: { back: "返回", tab_card: "重点词卡", tab_cloze: "听音填空", tab_speak: "全文跟读", tab_extend: "拓展阅读", tip_flip: "(点击卡片翻面)", btn_play: "播放此句", btn_add: "加入生词库", tip_cloze: "点击小喇叭听原句，填入缺失的词。", tip_shadow: "听原音(蓝) -> 按住录(红) -> 听回放(黄)", tip_extend: "推荐阅读与相关视频", check: "检查" }
+            ru: { 
+                back: "Назад", tab_card: "Слова", tab_cloze: "Заполнить", tab_speak: "Говорить", tab_extend: "Расширение", 
+                tip_flip: "(Нажмите, чтобы перевернуть)", btn_play: "Слушать", btn_add: "Добавить", 
+                tip_cloze: "Слушайте и заполняйте пропуски.", 
+                tip_shadow: "Слушать(Синий) -> Запись(Красный) -> Проверка(Желтый)", 
+                tip_extend: "Рекомендуемые материалы", check: "Проверить",
+                // 新增
+                btn_all: "Все карточки", btn_single: "К одной", toggle_hz: "Иер", toggle_py: "Тран", toggle_mean: "Пер"
+            },
+            en: { 
+                back: "Back", tab_card: "Words", tab_cloze: "Cloze", tab_speak: "Speaking", tab_extend: "Extend", 
+                tip_flip: "(Click to flip)", btn_play: "Play", btn_add: "Add to list", 
+                tip_cloze: "Listen and fill in the blanks.", 
+                tip_shadow: "Listen(Blue) -> Record(Red) -> Playback(Yellow)", 
+                tip_extend: "Recommended Reading", check: "Check",
+                // 新增
+                btn_all: "View All", btn_single: "Back", toggle_hz: "Han", toggle_py: "Pin", toggle_mean: "Tr"
+            },
+            cn: { 
+                back: "返回", tab_card: "重点词卡", tab_cloze: "听音填空", tab_speak: "全文跟读", tab_extend: "拓展阅读", 
+                tip_flip: "(点击卡片翻面)", btn_play: "播放此句", btn_add: "加入生词库", 
+                tip_cloze: "点击小喇叭听原句，填入缺失的词。", 
+                tip_shadow: "听原音(蓝) -> 按住录(红) -> 听回放(黄)", 
+                tip_extend: "推荐阅读与相关视频", check: "检查",
+                // 新增
+                btn_all: "全部显示", btn_single: "返回单张", toggle_hz: "汉", toggle_py: "拼", toggle_mean: "译"
+            }
         };
 
         if(lesson) {
@@ -333,10 +487,95 @@ audio {
                 const key = el.getAttribute('data-i18n');
                 if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
             });
+            
+            // --- 新增：专门处理那个会变来变去的模式按钮 ---
+            const toggleText = isShowAllMode ? uiDict[currentLang].btn_single : uiDict[currentLang].btn_all;
+            document.querySelector('#toggleBtn [data-i18n]').innerText = toggleText;
+
             loadCardData(currentCardIdx); initCloze(); // 刷新内容
         }
 
         function initFlashcards() { loadCardData(0); }
+        // --- 新增：切换“全部显示”模式的函数 ---
+
+function toggleAllCardsView() {
+    const singleView = document.getElementById('singleCardView');
+    const gridView = document.getElementById('allCardsGrid');
+    const toolbar = document.getElementById('gridToolbar');
+    const btnSpan = document.querySelector('#toggleBtn [data-i18n]'); // 获取文字容器
+
+    if (!isShowAllMode) {
+        singleView.style.display = 'none';
+        gridView.style.display = 'grid';
+        toolbar.style.display = 'flex';
+        renderAllCards();
+        // 修改这行：从字典里取“返回单张”
+        btnSpan.innerText = uiDict[currentLang].btn_single; 
+        isShowAllMode = true;
+    } else {
+        singleView.style.display = 'flex';
+        gridView.style.display = 'none';
+        toolbar.style.display = 'none';
+        // 修改这行：从字典里取“全部显示”
+        btnSpan.innerText = uiDict[currentLang].btn_all;
+        isShowAllMode = false;
+    }
+}
+
+// --- 新增：控制网格中汉、拼、译显示隐藏的函数 ---
+function gridToggle(type) {
+    // 关键：把状态加在整个闪卡模块的大框上
+    const container = document.getElementById('flashcard');
+    const btn = document.getElementById('toggle-' + type);
+    
+    const className = 'hide-' + type;
+    container.classList.toggle(className);
+    
+    // 同步更新按钮视觉效果
+    if (container.classList.contains(className)) {
+        btn.classList.add('off'); 
+    } else {
+        btn.classList.remove('off');
+    }
+}
+
+function renderAllCards() {
+    const container = document.getElementById('allCardsGrid');
+    container.innerHTML = ''; 
+
+    // 注意这里加了一个 index 参数
+    lesson.flashcards.forEach((word, index) => {
+        const item = document.createElement('div');
+        item.className = 'small-card';
+        
+        // --- 核心改动：点击时调用 jumpToCard 函数并传入序号 ---
+        item.onclick = function() { jumpToCard(index); };
+
+        let meaning = word.ru;
+        if(currentLang === 'en') meaning = word.en || word.ru;
+
+        item.innerHTML = `
+            <div class="sz-hz">${word.cn}</div>
+            <div class="sz-py">${word.py}</div>
+            <div class="sz-mean">${meaning}</div>
+        `;
+        container.appendChild(item);
+    });
+}
+// --- 新增：从小卡片跳转到大卡片的执行函数 ---
+function jumpToCard(index) {
+    // 1. 更新全局的当前卡片序号
+    currentCardIdx = index;
+    
+    // 2. 调用原有的加载数据函数，让大卡片刷新内容
+    loadCardData(index);
+    
+    // 3. 切换回单张模式 (直接调用之前的切换函数即可)
+    toggleAllCardsView();
+    
+    // 4. (可选) 自动回到顶部，防止页面太长看不到大卡片
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
         function loadCardData(idx) {
             const word = lesson.flashcards[idx];
             document.getElementById('fc-cn').innerText = word.cn;
