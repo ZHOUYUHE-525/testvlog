@@ -252,36 +252,18 @@
         function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
 
         function showPayDetail(type) {
-    const userEmail = document.getElementById('payEmail').value.trim();
-    if (!userEmail || !userEmail.includes('@')) { 
-        alert(currentLang === 'ru' ? "Введите корректный Email" : "请输入正确的注册邮箱"); 
-        return; 
-    }
-    
-    document.getElementById('payDetail').style.display = 'block';
-    const content = document.getElementById('payContent');
+            const userEmail = document.getElementById('payEmail').value.trim();
+            if (!userEmail) { alert(currentLang === 'ru' ? "Введите Email" : "请先输入邮箱"); return; }
+            
+            document.getElementById('payDetail').style.display = 'block';
+            document.getElementById('screenshotTip').innerText = uiDict[currentLang].pay_tip;
+            const content = document.getElementById('payContent');
 
-    // 定义统一的价格显示
-    const priceText = "<b>208 ¥ / 2300 руб.</b>";
-
-    if (type === 'wechat') {
-        content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; margin-bottom:10px;"><p>WeChat Pay: ${priceText}</p>`;
-    } else if (type === 'alipay') {
-        content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; margin-bottom:10px;"><p>Alipay: ${priceText}</p>`;
-    } else if (type === 'sbp') {
-        content.innerHTML = `
-            <div style="text-align:left; background:#1a1a1a; padding:15px; border-radius:10px;">
-                <p><b>СБП (Перевод по номеру):</b></p>
-                <p style="font-size:18px; color:var(--primary); margin:10px 0;">+7 962 726 66 18</p>
-                <p>Получатель: <b>Чжоу Юйхэ</b></p>
-                <p>Сумма: <b>2300 руб.</b></p>
-            </div>`;
-    } else if (type === 'paypal') {
-        content.innerHTML = `
-            <p>PayPal: <b>zhouyuhe525@gmail.com</b></p>
-            <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:8px 20px;">Pay via PayPal</a>`;
-    }
-}
+            if (type === 'wechat') content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; margin-bottom:10px;"><p>WeChat Pay: 208 ¥ / 2300 руб.</p>`;
+            else if (type === 'alipay') content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; margin-bottom:10px;"><p>Alipay: 208 ¥ / 2300 руб.</p>`;
+            else if (type === 'sbp') content.innerHTML = `<p><b>СБП (Сбербанк / Т-Банк):</b></p><p style="font-size:18px; color:var(--primary);">+7 962 726 66 18</p><p>Получатель: Чжоу Юйхэ</p><p>Сумма: 2300 руб.</p>`;
+            else if (type === 'paypal') content.innerHTML = `<p>PayPal: <b>zhouyuhe525@gmail.com</b></p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 20px;">Pay via PayPal</a>`;
+        }
 
         function toggleLang() { currentLang = (currentLang === 'ru') ? 'en' : (currentLang === 'en' ? 'cn' : 'ru'); updateUI(); }
         function toggleMode() { isSignUpMode = !isSignUpMode; updateUI(); }
