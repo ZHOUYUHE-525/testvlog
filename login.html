@@ -287,20 +287,30 @@
             document.getElementById('unlockWarning').innerHTML = dict.unlock_warning;
             document.getElementById('contactBtn').querySelector('span').innerText = dict.contact_teacher;
 
+            // 3. 渲染价格表卡片
             const list = document.getElementById('pricingList');
-            list.innerHTML = dict.plans.map(p => `
-                <div class="price-item ${p.active ? 'active' : ''}" onclick="handlePriceClick('${p.id}')">
-                    ${p.soon ? `<span class="coming-soon">${p.soon}</span>` : ''}
-                    <h3>${p.title}</h3>
-                    <div class="price-row">
-                        <span class="price-now">${p.price}</span>
-                        ${p.old ? `<span class="price-old">${p.old}</span>` : ''}
-                    </div>
-                    ${p.reason ? `<div class="price-reason">${p.reason}</div>` : ''}
-                    ${p.remark ? `<span class="price-remark">${p.remark}</span>` : ''}
-                    <ul class="features">${p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('')}</ul>
-                </div>`).join('');
-        }
+            if(list) {
+                list.innerHTML = dict.plans.map(p => `
+                    <div class="price-item ${p.active ? 'active' : ''}" onclick="handlePriceClick('${p.id}')">
+                        ${p.soon ? `<span class="coming-soon">${p.soon}</span>` : ''}
+                        <h3>${p.title}</h3>
+                        <div class="price-row">
+                            <span class="price-now">${p.price}</span>
+                            ${p.old ? `<span class="price-old">${p.old}</span>` : ''}
+                        </div>
+                        ${p.reason ? `<div class="price-reason">${p.reason}</div>` : ''}
+                        ${p.remark ? `<span class="price-remark">${p.remark}</span>` : ''}
+                        <ul class="features">
+                            ${p.features.map(f => {
+                                // 🟢 逻辑：如果包含“不可”或俄语的“не”，显示红叉
+                                const isNegative = f.includes('不可') || f.includes('не') || f.includes('locked');
+                                const icon = isNegative ? 'fa-times-circle' : 'fa-check-circle';
+                                const iconColor = isNegative ? 'color:var(--red)' : 'color:var(--primary)';
+                                return `<li><i class="fas ${icon}" style="${iconColor}"></i> ${f}</li>`;
+                            }).join('')}
+                        </ul>
+                    </div>`).join('');
+            }
 
         function handlePriceClick(id) {
             if (id === 'trial') { isSignUpMode = true; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('email').focus(); }
