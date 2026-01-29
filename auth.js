@@ -1,4 +1,4 @@
-// === auth.js (CTO 温和更新/防闪退 稳定版) ===
+// === auth.js (CTO 终极静默核对版 - 解决更新闪退) ===
 
 let authClient = null;
 const AUTH_SUPABASE_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
@@ -16,79 +16,65 @@ async function initAuth() {
     const path = window.location.pathname;
     const isLoginPage = path.includes('login') || path === '/' || path === '';
 
-    if (isLoginPage) {
-        console.log("📍 登录页静默模式");
-        return; 
+    if (isLoginPage) return; 
+
+    // 🔴 核心改进：先执行快速本地检查，不等待网络请求，防止发布时的网络波动导致闪退
+    const { data: { session } } = await authClient.auth.getSession();
+
+    if (!session) {
+        console.log("📍 本地无通行证，去登录页");
+        window.location.replace('login.html');
+        return;
     }
 
-    checkLogin();
+    // 🟢 已经在页面内了，悄悄在后台核对身份，不阻塞学生看视频
+    checkLiveStatus(session.user);
 }
 
 initAuth();
 
-async function checkLogin() {
-    if (!authClient) return;
+async function checkLiveStatus(user) {
+    try {
+        // 1. 联网核对 profile 行（这是最准的，删号即刻生效）
+        const { data: profile, error } = await authClient
+            .from('profiles')
+            .select('session_token, expire_at')
+            .eq('id', user.id)
+            .maybeSingle();
 
-    // 1. 登录成功绿色通道
-    if (window.location.href.includes('from_login=1')) {
-        const newUrl = window.location.href.replace(/[\?&]from_login=1/, '');
-        window.history.replaceState({}, document.title, newUrl);
-        return; 
-    }
-
-    // 2. 尝试获取用户
-    const { data: { user } } = await authClient.auth.getUser();
-
-    // --- 🟢 优化点：没拿到用户只回登录页，【不清空】本地缓存 ---
-    if (!user) {
-        console.log("🚫 无登录信息，返回入口");
-        window.location.replace('login.html');
-        return;
-    }
-
-    // 3. 只有确认人在登录状态，才去查权限表
-    const { data: profile } = await authClient
-        .from('profiles')
-        .select('session_token, expire_at')
-        .eq('id', user.id)
-        .maybeSingle();
-
-    // 4. 🔴 只有在数据库里【查不到人】时，才判定为“账号被删”，执行彻底清空
-    if (!profile) {
-        console.error("🚨 账号已被注销");
-        localStorage.clear();
-        sessionStorage.clear();
-        alert("您的账号已失效。");
-        window.location.replace('login.html');
-        return;
-    }
-
-    // 5. 检查到期（到期才清空）
-    if (profile.expire_at) {
-        const now = new Date();
-        const expireDate = new Date(profile.expire_at);
-        if (now > expireDate) {
-            console.warn("🚨 试用期已过");
+        // 2. 只有明确查不到人（被删了），或者报错了，才踢人
+        if (!profile || error) {
+            console.error("🚨 身份核对失败，可能账号已注销");
             localStorage.clear();
             sessionStorage.clear();
-            alert("您的账号试用期已满，请联系老师。");
             window.location.replace('login.html');
             return;
         }
-    }
 
-    // 6. 互踢检查（互踢才清空）
-    const myLocalToken = localStorage.getItem('my_session_token');
-    if (myLocalToken && profile.session_token && profile.session_token !== myLocalToken) {
-        localStorage.clear();
-        sessionStorage.clear();
-        alert("⚠️ 您的账号已在其他设备登录，本设备已下线。");
-        window.location.replace('login.html');
-        return;
-    }
+        // 3. 检查到期
+        if (profile.expire_at && new Date() > new Date(profile.expire_at)) {
+            localStorage.clear();
+            alert("试用期已满 / Trial Expired");
+            window.location.replace('login.html');
+            return;
+        }
 
-    // 7. 正常放行：记录日志
-    logVisit(user);
+        // 4. 互踢检查
+        const myLocalToken = localStorage.getItem('my_session_token');
+        if (myLocalToken && profile.session_token && profile.session_token !== myLocalToken) {
+            localStorage.clear();
+            alert("账号在别处登录 / Logged in elsewhere");
+            window.location.replace('login.html');
+            return;
+        }
+
+        // 如果一切正常，记录登录日志
+        logVisit(user);
+
+    } catch (e) {
+        // 如果是网络卡顿导致报错，我们选择【原谅】，不踢学生，让他们继续看
+        console.warn("🌐 网络波动，暂时跳过身份核对");
+    }
 }
 
 async function logVisit(user) {
