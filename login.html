@@ -3,209 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>汉语 Vlog | 学员登录</title>
-    <!-- 1. 电脑浏览器标签页图标 -->
-<link rel="icon" type="image/png" href="logo.png">
-
-<!-- 2. 苹果/安卓手机“添加到桌面”后的图标 -->
-<link rel="apple-touch-icon" href="logo.png">
-
-<!-- 3. 设置移动端状态栏颜色（让它更像 App） -->
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-capable" content="yes">
+    <title>汉语 Vlog | 开启沉浸式电影课堂</title>
     
-    <!-- 引入 Supabase -->
+    <!-- 🟢 App 图标和手机端设置 -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <!-- 引入资源 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- 引入保安脚本 -->
+    <!-- 🟢 引入保安脚本（必须在最前，处理自动跳转） -->
     <script src="auth.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; background: #f3f4f6; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
-        
-        .login-box { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            width: 320px; 
-            text-align: center; 
+        :root {
+            --primary: #6CAD9C;
+            --accent: #E5CC84;
+            --glass: rgba(255, 255, 255, 0.08);
+            --bg-dark: #0a0a0a;
         }
 
-        .logo { 
-            font-size: 24px; 
-            font-weight: 800; 
-            color: #8B3A3A; 
-            margin-bottom: 30px; 
+        body, html { margin: 0; padding: 0; height: 100%; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg-dark); color: white; overflow-x: hidden; scroll-behavior: smooth; }
+
+        .bg-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%), 
+                        url('https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=2059&auto=format&fit=crop'); 
+            background-size: cover; background-position: center;
+            z-index: -1; transform: scale(1.05); transition: transform 8s ease-out;
         }
-        
-        .input-group { margin-bottom: 20px; text-align: left; }
-        
-        label { 
-            display: block; 
-            font-size: 13px; 
-            color: #666; 
-            margin-bottom: 8px; 
-            font-weight: bold; 
+        body.loaded .bg-overlay { transform: scale(1); }
+
+        .top-nav { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .lang-btn { background: var(--glass); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 25px; cursor: pointer; backdrop-filter: blur(15px); font-size: 13px; font-weight: bold; transition: 0.3s; }
+        .lang-btn:hover { background: rgba(255,255,255,0.2); border-color: var(--accent); }
+
+        .wrapper { display: flex; flex-direction: column; align-items: center; padding: 100px 20px 60px 20px; }
+
+        .login-card {
+            background: var(--glass);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px; padding: 40px; width: 100%; max-width: 380px;
+            text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            margin-bottom: 80px;
         }
-        
-        input { 
-            width: 100%; padding: 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 10px; 
-            box-sizing: border-box; 
-            outline: none; 
-            transition: border 0.2s;
-            font-size: 14px;
+
+        .logo-area i { font-size: 50px; color: var(--accent); margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(229, 204, 132, 0.5)); }
+        .logo-area h1 { font-size: 28px; margin: 0; letter-spacing: 3px; font-weight: 900; }
+
+        .input-group { margin-top: 30px; text-align: left; }
+        .input-group label { display: block; font-size: 12px; margin-bottom: 8px; opacity: 0.6; }
+        input {
+            width: 100%; padding: 15px; border-radius: 15px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: white; outline: none; transition: 0.3s; box-sizing: border-box; font-size: 15px;
         }
-        input:focus { border-color: #6CAD9C; background: #fcfcfc; }
-        
-        .btn { 
-            width: 100%; padding: 12px; 
-            background: #6CAD9C; 
-            color: white; border: none; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 15px; 
-            font-size: 16px; 
-            transition: opacity 0.2s;
+        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+
+        .btn-main {
+            width: 100%; padding: 16px; border: none; border-radius: 15px;
+            background: linear-gradient(135deg, var(--primary) 0%, #4facfe 100%);
+            color: white; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 25px;
         }
-        .btn:hover { opacity: 0.9; }
-        .btn:disabled { background: #ccc; cursor: not-allowed; } 
-        
-        .footer { 
-            margin-top: 25px; 
-            font-size: 12px; 
-            color: #aaa; 
-            line-height: 1.6; /* 增加行高，多行显示不拥挤 */
+        .btn-main:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        .toggle-link { margin-top: 25px; font-size: 13px; color: var(--accent); cursor: pointer; opacity: 0.8; }
+
+        .pricing-list { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 30px; }
+        .price-item {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px; padding: 35px; position: relative; backdrop-filter: blur(10px);
+            transition: 0.4s;
         }
-        #msg { color: #ef4444; font-size: 13px; margin-top: 15px; min-height: 20px; font-weight: bold; }
+        .price-item.active { border-color: var(--accent); background: rgba(229, 204, 132, 0.03); border-width: 2px; }
+        
+        .price-item h3 { margin: 0; color: var(--accent); font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .price-row { display: flex; align-items: baseline; gap: 12px; margin: 20px 0 5px 0; }
+        .price-now { font-size: 38px; font-weight: 900; color: white; }
+        .price-old { font-size: 18px; color: #888; text-decoration: line-through; opacity: 0.7; }
+        .price-remark { font-size: 14px; color: #bbb; display: block; margin-bottom: 20px; }
+
+        .features { padding: 0; list-style: none; text-align: left; margin: 0; }
+        .features li { font-size: 14px; margin-bottom: 12px; opacity: 0.85; display: flex; align-items: flex-start; gap: 12px; line-height: 1.5; }
+        .features li i { color: var(--primary); margin-top: 4px; font-size: 14px; }
+        
+        .coming-soon { position: absolute; top: 20px; right: 20px; font-size: 10px; background: var(--accent); color: #000; padding: 4px 10px; border-radius: 10px; font-weight: bold; }
+
+        #msg { margin-top: 15px; font-size: 13px; font-weight: bold; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="login-box">
-        <div class="logo">🐼 汉语 Vlog 课堂</div>
-        
-        <div class="input-group">
-            <!-- 🟢 标签直接包含三语 -->
-            <label>账号 / Email / Аккаунт</label>
-            <input type="email" id="email" placeholder="student@vip.com">
+    <div class="bg-overlay"></div>
+
+    <div class="top-nav">
+        <button class="lang-btn" onclick="toggleLang()" id="langBtn">🇷🇺 RU / 🇺🇸 EN / 🇨🇳 CN</button>
+    </div>
+
+    <div class="wrapper">
+        <div class="login-card">
+            <div class="logo-area">
+                <i class="fas fa-film"></i>
+                <h1 id="brandName">汉语 Vlog</h1>
+                <p id="modeDesc">沉浸式学汉语 · 登录中心</p>
+            </div>
+
+            <div class="input-group">
+                <label id="labelEmail">账号 / Email / Логин</label>
+                <input type="email" id="email" placeholder="email@example.com">
+            </div>
+            <div class="input-group">
+                <label id="labelPwd">密码 / Password / Пароль</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+
+            <button class="btn-main" onclick="handleAuthAction()" id="actionBtn">登录 / Login / Войти</button>
+            <div id="msg"></div>
+
+            <div class="toggle-link" onclick="toggleMode()" id="toggleBtn">
+                还没有账号？点击这里注册新用户
+            </div>
         </div>
-        <div class="input-group">
-            <!-- 🟢 标签直接包含三语 -->
-            <label>密码 / Password / Пароль</label>
-            <input type="password" id="password" placeholder="••••••••">
-        </div>
 
-        <!-- 🟢 按钮直接包含三语 -->
-        <button class="btn" onclick="handleLogin()" id="loginBtn">登录 / Login / Войти</button>
-
-        <div id="msg"></div>
-
-        <!-- 🟢 底部提示三语 -->
-        <div class="footer">
-            仅限会员访问 · Members Only<br>
-            Только для участников
+        <div class="pricing-list" id="pricingList">
+            <!-- 由 JS 填充 -->
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // Supabase 配置 (逻辑保持不变)
-        // ==========================================
         const LOGIN_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
         const LOGIN_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
-        
-        let loginClient = null;
-        if (typeof window.supabase !== 'undefined') {
-            loginClient = window.supabase.createClient(LOGIN_URL, LOGIN_KEY);
+        const loginClient = window.supabase.createClient(LOGIN_URL, LOGIN_KEY);
+
+        let currentLang = 'ru';
+        let isSignUpMode = false;
+        let isBusy = false;
+
+        const uiDict = {
+            ru: {
+                brand: "Китайский Vlog", login_desc: "Изучение через влоги", go_signup: "Создать новый аккаунт", go_login: "Уже есть аккаунт? Войти", btn_login: "Войти", btn_signup: "Регистрация", msg_processing: "Обработка...",
+                plans: [
+                    { title: "Пробная версия", price: "$0", features: ["Просмотр 3 видео после регистрации", "Доступ ко всем функциям сайта", "Печать скриптов для 3 уроков", "PDF недоступны для скачивания", "Срок действия: 24 часа"] },
+                    { title: "Полная версия (Сезон 1)", price: "$29.9", old: "$49.9", remark: "(~ 2250P / 208¥)", features: ["120 коротких видеоуроков", "БОНУС: 30 видео ток-шоу", "Печать всех скриптов", "Скачивание всех PDF-материалов", "Синхронизация данных", "Вечный доступ"], active: true },
+                    { title: "Сезон 2", price: "-", soon: "СКОРО", features: ["Ожидайте обновлений..."] },
+                    { title: "Супер VIP", price: "$80", soon: "СКОРО", features: ["Все видео: Vlog, HSK", "Все Сериалы и Кино", "Новости и ТВ-шоу"] }
+                ]
+            },
+            en: {
+                brand: "Hanyu Vlog", login_desc: "Learn Chinese through Vlogs", go_signup: "New user? Sign Up", go_login: "Have account? Log In", btn_login: "Log In", btn_signup: "Sign Up", msg_processing: "Processing...",
+                plans: [
+                    { title: "Trial Version", price: "$0", features: ["Watch 3 videos upon registration", "All interactive features", "Print 3 scripts only", "PDF textbooks not downloadable", "Validity: 24 hours"] },
+                    { title: "Full Access (Season 1)", price: "$29.9", old: "$49.9", remark: "(approx. 2250P / 208¥)", features: ["120 essential short videos", "Bonus: 30 Talk Show videos", "Unlimited script printing", "Free download of all PDFs", "Cloud sync for vocab & data", "One-time payment, lifetime access"], active: true },
+                    { title: "Season 2", price: "-", soon: "COMING SOON", features: ["Stay tuned..."] },
+                    { title: "Super Member", price: "$80", soon: "COMING SOON", features: ["All videos: Vlog, HSK", "TV Dramas & Movies", "News & Variety Shows"] }
+                ]
+            },
+            cn: {
+                brand: "汉语 Vlog 课堂", login_desc: "沉浸式学汉语 · 登录中心", go_signup: "还没有账号？点击这里注册新用户", go_login: "已有账号？返回登录", btn_login: "登录 / Login / Войти", btn_signup: "注册 / Sign Up / Регистрация", msg_processing: "处理中 / Processing...",
+                plans: [
+                    { title: "试用版", price: "$0", features: ["注册可观看 3 个视频", "体验网站内所有功能", "仅可打印 3 个课时台词", "电子课本 (PDF) 不可下载", "有效期 24 小时"] },
+                    { title: "正式版 (第一季)", price: "$29.9", old: "$49.9", remark: "(2250P / 208¥)", features: ["120 个精彩短视频", "限时赠送 30 个脱口秀", "台词剧本无限打印", "所有 PDF 课本免费下载", "生词本及数据云端同步", "买断制，一次付款永久观看"], active: true },
+                    { title: "第二季", price: "-", soon: "敬请期待", features: ["即将上线，敬请关注"] },
+                    { title: "超级会员", price: "$80", soon: "敬请期待", features: ["网站所有视频: Vlog/HSK", "全站电视剧及电影资源", "全站新闻及综艺视频"] }
+                ]
+            }
+        };
+
+        function updateUI() {
+            const dict = uiDict[currentLang];
+            document.getElementById('brandName').innerText = dict.brand;
+            document.getElementById('actionBtn').innerText = isSignUpMode ? dict.btn_signup : dict.btn_login;
+            document.getElementById('toggleBtn').innerText = isSignUpMode ? dict.go_login : dict.go_signup;
+            document.getElementById('modeDesc').innerText = dict.login_desc;
+            const list = document.getElementById('pricingList');
+            list.innerHTML = dict.plans.map(p => `
+                <div class="price-item ${p.active ? 'active' : ''}">
+                    ${p.soon ? `<span class="coming-soon">${p.soon}</span>` : ''}
+                    <h3><i class="fas ${p.soon ? 'fa-hourglass-half' : 'fa-check-circle'}"></i> ${p.title}</h3>
+                    <div class="price-row"><span class="price-now">${p.price}</span>${p.old ? `<span class="price-old">${p.old}</span>` : ''}</div>
+                    ${p.remark ? `<span class="price-remark">${p.remark}</span>` : ''}
+                    <ul class="features">${p.features.map(f => `<li><i class="fas fa-caret-right"></i> ${f}</li>`).join('')}</ul>
+                </div>`).join('');
         }
 
-        let isLoggingIn = false;
+        function toggleLang() {
+            if (currentLang === 'ru') currentLang = 'en';
+            else if (currentLang === 'en') currentLang = 'cn';
+            else currentLang = 'ru';
+            updateUI();
+        }
 
-        async function handleLogin() {
-            if (isLoggingIn) return; 
-            
+        function toggleMode() { isSignUpMode = !isSignUpMode; updateUI(); }
+
+        async function handleAuthAction() {
+            if (isBusy) return;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const msg = document.getElementById('msg');
-            const btn = document.getElementById('loginBtn');
-
-            if(!email || !password) {
-                msg.innerText = "请输入账号和密码 / Please enter email & password";
-                return;
-            }
-
-            isLoggingIn = true;
-            btn.innerText = "验证中 / Verifying..."; 
-            btn.disabled = true;
-            msg.innerText = "";
+            const btn = document.getElementById('actionBtn');
+            if(!email || !password) { msg.style.color = "#ff4d4f"; msg.innerText = "Error: Input required"; return; }
+            isBusy = true; btn.disabled = true; msg.innerText = uiDict[currentLang].msg_processing;
 
             try {
-                if (!loginClient) throw new Error("System Error: Supabase not loaded");
+                if (isSignUpMode) {
+                    const { data, error } = await loginClient.auth.signUp({ email, password });
+                    if (error) throw error;
+                    msg.style.color = "#E5CC84";
+                    msg.innerText = "Success! Log in to start trial.";
+                    setTimeout(() => { toggleMode(); isBusy = false; btn.disabled = false; }, 1500);
+                } else {
+                    const { data, error } = await loginClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
 
-                // 1. 验证
-                const { data, error } = await loginClient.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                // 2. 互踢逻辑
-                const newToken = Date.now() + "_" + Math.random();
-                const { error: updateError } = await loginClient
-                    .from('profiles')
-                    .upsert({ id: data.user.id, session_token: newToken });
-
-                if (!updateError) {
+                    // 🔴 关键逻辑 1：互踢存根
+                    const newToken = Date.now() + "_" + Math.random();
+                    await loginClient.from('profiles').upsert({ id: data.user.id, session_token: newToken });
                     localStorage.setItem('my_session_token', newToken);
-                }
 
-                // 3. 拉取存档
-                try {
-                    const { data: profile } = await loginClient
-                        .from('profiles')
-                        .select('progress, access_tags')
-                        .eq('id', data.user.id)
-                        .maybeSingle();
-
+                    // 🔴 关键逻辑 2：进度拉取
+                    const { data: profile } = await loginClient.from('profiles').select('progress, access_tags').eq('id', data.user.id).maybeSingle();
                     if (profile) {
-                        if(profile.progress) {
-                            Object.keys(profile.progress).forEach(k => localStorage.setItem(k, profile.progress[k]));
-                        }
-                        if(profile.access_tags) {
-                            localStorage.setItem('my_access_tags', JSON.stringify(profile.access_tags));
-                        }
+                        if(profile.progress) Object.keys(profile.progress).forEach(k => localStorage.setItem(k, profile.progress[k]));
+                        if(profile.access_tags) localStorage.setItem('my_access_tags', JSON.stringify(profile.access_tags));
                     }
-                } catch(e) { console.error("Sync Error", e); }
-
-                // 4. 跳转
-                localStorage.setItem('login_immunity_time', Date.now());
-                msg.style.color = 'green';
-                msg.innerText = "✅ 成功 / Success! \n正在跳转...";
-                
-                setTimeout(() => {
-                    window.location.href = 'home.html?from_login=1';
-                }, 1000);
-
+                    
+                    msg.style.color = "#6CAD9C";
+                    msg.innerText = "Welcome back! Redirecting...";
+                    setTimeout(() => { window.location.href = 'home.html?from_login=1'; }, 1000);
+                }
             } catch (err) {
-                msg.style.color = 'red';
-                let errMsg = err.message;
-                if(errMsg === "Invalid login credentials") errMsg = "密码错误 / Wrong Password";
-                msg.innerText = "Error: " + errMsg;
-                
-                isLoggingIn = false;
-                btn.innerText = "登录 / Login / Войти"; 
-                btn.disabled = false;
+                msg.style.color = "#ff4d4f"; msg.innerText = err.message;
+                isBusy = false; btn.disabled = false;
             }
         }
-
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') handleLogin();
-        });
+        document.addEventListener('DOMContentLoaded', () => { document.body.classList.add('loaded'); updateUI(); });
+        document.addEventListener('keydown', (e) => { if(e.key === 'Enter') handleAuthAction(); });
     </script>
 </body>
 </html>
