@@ -7,9 +7,11 @@
     
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
         :root {
@@ -23,7 +25,6 @@
 
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #000; color: white; scroll-behavior: smooth; }
 
-        /* 背景设置 */
         .bg-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
@@ -36,7 +37,6 @@
 
         .wrapper { display: flex; flex-direction: column; align-items: center; padding: 80px 20px; }
 
-        /* 登录卡片 */
         .login-card {
             background: var(--glass); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
             border: 1px solid rgba(167, 112, 70, 0.3); border-radius: 24px; padding: 40px; width: 100%; max-width: 380px;
@@ -63,12 +63,12 @@
 
         .toggle-link { margin-top: 20px; font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; opacity: 0.8; }
 
-        /* 价格表样式 */
         .pricing-list { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 25px; }
         .price-item {
             background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px; padding: 30px; position: relative; backdrop-filter: blur(10px); transition: 0.3s; cursor: pointer;
         }
+        .price-item:hover { border-color: var(--accent); transform: translateY(-5px); }
         .price-item.active { border-color: var(--accent); border-width: 2px; background: rgba(229, 204, 132, 0.05); }
         .price-item h3 { margin: 0; color: var(--accent); font-size: 22px; }
         
@@ -84,7 +84,6 @@
 
         .coming-soon { position: absolute; top: 20px; right: 20px; font-size: 10px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 10px; color: #aaa; }
 
-        /* 支付面板 */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: #111; border: 1px solid var(--terracotta); border-radius: 24px; width: 100%; max-width: 480px; padding: 35px; text-align: center; position: relative; }
         .modal-close { position: absolute; top: 20px; right: 20px; font-size: 24px; color: #666; cursor: pointer; }
@@ -133,31 +132,28 @@
         <div class="pricing-list" id="pricingList"></div>
     </div>
 
-    <!-- 🟢 支付面板弹窗完全体 -->
-<div id="payModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-close" onclick="closePayModal()">×</div>
-        <h2 id="payModalTitle" style="color:var(--accent); margin:0;">解锁正式版 (Season 1)</h2>
-        
-        <!-- 💡 核心对账点：要求填邮箱 -->
-        <p style="font-size:13px; opacity:0.7; margin-top:10px;" id="payStep1">第一步：输入您的注册邮箱 / Enter Email / Введите Email</p>
-        <input type="email" id="payEmail" placeholder="confirm@example.com" style="margin-top:10px; border: 1px solid var(--terracotta); background: #000; text-align:center;">
-        
-        <p style="font-size:13px; opacity:0.7; margin-top:20px;" id="payStep2">第二步：选择支付方式 / Select Payment / Выберите способ оплаты</p>
-        <div class="pay-grid">
-            <div class="pay-btn" onclick="showPayDetail('wechat')"><i class="fab fa-weixin" style="color:#07c160"></i>WeChat</div>
-            <div class="pay-btn" onclick="showPayDetail('alipay')"><i class="fab fa-alipay" style="color:#1677ff"></i>Alipay</div>
-            <div class="pay-btn" onclick="showPayDetail('sbp')"><i class="fas fa-university" style="color:#6CAD9C"></i>СБП (Банк)</div>
-            <div class="pay-btn" onclick="showPayDetail('paypal')"><i class="fab fa-paypal" style="color:#003087"></i>PayPal</div>
-        </div>
+    <!-- 支付面板 -->
+    <div id="payModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closePayModal()">×</div>
+            <h2 id="payModalTitle" style="color:var(--accent); margin:0;">解锁正式版</h2>
+            <p id="payModalDesc" style="font-size:13px; opacity:0.7; margin-top:10px;">输入注册邮箱，付款后发给老师截图</p>
+            
+            <input type="email" id="payEmail" placeholder="确认注册邮箱 / Confirm Email" style="margin-top:20px; border: 1px solid var(--terracotta); background: #000;">
+            
+            <div class="pay-grid">
+                <div class="pay-btn" onclick="showPayDetail('wechat')"><i class="fab fa-weixin" style="color:#07c160"></i>WeChat</div>
+                <div class="pay-btn" onclick="showPayDetail('alipay')"><i class="fab fa-alipay" style="color:#1677ff"></i>Alipay</div>
+                <div class="pay-btn" onclick="showPayDetail('sbp')"><i class="fas fa-mobile-alt" style="color:var(--primary)"></i>СБП (Банк)</div>
+                <div class="pay-btn" onclick="showPayDetail('paypal')"><i class="fab fa-paypal" style="color:#003087"></i>PayPal</div>
+            </div>
 
-        <div id="payDetail" class="pay-info-box">
-            <div id="payContent" style="font-size:14px; line-height:1.6;"></div>
-            <!-- 💡 核心提醒：三语截图指引 -->
-            <p id="screenshotTip" style="font-size:12px; color:var(--accent); margin-top:20px; border-top:1px solid #333; padding-top:15px;"></p>
+            <div id="payDetail" class="pay-info-box">
+                <div id="payContent" style="font-size:14px; text-align:left;"></div>
+                <p id="screenshotTip" style="font-size:11px; color:var(--accent); margin-top:15px; font-weight:bold;"></p>
+            </div>
         </div>
     </div>
-</div>
 
     <script>
         const loginClient = window.supabase.createClient('https://bwweaohahsafbecogist.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw');
@@ -169,31 +165,34 @@
             ru: {
                 brand: "Китайский Vlog", login_desc: "Учите китайский через видео", go_signup: "Нет аккаунта? Зарегистрироваться", go_login: "Есть аккаунт? Войти", btn_login: "Войти", btn_signup: "Создать аккаунт",
                 pay_title: "Разблокировать Сезон 1", pay_desc: "Введите ваш email и выберите способ оплаты", msg_processing: "Загрузка...",
+                pay_tip: "⚠️ Важно: после оплаты отправьте [скриншот этой страницы] и [квитанцию] учителю.",
                 plans: [
                     { id: 'trial', title: "Пробная версия", price: "$0", features: ["Регистрация дает доступ к 3 видео", "Доступны все функции сайта", "Печать скриптов только для 3 уроков", "Электронные учебники (PDF) нельзя скачать", "Срок действия: 24 часа"] },
-                    { id: 's1', title: "Полная версия (Сезон 1)", price: "$29.9", old: "$49.9", reason: "(Цена снижена, видео еще добавляются)", remark: "2300P / 208¥", active: true, features: ["120 коротких видеоуроков", "БОНУС: 30 видео ток-шоу", "Печать всех скриптов к видео", "Бесплатное скачивание всех PDF", "Облачная синхронизация данных", "РАЗОВАЯ ОПЛАТА — ВЕЧНЫЙ ДОСТУП"] },
+                    { id: 's1', title: "Полная версия (Сезон 1)", price: "$29.9", old: "$49.9", reason: "(Цена снижена, видео еще добавляются)", remark: "2250P / 208¥", active: true, features: ["120 коротких видеоуроков", "БОНУС: 30 видео ток-шоу", "Печать всех скриптов к видео", "Бесплатное скачивание всех PDF", "Облачная синхронизация данных", "РАЗОВАЯ ОПЛАТА — ВЕЧНЫЙ ДОСТУП"] },
                     { id: 's2', title: "Сезон 2", price: "-", soon: "ОЖИДАЕТСЯ", features: ["Скоро в продаже..."] },
-                    { id: 'vip', title: "Супер VIP", price: "-", soon: "ОЖИДАЕТСЯ", features: ["Все видео: Vlog, Подкасты, HSK", "Сериалы, Фильмы, Новости, Шоу"] }
+                    { id: 'vip', title: "Супер VIP", price: "$80", soon: "ОЖИДАЕТСЯ", features: ["Все видео: Vlog, Подкасты, HSK", "Сериалы, Фильмы, Новости, Шоу"] }
                 ]
             },
             cn: {
                 brand: "汉语 Vlog 课堂", login_desc: "沉浸式学汉语 · 登录中心", go_signup: "还没有账号？点击这里注册新用户", go_login: "已有账号？返回登录", btn_login: "登录 / Login / Войти", btn_signup: "注册 / Sign Up / Регистрация",
                 pay_title: "解锁第一季全集", pay_desc: "确认注册邮箱，付款后发给老师截图", msg_processing: "处理中 / Processing...",
+                pay_tip: "⚠️ 重要：支付后请将【此页面截图】和【付款账单】一起发给老师核对。",
                 plans: [
                     { id: 'trial', title: "试用版", price: "$0", features: ["注册可观看 3 个视频", "体验网站内所有功能", "仅可打印 3 个台词本", "电子课本 (PDF) 不可下载", "有效期 24 小时"] },
-                    { id: 's1', title: "正式版 (第一季)", price: "$29.9", old: "$49.9", reason: "(由于视频暂未更新完)", remark: "2300P / 208¥", active: true, features: ["120 个精彩短视频", "限时赠送 30 个脱口秀视频", "所有台词剧本可打印", "所有 PDF 资源免费下载", "生词本学习数据云端同步", "买断制，一次性付款永久观看"] },
+                    { id: 's1', title: "正式版 (第一季)", price: "$29.9", old: "$49.9", reason: "(由于视频暂未更新完)", remark: "208¥ / 2250P", active: true, features: ["120 个精彩短视频", "限时赠送 30 个脱口秀视频", "所有台词剧本可打印", "所有 PDF 资源免费下载", "生词本学习数据云端同步", "买断制，一次性付款永久观看"] },
                     { id: 's2', title: "第二季", price: "-", soon: "敬请期待", features: ["即将上线"] },
-                    { id: 'vip', title: "超级会员", price: "-", soon: "敬请期待", features: ["网站内所有视频: Vlog, 博客, HSK", "全站电视剧、电影、新闻、综艺"] }
+                    { id: 'vip', title: "超级会员", price: "$80", soon: "敬请期待", features: ["网站内所有视频: Vlog, 博客, HSK", "全站电视剧、电影、新闻、综艺"] }
                 ]
             },
             en: {
                 brand: "Hanyu Vlog Class", login_desc: "Immersive Chinese Learning", go_signup: "New? Create Account", go_login: "Have account? Login", btn_login: "Login", btn_signup: "Sign Up",
                 pay_title: "Unlock Season 1 Access", pay_desc: "Enter your email and choose payment method", msg_processing: "Processing...",
+                pay_tip: "⚠️ Important: After payment, send [screenshot of this page] and [receipt] to the teacher.",
                 plans: [
                     { id: 'trial', title: "Trial Version", price: "$0", features: ["Watch 3 videos upon registration", "Full access to all interactive tools", "Print only 3 scripts", "PDF downloads locked", "Validity: 24 hours"] },
-                    { id: 's1', title: "Official (Season 1)", price: "$29.9", old: "$49.9", reason: "(Discounted: still updating)", remark: "2300P / 208¥", active: true, features: ["120 short video lessons", "Bonus: 30 Talk Show videos", "Unlimited script printing", "All PDF textbooks free to download", "Cloud vocab sync", "ONE-TIME PAYMENT, LIFETIME ACCESS"] },
+                    { id: 's1', title: "Official (Season 1)", price: "$29.9", old: "$49.9", reason: "(Discounted: still updating)", remark: "approx. 208¥ / 2250P", active: true, features: ["120 short video lessons", "Bonus: 30 Talk Show videos", "Unlimited script printing", "All PDF textbooks free to download", "Cloud vocab sync", "ONE-TIME PAYMENT, LIFETIME ACCESS"] },
                     { id: 's2', title: "Season 2", price: "-", soon: "COMING SOON", features: ["Stay tuned"] },
-                    { id: 'vip', title: "Super Member", price: "-", soon: "COMING SOON", features: ["All site videos: Vlog, Blogs, HSK", "All TV Dramas, Movies, News & Shows"] }
+                    { id: 'vip', title: "Super Member", price: "$80", soon: "COMING SOON", features: ["All site videos: Vlog, Blogs, HSK", "All TV Dramas, Movies, News & Shows"] }
                 ]
             }
         };
@@ -223,71 +222,25 @@
         }
 
         function handlePriceClick(id) {
-            if (id === 'trial') { isSignUpMode = true; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+            if (id === 'trial') { isSignUpMode = true; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('email').focus(); }
             else if (id === 's1') { document.getElementById('payModal').style.display = 'flex'; document.getElementById('payEmail').value = document.getElementById('email').value; }
         }
 
         function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
 
-        // 🟢 支付详细信息渲染（三语版）
-function showPayDetail(type) {
-    const box = document.getElementById('payDetail');
-    const content = document.getElementById('payContent');
-    const tip = document.getElementById('screenshotTip');
-    const userEmail = document.getElementById('payEmail').value.trim();
+        function showPayDetail(type) {
+            const userEmail = document.getElementById('payEmail').value.trim();
+            if (!userEmail) { alert(currentLang === 'ru' ? "Введите Email" : "请先输入邮箱"); return; }
+            
+            document.getElementById('payDetail').style.display = 'block';
+            document.getElementById('screenshotTip').innerText = uiDict[currentLang].pay_tip;
+            const content = document.getElementById('payContent');
 
-    // 如果没填邮箱，强制提醒
-    if (!userEmail) {
-        alert(currentLang === 'ru' ? "Пожалуйста, введите Email" : "请先输入注册邮箱");
-        return;
-    }
-
-    box.style.display = 'block';
-
-    // 1. 设置不同语言的“截图提醒”文案
-    const tips = {
-        ru: "⚠️ <b>Важно:</b> после оплаты отправьте <b>[скриншот этой страницы]</b> и <b>[квитанцию]</b> учителю в Telegram/WeChat.",
-        en: "⚠️ <b>Important:</b> After payment, please send <b>[screenshot of this page]</b> and <b>[receipt]</b> to the teacher.",
-        cn: "⚠️ <b>重要：</b>支付后请将<b>【此页面截图】</b>和<b>【付款账单】</b>一起发给老师核对。"
-    };
-    tip.innerHTML = tips[currentLang];
-
-    // 2. 设置不同渠道的详细内容
-    if (type === 'wechat') {
-        content.innerHTML = `
-            <img src="wechat_pay.jpg" style="width:200px; border-radius:10px; margin-bottom:10px;">
-            <p>WeChat Pay: <b>208 ¥</b> / 2300 руб.</p>
-        `;
-    } else if (type === 'alipay') {
-        content.innerHTML = `
-            <img src="alipay_pay.jpg" style="width:200px; border-radius:10px; margin-bottom:10px;">
-            <p>Alipay: <b>208 ¥</b> / 2300 руб.</p>
-        `;
-    } else if (type === 'sbp') {
-        content.innerHTML = `
-            <div style="text-align:left; background:#1a1a1a; padding:15px; border-radius:12px;">
-                <p><b>СБП (Перевод по номеру):</b></p>
-                <p style="font-size:20px; color:var(--primary); margin:10px 0;">+7 962 726 66 18</p>
-                <p>Банк: <b>Сбербанк / Т-Банк</b></p>
-                <p>Получатель: <b>Чжоу Юйхэ</b></p>
-                <p>Сумма: <b>2300 руб.</b></p>
-            </div>
-        `;
-    } else if (type === 'paypal') {
-        content.innerHTML = `
-            <div style="padding:20px 0;">
-                <p style="margin-bottom:15px;">PayPal 账户: <b>zhouyuhe525@gmail.com</b></p>
-                <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=HanyuVlog_Season1&amount=29.90&currency_code=USD" 
-                   target="_blank" 
-                   class="btn-main" 
-                   style="display:inline-block; width:auto; padding:10px 30px;">
-                    <i class="fab fa-paypal"></i> 前往 PayPal 支付 ($29.9)
-                </a>
-                <p style="font-size:12px; opacity:0.6; margin-top:10px;">如果无法自动跳转，请手动转账至上述邮箱</p>
-            </div>
-        `;
-    }
-}
+            if (type === 'wechat') content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; margin-bottom:10px;"><p>WeChat Pay: 208 ¥ / 2250 руб.</p>`;
+            else if (type === 'alipay') content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; margin-bottom:10px;"><p>Alipay: 208 ¥ / 2250 руб.</p>`;
+            else if (type === 'sbp') content.innerHTML = `<p><b>СБП (Сбербанк / Т-Банк):</b></p><p style="font-size:18px; color:var(--primary);">+7 962 726 66 18</p><p>Получатель: Чжоу Юйхэ</p><p>Сумма: 2250 руб.</p>`;
+            else if (type === 'paypal') content.innerHTML = `<p>PayPal: <b>zhouyuhe525@gmail.com</b></p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 20px;">Pay via PayPal</a>`;
+        }
 
         function toggleLang() { currentLang = (currentLang === 'ru') ? 'en' : (currentLang === 'en' ? 'cn' : 'ru'); updateUI(); }
         function toggleMode() { isSignUpMode = !isSignUpMode; updateUI(); }
