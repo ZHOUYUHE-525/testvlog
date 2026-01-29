@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>汉语 Vlog | </title>
+    <title>汉语 Vlog | 港风电影感复古课堂</title>
     
     <!-- 站点图标 -->
     <link rel="icon" type="image/png" href="logo.png">
@@ -179,22 +179,7 @@
         let currentLang = 'ru';
         let isSignUpMode = false;
 
-        老师，您看得很准！您截图中那个写法确实是错误的。
-
-错误原因： 您把 pay_modal_title 等文字塞进到了 plans: [ ... ] 这个方括号（数组）里面了。在编程里，方括号里只能放一个一个的“卡片数据”，不能直接放这种“标签文字”。
-
-为了不让您眼花，我为您整理了整套完整的 uiDict 字典代码。请您找到代码中 const uiDict = { 的位置，把旧的全部删掉，换成下面这段结构完全正确的版本：
-
-1. 完整字典逻辑 (uiDict)
-code
-JavaScript
-
-download
-
-content_copy
-
-expand_less
-const uiDict = {
+        const uiDict = {
             ru: {
                 brand: "Китайский Vlog", 
                 login_desc: "Учите китайский через видео", 
@@ -262,18 +247,8 @@ const uiDict = {
                 ]
             }
         };
-2. 配套的更新函数 (updateUI)
-请确保您的 updateUI 函数长这样，它才会去刚才那个字典里抓取正确的弹窗文字：
-
-code
-JavaScript
-
-download
-
-content_copy
-
-expand_less
-function updateUI() {
+        
+        function updateUI() {
             const dict = uiDict[currentLang];
             
             // 1. 更新主页面登录框文字
