@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- 1. 引入 Supabase (必须在最前) -->
+    <!-- 1. 电脑浏览器标签页图标 -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- 2. 苹果/安卓手机“添加到桌面”后的图标 -->
+<link rel="apple-touch-icon" href="logo.png">
+
+<!-- 3. 设置移动端状态栏颜色（让它更像 App） -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- 2. 🔴 加上这行！这就是锁！ -->
@@ -79,14 +88,12 @@
             .control-btn i { font-size: 20px !important; }
             /* --- 1. 缩小 Header 边距和高度 --- */
             header { 
-                position: fixed !important; /* 👈 改为 fixed */
+                position: sticky !important; /* 👈 核心：焊死在顶部 */
                 top: 0 !important; 
-                left: 0;
-                width: 100% !important;
-                z-index: 2500 !important; /* 👈 最高层级 */
+                z-index: 2000 !important; 
                 background: #fff !important; 
-                padding: 0 10px !important; 
-                height: 44px !important; 
+                padding: 0 6px !important; 
+                height: 40px !important; 
                 display: flex !important;
                 align-items: center !important;
             }
@@ -140,16 +147,7 @@
             }
 
             /* 3. 视频区：固定高度 */
-            .video-section { 
-                position: fixed !important; /* 👈 核心：焊死在顶部 */
-                top: 44px; /* 👈 刚好在 header 下面 */
-                left: 0;
-                width: 100% !important; 
-                z-index: 2000 !important;
-                background: #fff !important;
-                flex: none !important; 
-                padding: 0; 
-            }
+            .video-section { flex: none !important; width: 100%; padding: 0; }
             .video-wrapper { border-radius: 0; border: none; aspect-ratio: 16/9; }
 
             /* --- 4. 极简功能键栏：8个按钮挤成一行（清理重叠版） --- */
@@ -200,8 +198,8 @@
                 /* 👈 高度必须同步改为 38px */
                 height: 38px !important; 
                 width: 100% !important; 
-                font-size: 15px !important; 
-                padding: 0 4px !important;
+                font-size: 11px !important; 
+                padding: 0 2px !important;
                 margin: 0 !important;
                 border: 1px solid #ddd;
                 border-radius: 6px;
@@ -218,6 +216,9 @@
             /* 中间那 5 个播放控制键（上一句、-5s等）会自动填满第 2 到第 6 个位置 */
             
         
+        
+            
+        
 
             /* 5. 🔴 大面积字幕区：占据下方所有空间 */
             .subtitle-section { 
@@ -225,12 +226,15 @@
                 display: flex !important;
                 flex-direction: column !important;
                 min-height: 0; 
-                /* 🔴 核心：这个数字决定了字幕开始的位置。
-                   根据你的视频高度，建议设为 340px 左右 */
-                margin-top: 340px !important; 
+                margin: 0 !important;
                 border: none !important;
                 background: #fff !important;
                 width: 100% !important;
+                max-width: 100% !important;
+                position: relative !important;
+                top: 0 !important;
+                transform: none !important;
+                box-shadow: none !important;
             }
 
             /* 标题栏固定 */
@@ -346,14 +350,14 @@ body.vertical-mode .btn-play {
 
 /* 练习按钮也拉高 */
 body.vertical-mode .practice-btn {
-    height: 40px; /* 固定一个比较大的高度 */
+    height: 60px; /* 固定一个比较大的高度 */
     flex: none;
     margin-top: 10px;
-    font-size: 10px;
+    font-size: 15px;
     border-radius: 12px;
 }
 
-/* 速度选择框 *
+/* 速度选择框 */
 body.vertical-mode .speed-select {
     width: 100%;
     height: 45px;
@@ -561,6 +565,9 @@ body.vertical-mode .sub-item .trans {
     <script src="lesson_015.js"></script>
     <script src="lesson_016.js"></script>
     <script src="lesson_017.js"></script>
+    <script src="lesson_018.js"></script>
+    <script src="lesson_019.js"></script>
+    <script src="lesson_020.js"></script>
     
     <script src="lesson_401.js"></script>
     <script src="lesson_402.js"></script>
@@ -569,6 +576,8 @@ body.vertical-mode .sub-item .trans {
     <script src="lesson_405.js"></script>
     <script src="lesson_406.js"></script>
     <script src="lesson_407.js"></script>
+    <script src="lesson_408.js"></script>
+    <script src="lesson_409.js"></script>
     
     <!-- === 补丁 1：查词弹窗 (插入在 </body> 之前) === -->
     <div class="overlay" id="overlay" onclick="closeDict()"></div>
