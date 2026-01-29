@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>汉语 Vlog | 港风电影感复古课堂</title>
+    <title>汉语 Vlog | </title>
     
     <!-- 站点图标 -->
     <link rel="icon" type="image/png" href="logo.png">
@@ -26,6 +26,7 @@
 
         body, html { margin: 0; padding: 0; min-height: 100%; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #000; color: white; scroll-behavior: smooth; }
 
+        /* 背景设置 */
         .bg-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.9) 100%), 
@@ -87,7 +88,7 @@
 
         .coming-soon { position: absolute; top: 20px; right: 20px; font-size: 10px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 10px; color: #aaa; }
 
-        /* 支付面板样式 */
+        /* 支付面板 */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: #111; border: 1px solid var(--terracotta); border-radius: 24px; width: 100%; max-width: 480px; padding: 35px; text-align: center; position: relative; }
         .modal-close { position: absolute; top: 20px; right: 20px; font-size: 24px; color: #666; cursor: pointer; }
@@ -109,7 +110,6 @@
     </div>
 
     <div class="wrapper">
-        <!-- 登录注册卡片 -->
         <div class="login-card">
             <div class="logo-area">
                 <i class="fas fa-film"></i>
@@ -134,23 +134,20 @@
             </div>
         </div>
 
-        <!-- 价格列表容器 (由 JS 填充) -->
+        <!-- 价格列表容器 -->
         <div class="pricing-list" id="pricingList"></div>
     </div>
 
-    <!-- 支付面板弹窗 -->
+    <!-- 支付面板 -->
     <div id="payModal" class="modal">
         <div class="modal-content">
             <div class="modal-close" onclick="closePayModal()">×</div>
             <h2 id="payModalTitle" style="color:var(--accent); margin:0;">解锁正式版</h2>
             
-            <p style="font-size:13px; opacity:0.9; margin-top:15px; color:var(--accent);">
-                第一步：输入您注册账号时使用的邮箱<br>
-                Step 1: Enter your registered email
-            </p>
-            <input type="email" id="payEmail" placeholder="confirm@example.com" style="margin-top:10px; border: 1px solid var(--terracotta); background: #000; text-align:center;">
+            <p id="payStep1" style="font-size:13px; opacity:0.9; margin-top:15px; color:var(--accent);"></p>
+            <input type="email" id="payEmail" placeholder="" style="margin-top:10px; border: 1px solid var(--terracotta); background: #000; text-align:center;">
             
-            <p style="font-size:13px; opacity:0.7; margin-top:20px;">第二步：选择支付方式 / Select Payment</p>
+            <p id="payStep2" style="font-size:13px; opacity:0.7; margin-top:20px;"></p>
             <div class="pay-grid">
                 <div class="pay-btn" onclick="showPayDetail('wechat')"><i class="fab fa-weixin" style="color:#07c160"></i>WeChat</div>
                 <div class="pay-btn" onclick="showPayDetail('alipay')"><i class="fab fa-alipay" style="color:#1677ff"></i>Alipay</div>
@@ -159,14 +156,9 @@
             </div>
 
             <div id="payDetail" class="pay-info-box">
-                <div id="payContent"></div>
-                <!-- 核心备注提醒 -->
-                <div style="background: rgba(229, 204, 132, 0.1); padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid var(--accent); font-size:12px; color:var(--accent);">
-                    📢 <b>付款时请务必备注您的注册邮箱！</b><br>
-                    📢 <b>Please add your email in payment remarks!</b>
-                </div>
-                <p id="screenshotTip" style="font-size:11px; color:#aaa; margin-top:15px; text-align:left; line-height:1.4;"></p>
-                <a href="https://t.me/zhouyuhe" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 20px; font-size:13px; background:var(--terracotta);">
+                <div id="payContent" style="font-size:14px; text-align:left;"></div>
+                <p id="screenshotTip" style="font-size:11px; color:var(--accent); margin-top:15px; font-weight:bold; line-height:1.4;"></p>
+                <a href="https://t.me/zhouyuhe" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 20px; font-size:13px; background:var(--terracotta); text-decoration:none;">
                     <i class="fab fa-telegram"></i> 联系老师开通权限
                 </a>
             </div>
@@ -181,20 +173,9 @@
 
         const uiDict = {
             ru: {
-                brand: "Китайский Vlog", 
-                login_desc: "Учите китайский через видео", 
-                go_signup: "Нет аккаунта? Зарегистрироваться", 
-                go_login: "Есть аккаунт? Войти", 
-                btn_login: "Войти", 
-                btn_signup: "Создать аккаунт",
-                msg_processing: "Загрузка...",
-                // 支付弹窗文字
-                pay_modal_title: "Разблокировать Season 1",
-                pay_step_1: "Шаг 1: Введите ваш регистрационный email",
-                pay_step_2: "Шаг 2: Выберите способ оплаты",
-                pay_email_placeholder: "ваш@email.com",
+                brand: "Китайский Vlog", login_desc: "Учите китайский через видео", go_signup: "Нет аккаунта? Зарегистрироваться", go_login: "Есть аккаунт? Войти", btn_login: "Войти", btn_signup: "Регистрация",
+                pay_modal_title: "Разблокировать Season 1", pay_step_1: "Шаг 1: Введите ваш регистрационный email", pay_step_2: "Шаг 2: Выберите способ оплаты", pay_email_placeholder: "ваш@email.com",
                 pay_tip: "⚠️ Важно: после оплаты отправьте [скриншот этой страницы] и [квитанцию] учителю в Telegram.",
-                // 价格卡片列表
                 plans: [
                     { id: 'trial', title: "Пробная версия", price: "$0", features: ["Регистрация дает доступ к 3 видео", "Доступны все функции сайта", "Печать скриптов только для 3 уроков", "Электронные учебники (PDF) нельзя скачать", "Срок действия: 24 часа"] },
                     { id: 's1', title: "Полная версия (Сезон 1)", price: "$29.9", old: "$49.9", reason: "(Цена снижена, видео еще добавляются)", remark: "2300P / 208¥", active: true, features: ["120 коротких видеоуроков", "БОНУС: 30 видео ток-шоу", "Печать всех скриптов к видео", "Бесплатное скачивание всех PDF", "Облачная синхронизация данных", "РАЗОВАЯ ОПЛАТА — ВЕЧНЫЙ ДОСТУП"] },
@@ -203,42 +184,20 @@
                 ]
             },
             cn: {
-                brand: "汉语 Vlog 课堂", 
-                login_desc: "沉浸式学汉语 · 登录中心", 
-                go_signup: "还没有账号？点击这里注册新用户", 
-                go_login: "已有账号？返回登录", 
-                btn_login: "登录 / Login / Войти", 
-                btn_signup: "注册 / Sign Up / Регистрация",
-                msg_processing: "处理中 / Processing...",
-                // 支付弹窗文字
-                pay_modal_title: "解锁正式版 (第一季)",
-                pay_step_1: "第一步：输入您注册账号时使用的邮箱",
-                pay_step_2: "第二步：选择支付方式",
-                pay_email_placeholder: "输入您的注册邮箱",
+                brand: "汉语 Vlog 课堂", login_desc: "沉浸式学汉语 · 登录中心", go_signup: "还没有账号？点击这里注册新用户", go_login: "已有账号？返回登录", btn_login: "登录 / Login / Войти", btn_signup: "注册 / Sign Up / Регистрация",
+                pay_modal_title: "解锁正式版 (第一季)", pay_step_1: "第一步：输入您注册账号时使用的邮箱", pay_step_2: "第二步：选择支付方式", pay_email_placeholder: "输入您的注册邮箱",
                 pay_tip: "⚠️ 重要：支付后请将【此页面截图】和【付款账单】一起发给老师核对。",
-                // 价格卡片列表
                 plans: [
-                    { id: 'trial', title: "试用版", price: "$0", features: ["注册可观看 3 个视频", "体验网站所有功能", "仅可打印 3 个台词本", "电子课本 (PDF) 不可下载", "有效期 24 小时"] },
+                    { id: 'trial', title: "试用版", price: "$0", features: ["注册可观看 3 个视频", "体验网站内所有功能", "仅可打印 3 个台词本", "电子课本 (PDF) 不可下载", "有效期 24 小时"] },
                     { id: 's1', title: "正式版 (第一季)", price: "$29.9", old: "$49.9", reason: "(由于视频暂未更新完)", remark: "208¥ / 2300P", active: true, features: ["120 个精彩短视频", "限时赠送 30 个脱口秀视频", "所有台词剧本可打印", "所有 PDF 资源免费下载", "生词本学习数据云端同步", "买断制，一次性付款永久观看"] },
                     { id: 's2', title: "第二季", price: "-", soon: "敬请期待", features: ["即将上线"] },
-                    { id: 'vip', title: "超级会员", price: "$80", soon: "敬请期待", features: ["网站内所有视频: Vlog, 博客, HSK", "全站电视剧、电影、新闻、综艺"] }
+                    { id: 'vip', title: "超级会员", price: "$80", soon: "敬请期待", features: ["全站视频: Vlog, 博客, HSK", "全站电视剧、电影、新闻、综艺"] }
                 ]
             },
             en: {
-                brand: "Hanyu Vlog Class", 
-                login_desc: "Immersive Chinese Learning", 
-                go_signup: "New? Create Account", 
-                go_login: "Have account? Login", 
-                btn_login: "Login", 
-                btn_signup: "Sign Up",
-                msg_processing: "Processing...",
-                // 支付弹窗文字
-                pay_modal_title: "Unlock Season 1 Access",
-                pay_step_1: "Step 1: Enter your registered email",
-                pay_step_2: "Step 2: Select payment method",
-                pay_email_placeholder: "your@email.com",
+                brand: "Hanyu Vlog Class", login_desc: "Immersive Chinese Learning", go_signup: "New? Create Account", go_login: "Have account? Login", btn_login: "Login", btn_signup: "Sign Up",
+                pay_modal_title: "Unlock Season 1 Full Access", pay_step_1: "Step 1: Enter your registered email", pay_step_2: "Step 2: Select payment method", pay_email_placeholder: "your@email.com",
                 pay_tip: "⚠️ Important: After payment, send [screenshot of this page] and [receipt] to the teacher.",
-                // 价格卡片列表
                 plans: [
                     { id: 'trial', title: "Trial Version", price: "$0", features: ["Watch 3 videos upon registration", "Full access to all interactive tools", "Print only 3 scripts", "PDF downloads locked", "Validity: 24 hours"] },
                     { id: 's1', title: "Official (Season 1)", price: "$29.9", old: "$49.9", reason: "(Discounted: still updating)", remark: "approx. 208¥ / 2300P", active: true, features: ["120 short video lessons", "Bonus: 30 Talk Show videos", "Unlimited script printing", "All PDF textbooks free to download", "Cloud vocab sync", "ONE-TIME PAYMENT, LIFETIME ACCESS"] },
@@ -247,41 +206,36 @@
                 ]
             }
         };
-        
+
         function updateUI() {
             const dict = uiDict[currentLang];
-            
-            // 1. 更新主页面登录框文字
             document.getElementById('brandName').innerText = dict.brand;
             document.getElementById('actionBtn').innerText = isSignUpMode ? dict.btn_signup : dict.btn_login;
             document.getElementById('toggleBtn').innerText = isSignUpMode ? dict.go_login : dict.go_signup;
             document.getElementById('modeDesc').innerText = dict.login_desc;
+            
+            // 更新弹窗文字
+            document.getElementById('payModalTitle').innerText = dict.pay_modal_title;
+            document.getElementById('payStep1').innerHTML = dict.pay_step_1;
+            document.getElementById('payStep2').innerText = dict.pay_step_2;
+            document.getElementById('payEmail').placeholder = dict.pay_email_placeholder;
 
-            // 2. 更新支付弹窗里的文字
-            if(document.getElementById('payModalTitle')) {
-                document.getElementById('payModalTitle').innerText = dict.pay_modal_title;
-                document.getElementById('payStep1').innerHTML = dict.pay_step_1;
-                document.getElementById('payStep2').innerText = dict.pay_step_2;
-                document.getElementById('payEmail').placeholder = dict.pay_email_placeholder;
-            }
-
-            // 3. 渲染价格表卡片
+            // 核心：渲染价格列表
             const list = document.getElementById('pricingList');
-            if(list) {
-                list.innerHTML = dict.plans.map(p => `
-                    <div class="price-item ${p.active ? 'active' : ''}" onclick="handlePriceClick('${p.id}')">
-                        ${p.soon ? `<span class="coming-soon">${p.soon}</span>` : ''}
-                        <h3>${p.title}</h3>
-                        <div class="price-row">
-                            <span class="price-now">${p.price}</span>
-                            ${p.old ? `<span class="price-old">${p.old}</span>` : ''}
-                        </div>
-                        ${p.reason ? `<div class="price-reason">${p.reason}</div>` : ''}
-                        ${p.remark ? `<span class="price-remark">${p.remark}</span>` : ''}
-                        <ul class="features">${p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('')}</ul>
-                    </div>`).join('');
-            }
+            list.innerHTML = dict.plans.map(p => `
+                <div class="price-item ${p.active ? 'active' : ''}" onclick="handlePriceClick('${p.id}')">
+                    ${p.soon ? `<span class="coming-soon">${p.soon}</span>` : ''}
+                    <h3>${p.title}</h3>
+                    <div class="price-row">
+                        <span class="price-now">${p.price}</span>
+                        ${p.old ? `<span class="price-old">${p.old}</span>` : ''}
+                    </div>
+                    ${p.reason ? `<div class="price-reason">${p.reason}</div>` : ''}
+                    ${p.remark ? `<span class="price-remark">${p.remark}</span>` : ''}
+                    <ul class="features">${p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('')}</ul>
+                </div>`).join('');
         }
+
         function handlePriceClick(id) {
             if (id === 'trial') { isSignUpMode = true; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('email').focus(); }
             else if (id === 's1') { document.getElementById('payModal').style.display = 'flex'; document.getElementById('payEmail').value = document.getElementById('email').value; }
@@ -291,16 +245,15 @@
 
         function showPayDetail(type) {
             const userEmail = document.getElementById('payEmail').value.trim();
-            if (!userEmail || !userEmail.includes('@')) { alert(currentLang === 'ru' ? "Введите корректный Email" : "请输入正确的注册邮箱"); return; }
+            if (!userEmail || !userEmail.includes('@')) { alert(currentLang === 'ru' ? "Введите Email" : "请先输入正确邮箱"); return; }
             document.getElementById('payDetail').style.display = 'block';
             document.getElementById('screenshotTip').innerText = uiDict[currentLang].pay_tip;
             const content = document.getElementById('payContent');
-            const priceInfo = "<b>208 ¥ / 2300 руб.</b>";
-
-            if (type === 'wechat') content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; margin-bottom:10px;"><p>WeChat Pay: ${priceInfo}</p>`;
-            else if (type === 'alipay') content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; margin-bottom:10px;"><p>Alipay: ${priceInfo}</p>`;
-            else if (type === 'sbp') content.innerHTML = `<div style="text-align:left; background:#1a1a1a; padding:15px; border-radius:10px;"><p><b>СБП (Перевод по номеру):</b></p><p style="font-size:18px; color:var(--primary);">+7 962 726 66 18</p><p>Получатель: <b>Чжоу Юйхэ</b></p><p>Сумма: <b>2300 руб.</b></p></div>`;
-            else if (type === 'paypal') content.innerHTML = `<p>PayPal: <b>zhouyuhe525@gmail.com</b></p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 25px;">Pay via PayPal ($29.9)</a>`;
+            const pInfo = "<b>208 ¥ / 2300 руб.</b>";
+            if (type === 'wechat') content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; margin-bottom:10px;"><p>WeChat Pay: ${pInfo}</p>`;
+            else if (type === 'alipay') content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; margin-bottom:10px;"><p>Alipay: ${pInfo}</p>`;
+            else if (type === 'sbp') content.innerHTML = `<div style="background:#1a1a1a; padding:15px; border-radius:10px;"><p><b>СБП (Перевод по номеру):</b></p><p style="font-size:18px; color:var(--primary);">+7 962 726 66 18</p><p>Получатель: <b>Чжоу Юйхэ</b></p><p>Сумма: 2300 руб.</p></div>`;
+            else if (type === 'paypal') content.innerHTML = `<p>PayPal: <b>zhouyuhe525@gmail.com</b></p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 20px;">Pay via PayPal ($29.9)</a>`;
         }
 
         function toggleLang() { currentLang = (currentLang === 'ru') ? 'en' : (currentLang === 'en' ? 'cn' : 'ru'); updateUI(); }
