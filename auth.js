@@ -1,4 +1,4 @@
-// === auth.js (CTO 彻底停火/零循环 终极稳定版) ===
+// === auth.js (CTO 温和更新/防闪退 稳定版) ===
 
 let authClient = null;
 const AUTH_SUPABASE_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
@@ -13,17 +13,14 @@ async function initAuth() {
         authClient = window.supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
     }
 
-    // 🔴 第一步：立即判断是否在登录页（支持多种路径格式）
     const path = window.location.pathname;
     const isLoginPage = path.includes('login') || path === '/' || path === '';
 
-    // 🔴 第二步：如果在登录页，保安直接“下班”，不准执行任何跳转逻辑！
     if (isLoginPage) {
-        console.log("📍 已进入登录阵地，保安停止干预，防止循环。");
+        console.log("📍 登录页静默模式");
         return; 
     }
 
-    // 第三步：如果不在登录页，再检查登录状态
     checkLogin();
 }
 
@@ -32,44 +29,44 @@ initAuth();
 async function checkLogin() {
     if (!authClient) return;
 
-    // 1. 登录成功的绿色通道
+    // 1. 登录成功绿色通道
     if (window.location.href.includes('from_login=1')) {
         const newUrl = window.location.href.replace(/[\?&]from_login=1/, '');
         window.history.replaceState({}, document.title, newUrl);
         return; 
     }
 
-    // 2. 获取用户
-    const { data: { user }, error } = await authClient.auth.getUser();
+    // 2. 尝试获取用户
+    const { data: { user } } = await authClient.auth.getUser();
 
-    // 3. 没登录，送去登录
-    if (!user || error) {
-        console.log("🚫 无票，踢回登录");
+    // --- 🟢 优化点：没拿到用户只回登录页，【不清空】本地缓存 ---
+    if (!user) {
+        console.log("🚫 无登录信息，返回入口");
         window.location.replace('login.html');
         return;
     }
 
+    // 3. 只有确认人在登录状态，才去查权限表
     const { data: profile } = await authClient
         .from('profiles')
-        .select('session_token, expire_at') // 增加了 expire_at
+        .select('session_token, expire_at')
         .eq('id', user.id)
         .maybeSingle();
 
-    // 1. 检查账号是否被删
+    // 4. 🔴 只有在数据库里【查不到人】时，才判定为“账号被删”，执行彻底清空
     if (!profile) {
+        console.error("🚨 账号已被注销");
         localStorage.clear();
-        if (!isLoginPage) {
-            alert("账号已失效。");
-            window.location.replace('login.html');
-        }
+        sessionStorage.clear();
+        alert("您的账号已失效。");
+        window.location.replace('login.html');
         return;
     }
 
-    // 2. 🟢 新增：检查是否到期
+    // 5. 检查到期（到期才清空）
     if (profile.expire_at) {
-        const now = new Date(); // 获取当前时间
-        const expireDate = new Date(profile.expire_at); // 获取数据库存的到期时间
-        
+        const now = new Date();
+        const expireDate = new Date(profile.expire_at);
         if (now > expireDate) {
             console.warn("🚨 试用期已过");
             localStorage.clear();
@@ -80,7 +77,7 @@ async function checkLogin() {
         }
     }
 
-
+    // 6. 互踢检查（互踢才清空）
     const myLocalToken = localStorage.getItem('my_session_token');
     if (myLocalToken && profile.session_token && profile.session_token !== myLocalToken) {
         localStorage.clear();
@@ -90,7 +87,7 @@ async function checkLogin() {
         return;
     }
 
-    // 5. 正常放行：记录日志
+    // 7. 正常放行：记录日志
     logVisit(user);
 }
 
