@@ -179,20 +179,59 @@
         let currentLang = 'ru';
         let isSignUpMode = false;
 
-        const uiDict = {
+        老师，您看得很准！您截图中那个写法确实是错误的。
+
+错误原因： 您把 pay_modal_title 等文字塞进到了 plans: [ ... ] 这个方括号（数组）里面了。在编程里，方括号里只能放一个一个的“卡片数据”，不能直接放这种“标签文字”。
+
+为了不让您眼花，我为您整理了整套完整的 uiDict 字典代码。请您找到代码中 const uiDict = { 的位置，把旧的全部删掉，换成下面这段结构完全正确的版本：
+
+1. 完整字典逻辑 (uiDict)
+code
+JavaScript
+
+download
+
+content_copy
+
+expand_less
+const uiDict = {
             ru: {
-                brand: "Китайский Vlog", login_desc: "Учите китайский через видео", go_signup: "Нет аккаунта? Зарегистрироваться", go_login: "Есть аккаунт? Войти", btn_login: "Войти", btn_signup: "Создать аккаунт",
-                pay_title: "Разблокировать Сезон 1", pay_tip: "⚠️ Важно: после оплаты отправьте [скриншот этой страницы] и [квитанцию] учителю в Telegram.",
+                brand: "Китайский Vlog", 
+                login_desc: "Учите китайский через видео", 
+                go_signup: "Нет аккаунта? Зарегистрироваться", 
+                go_login: "Есть аккаунт? Войти", 
+                btn_login: "Войти", 
+                btn_signup: "Создать аккаунт",
+                msg_processing: "Загрузка...",
+                // 支付弹窗文字
+                pay_modal_title: "Разблокировать Season 1",
+                pay_step_1: "Шаг 1: Введите ваш регистрационный email",
+                pay_step_2: "Шаг 2: Выберите способ оплаты",
+                pay_email_placeholder: "ваш@email.com",
+                pay_tip: "⚠️ Важно: после оплаты отправьте [скриншот этой страницы] и [квитанцию] учителю в Telegram.",
+                // 价格卡片列表
                 plans: [
-                    { id: 'trial', title: "Пробная версия", price: "$0", features: ["Регистрация дает доступ к 3 видео", "Доступны все функции сайта", "Печать скриптов только для 3 уроков", "PDF-учебники недоступны для скачивания", "Срок действия: 24 часа"] },
+                    { id: 'trial', title: "Пробная версия", price: "$0", features: ["Регистрация дает доступ к 3 видео", "Доступны все функции сайта", "Печать скриптов только для 3 уроков", "Электронные учебники (PDF) нельзя скачать", "Срок действия: 24 часа"] },
                     { id: 's1', title: "Полная версия (Сезон 1)", price: "$29.9", old: "$49.9", reason: "(Цена снижена, видео еще добавляются)", remark: "2300P / 208¥", active: true, features: ["120 коротких видеоуроков", "БОНУС: 30 видео ток-шоу", "Печать всех скриптов к видео", "Бесплатное скачивание всех PDF", "Облачная синхронизация данных", "РАЗОВАЯ ОПЛАТА — ВЕЧНЫЙ ДОСТУП"] },
                     { id: 's2', title: "Сезон 2", price: "-", soon: "ОЖИДАЕТСЯ", features: ["Скоро в продаже..."] },
                     { id: 'vip', title: "Супер VIP", price: "$80", soon: "ОЖИДАЕТСЯ", features: ["Все видео: Vlog, Подкасты, HSK", "Сериалы, Фильмы, Новости, Шоу"] }
                 ]
             },
             cn: {
-                brand: "汉语 Vlog 课堂", login_desc: "沉浸式学汉语 · 登录中心", go_signup: "还没有账号？点击这里注册新用户", go_login: "已有账号？返回登录", btn_login: "登录 / Login / Войти", btn_signup: "注册 / Sign Up / Ре记ция",
-                pay_title: "解锁第一季全集", pay_tip: "⚠️ 重要：支付后请将【此页面截图】和【付款账单】一起发给老师核对。",
+                brand: "汉语 Vlog 课堂", 
+                login_desc: "沉浸式学汉语 · 登录中心", 
+                go_signup: "还没有账号？点击这里注册新用户", 
+                go_login: "已有账号？返回登录", 
+                btn_login: "登录 / Login / Войти", 
+                btn_signup: "注册 / Sign Up / Регистрация",
+                msg_processing: "处理中 / Processing...",
+                // 支付弹窗文字
+                pay_modal_title: "解锁正式版 (第一季)",
+                pay_step_1: "第一步：输入您注册账号时使用的邮箱",
+                pay_step_2: "第二步：选择支付方式",
+                pay_email_placeholder: "输入您的注册邮箱",
+                pay_tip: "⚠️ 重要：支付后请将【此页面截图】和【付款账单】一起发给老师核对。",
+                // 价格卡片列表
                 plans: [
                     { id: 'trial', title: "试用版", price: "$0", features: ["注册可观看 3 个视频", "体验网站所有功能", "仅可打印 3 个台词本", "电子课本 (PDF) 不可下载", "有效期 24 小时"] },
                     { id: 's1', title: "正式版 (第一季)", price: "$29.9", old: "$49.9", reason: "(由于视频暂未更新完)", remark: "208¥ / 2300P", active: true, features: ["120 个精彩短视频", "限时赠送 30 个脱口秀视频", "所有台词剧本可打印", "所有 PDF 资源免费下载", "生词本学习数据云端同步", "买断制，一次性付款永久观看"] },
@@ -201,8 +240,20 @@
                 ]
             },
             en: {
-                brand: "Hanyu Vlog Class", login_desc: "Immersive Chinese Learning", go_signup: "New? Create Account", go_login: "Have account? Login", btn_login: "Login", btn_signup: "Sign Up",
-                pay_title: "Unlock Season 1 Access", pay_tip: "⚠️ Important: After payment, send [screenshot of this page] and [receipt] to the teacher.",
+                brand: "Hanyu Vlog Class", 
+                login_desc: "Immersive Chinese Learning", 
+                go_signup: "New? Create Account", 
+                go_login: "Have account? Login", 
+                btn_login: "Login", 
+                btn_signup: "Sign Up",
+                msg_processing: "Processing...",
+                // 支付弹窗文字
+                pay_modal_title: "Unlock Season 1 Access",
+                pay_step_1: "Step 1: Enter your registered email",
+                pay_step_2: "Step 2: Select payment method",
+                pay_email_placeholder: "your@email.com",
+                pay_tip: "⚠️ Important: After payment, send [screenshot of this page] and [receipt] to the teacher.",
+                // 价格卡片列表
                 plans: [
                     { id: 'trial', title: "Trial Version", price: "$0", features: ["Watch 3 videos upon registration", "Full access to all interactive tools", "Print only 3 scripts", "PDF downloads locked", "Validity: 24 hours"] },
                     { id: 's1', title: "Official (Season 1)", price: "$29.9", old: "$49.9", reason: "(Discounted: still updating)", remark: "approx. 208¥ / 2300P", active: true, features: ["120 short video lessons", "Bonus: 30 Talk Show videos", "Unlimited script printing", "All PDF textbooks free to download", "Cloud vocab sync", "ONE-TIME PAYMENT, LIFETIME ACCESS"] },
@@ -211,29 +262,51 @@
                 ]
             }
         };
+2. 配套的更新函数 (updateUI)
+请确保您的 updateUI 函数长这样，它才会去刚才那个字典里抓取正确的弹窗文字：
 
-        function updateUI() {
+code
+JavaScript
+
+download
+
+content_copy
+
+expand_less
+function updateUI() {
             const dict = uiDict[currentLang];
+            
+            // 1. 更新主页面登录框文字
             document.getElementById('brandName').innerText = dict.brand;
             document.getElementById('actionBtn').innerText = isSignUpMode ? dict.btn_signup : dict.btn_login;
             document.getElementById('toggleBtn').innerText = isSignUpMode ? dict.go_login : dict.go_signup;
             document.getElementById('modeDesc').innerText = dict.login_desc;
 
-            const list = document.getElementById('pricingList');
-            list.innerHTML = dict.plans.map(p => `
-                <div class="price-item ${p.active ? 'active' : ''}" onclick="handlePriceClick('${p.id}')">
-                    ${p.soon ? `<span class="coming-soon">${p.soon}</span>` : ''}
-                    <h3>${p.title}</h3>
-                    <div class="price-row">
-                        <span class="price-now">${p.price}</span>
-                        ${p.old ? `<span class="price-old">${p.old}</span>` : ''}
-                    </div>
-                    ${p.reason ? `<div class="price-reason">${p.reason}</div>` : ''}
-                    ${p.remark ? `<span class="price-remark">${p.remark}</span>` : ''}
-                    <ul class="features">${p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('')}</ul>
-                </div>`).join('');
-        }
+            // 2. 更新支付弹窗里的文字
+            if(document.getElementById('payModalTitle')) {
+                document.getElementById('payModalTitle').innerText = dict.pay_modal_title;
+                document.getElementById('payStep1').innerHTML = dict.pay_step_1;
+                document.getElementById('payStep2').innerText = dict.pay_step_2;
+                document.getElementById('payEmail').placeholder = dict.pay_email_placeholder;
+            }
 
+            // 3. 渲染价格表卡片
+            const list = document.getElementById('pricingList');
+            if(list) {
+                list.innerHTML = dict.plans.map(p => `
+                    <div class="price-item ${p.active ? 'active' : ''}" onclick="handlePriceClick('${p.id}')">
+                        ${p.soon ? `<span class="coming-soon">${p.soon}</span>` : ''}
+                        <h3>${p.title}</h3>
+                        <div class="price-row">
+                            <span class="price-now">${p.price}</span>
+                            ${p.old ? `<span class="price-old">${p.old}</span>` : ''}
+                        </div>
+                        ${p.reason ? `<div class="price-reason">${p.reason}</div>` : ''}
+                        ${p.remark ? `<span class="price-remark">${p.remark}</span>` : ''}
+                        <ul class="features">${p.features.map(f => `<li><i class="fas fa-check-circle"></i> ${f}</li>`).join('')}</ul>
+                    </div>`).join('');
+            }
+        }
         function handlePriceClick(id) {
             if (id === 'trial') { isSignUpMode = true; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); document.getElementById('email').focus(); }
             else if (id === 's1') { document.getElementById('payModal').style.display = 'flex'; document.getElementById('payEmail').value = document.getElementById('email').value; }
