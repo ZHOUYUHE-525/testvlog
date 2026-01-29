@@ -2,7 +2,7 @@
 if (!window.lessonDatabase) window.lessonDatabase = {};
 window.lessonDatabase["001"] = {
   "title": "去咖啡店度过美好的下午吧！",
-  "batch": "season_1", 
+  "batch": "trial_pack", 
   "video": "https://customer-b7nbe05b1qtl98fh.cloudflarestream.com/9554e0be0b6a3313d1cd04fd1331343f/downloads/default.mp4",
   "desc": "今天是12月30号，很多学生已经请假准备新年了，所以我决定带上小猫去咖啡店···",
   "author": "雨荷",
