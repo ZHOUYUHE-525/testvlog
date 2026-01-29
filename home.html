@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>汉语 Vlog 课堂 | 学习中心</title>
+    <!-- 1. 电脑浏览器标签页图标 -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- 2. 苹果/安卓手机“添加到桌面”后的图标 -->
+<link rel="apple-touch-icon" href="logo.png">
+
+<!-- 3. 设置移动端状态栏颜色（让它更像 App） -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
     
     <!-- 1. 引入必要库 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,6 +37,9 @@
     <script src="lesson_015.js"></script>
     <script src="lesson_016.js"></script>
     <script src="lesson_017.js"></script>
+    <script src="lesson_018.js"></script>
+    <script src="lesson_019.js"></script>
+    <script src="lesson_020.js"></script>
     
     <script src="lesson_401.js"></script>
     <script src="lesson_402.js"></script>
@@ -35,6 +47,8 @@
     <script src="lesson_404.js"></script>
     <script src="lesson_405.js"></script>
     <script src="lesson_406.js"></script>
+    <script src="lesson_407.js"></script>
+    <script src="lesson_408.js"></script>
 
     <style>
         :root {
@@ -877,7 +891,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_sync: "Синхронизация прогресса",
                 p_password: "Сменить пароль",
                 sidebar_batch: "Сезоны",
-                batch_s1: "Сезон 1(16/102)",
+                batch_s1: "Сезон 1(20/120)",
                 batch_s2: "Сезон 2(-)",
                 status_lock: "Закрыто",
                 msg_lock: "Этот курс доступен в полной версии. Свяжитесь с учителем!",
@@ -886,7 +900,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_download: "Восстановить (Download)",
                 batch_s3: "201-300 (Новый)",
                 batch_drama: "Сериалы",
-                batch_talk_show: "ток-шоу（6/30）",
+                batch_talk_show: "Стендап（8/30）",
                 topic_fashion: "Мода",
                 topic_travel: "Путешествия",
                 topic_beauty: "Красота",
@@ -914,7 +928,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_sync: "Sync Learning Progress to Cloud",
                 p_password: "Change Password",
                 sidebar_batch: "Seasons",
-                batch_s1: "Season 1（16/102）",
+                batch_s1: "Season 1（20/120）",
                 batch_s2: "Season 2（-)",
                 status_lock: "Locked",
                 msg_lock: "This course is locked. Please contact the teacher to unlock!",
@@ -923,7 +937,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_download: "Restore from Cloud", 
                 batch_s3: "201-300 (New)",
                 batch_drama: "TV Series",
-                batch_talk_show: "talk_show（6/30）",
+                batch_talk_show: "Stand-up（8/30）",
                 topic_fashion: "Fashion",
                 topic_travel: "Travel",
                 topic_beauty: "Beauty",
@@ -950,7 +964,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_sync: "同步进度到云端",
                 p_password: "修改密码",
                 sidebar_batch: "按期数浏览",
-                batch_s1: "第一季（16/102）",
+                batch_s1: "第一季（20/120）",
                 batch_s2: "第二季（-）",
                 status_lock: "需解锁",
                 msg_lock: "🔒 该课程需要解锁，请联系老师购买！",
@@ -959,7 +973,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_download: "从云端恢复进度", 
                 batch_s3: "第三季（-）",
                 batch_drama: "电视剧",
-                batch_talk_show: "脱口秀（6/30）",
+                batch_talk_show: "脱口秀（8/30）",
                 topic_fashion: "穿搭",
                 topic_travel: "旅行",
                 topic_beauty: "美妆护肤",
