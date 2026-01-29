@@ -134,26 +134,49 @@
 
     <!-- 支付面板 -->
     <div id="payModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-close" onclick="closePayModal()">×</div>
-            <h2 id="payModalTitle" style="color:var(--accent); margin:0;">解锁正式版</h2>
-            <p id="payModalDesc" style="font-size:13px; opacity:0.7; margin-top:10px;">输入注册邮箱，付款后发给老师截图</p>
+    <div class="modal-content">
+        <div class="modal-close" onclick="closePayModal()">×</div>
+        <h2 id="payModalTitle" style="color:var(--accent); margin:0;">解锁正式版</h2>
+        
+        <!-- 💡 强调注册邮箱 -->
+        <p style="font-size:13px; opacity:0.9; margin-top:15px; color:var(--accent);">
+            第一步：输入您<span style="text-decoration: underline;">注册账号时</span>使用的邮箱<br>
+            Step 1: Enter your <span style="text-decoration: underline;">registered</span> email
+        </p>
+        <input type="email" id="payEmail" placeholder="example@mail.com" style="margin-top:10px; border: 2px solid var(--terracotta); background: #000; text-align:center; font-weight:bold;">
+        
+        <p style="font-size:13px; opacity:0.7; margin-top:20px;">第二步：选择支付方式 / Select Payment</p>
+        <div class="pay-grid">
+            <div class="pay-btn" onclick="showPayDetail('wechat')"><i class="fab fa-weixin" style="color:#07c160"></i>WeChat</div>
+            <div class="pay-btn" onclick="showPayDetail('alipay')"><i class="fab fa-alipay" style="color:#1677ff"></i>Alipay</div>
+            <div class="pay-btn" onclick="showPayDetail('sbp')"><i class="fas fa-mobile-alt" style="color:var(--primary)"></i>СБП (Банк)</div>
+            <div class="pay-btn" onclick="showPayDetail('paypal')"><i class="fab fa-paypal" style="color:#003087"></i>PayPal</div>
+        </div>
+
+        <div id="payDetail" class="pay-info-box">
+            <div id="payContent"></div>
             
-            <input type="email" id="payEmail" placeholder="确认注册邮箱 / Confirm Email" style="margin-top:20px; border: 1px solid var(--terracotta); background: #000;">
-            
-            <div class="pay-grid">
-                <div class="pay-btn" onclick="showPayDetail('wechat')"><i class="fab fa-weixin" style="color:#07c160"></i>WeChat</div>
-                <div class="pay-btn" onclick="showPayDetail('alipay')"><i class="fab fa-alipay" style="color:#1677ff"></i>Alipay</div>
-                <div class="pay-btn" onclick="showPayDetail('sbp')"><i class="fas fa-mobile-alt" style="color:var(--primary)"></i>СБП (Банк)</div>
-                <div class="pay-btn" onclick="showPayDetail('paypal')"><i class="fab fa-paypal" style="color:#003087"></i>PayPal</div>
+            <!-- 💡 核心防御：备注提醒 -->
+            <div style="background: rgba(229, 204, 132, 0.1); padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid var(--accent);">
+                <p style="font-size:12px; color:var(--accent); margin:0; line-height:1.4;">
+                    📢 <b>付款时请务必在“添加备注”处填写您的注册邮箱！</b><br>
+                    📢 <b>Please add your email in the payment remarks!</b><br>
+                    📢 <b>Укажите ваш email в комментарии к платежу!</b>
+                </p>
             </div>
 
-            <div id="payDetail" class="pay-info-box">
-                <div id="payContent" style="font-size:14px; text-align:left;"></div>
-                <p id="screenshotTip" style="font-size:11px; color:var(--accent); margin-top:15px; font-weight:bold;"></p>
-            </div>
+            <!-- 💡 流程说明与跳转 -->
+            <p style="font-size:11px; color:#aaa; margin-top:15px; text-align:left;">
+                ⚠️ 付款后不会立即解锁。请将<b>【付款账单】</b>和<b>【此页面截图】</b>发送给老师，老师核对后将手动为您开启权限。<br>
+                ⚠️ Разблокировка не мгновенная. Отправьте скриншот оплаты учителю.
+            </p>
+            
+            <a href="https://t.me/zhouyuhe" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 20px; font-size:13px; background:var(--terracotta);">
+                <i class="fab fa-telegram"></i> 发送截图给老师 / Send Screenshot
+            </a>
         </div>
     </div>
+</div>
 
     <script>
         const loginClient = window.supabase.createClient('https://bwweaohahsafbecogist.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw');
@@ -229,18 +252,36 @@
         function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
 
         function showPayDetail(type) {
-            const userEmail = document.getElementById('payEmail').value.trim();
-            if (!userEmail) { alert(currentLang === 'ru' ? "Введите Email" : "请先输入邮箱"); return; }
-            
-            document.getElementById('payDetail').style.display = 'block';
-            document.getElementById('screenshotTip').innerText = uiDict[currentLang].pay_tip;
-            const content = document.getElementById('payContent');
+    const userEmail = document.getElementById('payEmail').value.trim();
+    if (!userEmail || !userEmail.includes('@')) { 
+        alert(currentLang === 'ru' ? "Введите корректный Email" : "请输入正确的注册邮箱"); 
+        return; 
+    }
+    
+    document.getElementById('payDetail').style.display = 'block';
+    const content = document.getElementById('payContent');
 
-            if (type === 'wechat') content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; margin-bottom:10px;"><p>WeChat Pay: 208 ¥ / 2300 руб.</p>`;
-            else if (type === 'alipay') content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; margin-bottom:10px;"><p>Alipay: 208 ¥ / 2300 руб.</p>`;
-            else if (type === 'sbp') content.innerHTML = `<p><b>СБП (Сбербанк / Т-Банк):</b></p><p style="font-size:18px; color:var(--primary);">+7 962 726 66 18</p><p>Получатель: Чжоу Юйхэ</p><p>Сумма: 2300 руб.</p>`;
-            else if (type === 'paypal') content.innerHTML = `<p>PayPal: <b>zhouyuhe525@gmail.com</b></p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 20px;">Pay via PayPal</a>`;
-        }
+    // 定义统一的价格显示
+    const priceText = "<b>208 ¥ / 2300 руб.</b>";
+
+    if (type === 'wechat') {
+        content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; margin-bottom:10px;"><p>WeChat Pay: ${priceText}</p>`;
+    } else if (type === 'alipay') {
+        content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; margin-bottom:10px;"><p>Alipay: ${priceText}</p>`;
+    } else if (type === 'sbp') {
+        content.innerHTML = `
+            <div style="text-align:left; background:#1a1a1a; padding:15px; border-radius:10px;">
+                <p><b>СБП (Перевод по номеру):</b></p>
+                <p style="font-size:18px; color:var(--primary); margin:10px 0;">+7 962 726 66 18</p>
+                <p>Получатель: <b>Чжоу Юйхэ</b></p>
+                <p>Сумма: <b>2300 руб.</b></p>
+            </div>`;
+    } else if (type === 'paypal') {
+        content.innerHTML = `
+            <p>PayPal: <b>zhouyuhe525@gmail.com</b></p>
+            <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:8px 20px;">Pay via PayPal</a>`;
+    }
+}
 
         function toggleLang() { currentLang = (currentLang === 'ru') ? 'en' : (currentLang === 'en' ? 'cn' : 'ru'); updateUI(); }
         function toggleMode() { isSignUpMode = !isSignUpMode; updateUI(); }
