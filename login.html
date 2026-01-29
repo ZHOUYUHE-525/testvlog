@@ -317,7 +317,31 @@
             const pInfo = "<b>208 ¥ / 2300 руб. ($29.9)</b>";
             if (type === 'wechat') content.innerHTML = `<img src="wechat_pay.jpg" style="width:180px; border-radius:10px; margin-bottom:10px;"><p>WeChat Pay: ${pInfo}</p>`;
             else if (type === 'alipay') content.innerHTML = `<img src="alipay_pay.jpg" style="width:180px; border-radius:10px; margin-bottom:10px;"><p>Alipay: ${pInfo}</p>`;
-            else if (type === 'sbp') content.innerHTML = `<div style="background:#1a1a1a; padding:15px; border-radius:10px;"><p><b>СБП (Перевод по номеру):</b></p><p style="font-size:18px; color:var(--primary);">+7 962 726 66 18</p><p>Получатель: <b>Чжоу Юйхэ (Aiya)</b></p><p>Сумма: 2300 руб.</p></div>`;
+            else if (type === 'sbp') {
+        content.innerHTML = `
+            <div style="text-align:center; background:#1a1a1a; padding:15px; border-radius:12px;">
+                <p style="margin-bottom:15px; color:var(--primary); font-weight:bold;">
+                    СБП (Перевод через Сбербанк)
+                </p>
+                
+                <!-- 🟢 1. 显示收款二维码 -->
+                <img src="sbp_pay.jpg" style="width:200px; border-radius:10px; margin-bottom:15px; border: 5px solid white;">
+                
+                <!-- 🟢 2. 提供直接点击跳转的按钮 -->
+                <a href="https://www.sberbank.com/sms/pbpn?requisiteNumber=79627266618" 
+                   target="_blank" 
+                   class="btn-main" 
+                   style="display:inline-block; width:auto; padding:10px 25px; background:#21a038; font-size:14px; text-decoration:none;">
+                    <i class="fas fa-external-link-alt"></i> Открыть в Сбербанк Онлайн
+                </a>
+                
+                <div style="text-align:left; margin-top:20px; font-size:13px; color:#aaa; border-top:1px solid #333; padding-top:15px;">
+                    <p>Телефон: <b>+7 962 726 66 18</b></p>
+                    <p>Получатель: <b>Чжоу Юйхэ (Aiya)</b></p>
+                    <p>Сумма: <b>2300 руб.</b></p>
+                </div>
+            </div>`;
+    }
             else if (type === 'paypal') content.innerHTML = `<p>PayPal: <b>zhouyuhe525@gmail.com</b></p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=zhouyuhe525@gmail.com&item_name=Season1&amount=29.90&currency_code=USD" target="_blank" class="btn-main" style="display:inline-block; width:auto; padding:10px 25px;">Pay via PayPal ($29.9)</a>`;
         }
 
