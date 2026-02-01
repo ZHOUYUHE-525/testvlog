@@ -324,7 +324,7 @@
         }
 
         function startCountdown() {
-            let targetDate = new Date(); targetDate.setDate(targetDate.getDate() + 6); 
+            let targetDate = new Date("2026-02-13T23:59:59").getTime(); 
             setInterval(() => {
                 const diff = targetDate - new Date();
                 const d = Math.floor(diff / 86400000);
