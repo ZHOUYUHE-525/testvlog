@@ -40,6 +40,8 @@
     <script src="lesson_018.js"></script>
     <script src="lesson_019.js"></script>
     <script src="lesson_020.js"></script>
+    <script src="lesson_021.js"></script>
+    <script src="lesson_022.js"></script>
     
     <script src="lesson_401.js"></script>
     <script src="lesson_402.js"></script>
@@ -359,7 +361,43 @@
             /* 弹窗 */
             .profile-card { width: 85%; }
         }
-    </style>
+        /* 🟢 CTO 新增：拦截弹窗样式 */
+/* 🟢 CTO 修正：平铺式 CSS，绝对不会报错 */
+.guide-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8) !important; 
+    backdrop-filter: blur(8px) !important;
+    display: none; align-items: center; justify-content: center;
+    z-index: 9999 !important;
+}
+.guide-card {
+    background: #E5DABC !important; 
+    width: 90%; max-width: 400px; border-radius: 24px;
+    padding: 40px 30px; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid #A77046;
+}
+.guide-icon { font-size: 50px; color: #A77046; margin-bottom: 20px; }
+.guide-card h2 { color: #612321; margin: 0 0 10px 0; font-size: 24px; }
+.guide-card p { color: #4A3B32; font-size: 15px; margin-bottom: 30px; line-height: 1.5; }
+
+.guide-btn-group { display: flex; flex-direction: column; gap: 12px; }
+
+/* 注意：这里的按钮样式要独立出来写 */
+.guide-btn {
+    padding: 15px; border-radius: 12px; border: none;
+    font-size: 16px; font-weight: bold; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s;
+}
+.btn-primary { background: #612321 !important; color: #E5DABC !important; }
+.btn-outline { background: white !important; color: #6CAD9C !important; border: 1px solid #6CAD9C !important; }
+.btn-link { background: transparent !important; color: #888 !important; text-decoration: underline !important; margin-top: 10px; border: none !important; cursor: pointer; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+</style>
 </head>
 <body>
 <!-- 悬浮按钮 -->
@@ -464,6 +502,11 @@
                 <!-- 🟢 加上 data-i18n="menu_rules" -->
                 <span data-i18n="menu_rules">使用须知</span>
             </div>
+            <!-- 🟢 CTO 新增：价格与特权按钮 -->
+<div class="menu-item" onclick="location.href='price.html'" style="border: 1px solid var(--yellow); margin-top: 10px; background: rgba(229, 204, 132, 0.1);">
+    <i class="fas fa-crown" style="color: var(--terracotta);"></i> 
+    <span style="font-weight: bold; color: var(--dark-red);" data-i18n="menu_pricing">价格与特权</span>
+</div>
             
             
         
@@ -892,7 +935,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_sync: "Синхронизация прогресса",
                 p_password: "Сменить пароль",
                 sidebar_batch: "Сезоны",
-                batch_s1: "Сезон 1(20/120)",
+                batch_s1: "Сезон 1(22/120)",
                 batch_s2: "Сезон 2(-)",
                 status_lock: "Закрыто",
                 msg_lock: "Этот курс доступен в полной версии. Свяжитесь с учителем!",
@@ -908,7 +951,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 topic_sports: "Спорт",
                 topic_study: "Учёба",
                 menu_tools: "Инструменты (Tools)",
-               
+                menu_pricing: "Цены и Привилегии",
             },
             en: {
                 // 原有词条
@@ -929,7 +972,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_sync: "Sync Learning Progress to Cloud",
                 p_password: "Change Password",
                 sidebar_batch: "Seasons",
-                batch_s1: "Season 1（20/120）",
+                batch_s1: "Season 1（22/120）",
                 batch_s2: "Season 2（-)",
                 status_lock: "Locked",
                 msg_lock: "This course is locked. Please contact the teacher to unlock!",
@@ -945,6 +988,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 topic_sports: "Sports",
                 topic_study: "Study",
                 menu_tools: "Learning Tools",
+                menu_pricing: "Pricing & Plans",
             },
             cn: {
                 // 原有词条
@@ -965,7 +1009,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 p_sync: "同步进度到云端",
                 p_password: "修改密码",
                 sidebar_batch: "按期数浏览",
-                batch_s1: "第一季（20/120）",
+                batch_s1: "第一季（22/120）",
                 batch_s2: "第二季（-）",
                 status_lock: "需解锁",
                 msg_lock: "🔒 该课程需要解锁，请联系老师购买！",
@@ -981,6 +1025,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 topic_sports: "运动",
                 topic_study: "学习",
                 menu_tools: "学习工具",
+                menu_pricing: "价格与特权",
             }
         };
 
@@ -1011,84 +1056,89 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
         // === 🟢 商业版：带锁的视频渲染 ===
         // === 🟢 修复版：显示 HSK 和 作者 ===
         function renderVideos(videos) {
-            const grid = document.getElementById('videoGrid');
-            grid.innerHTML = ''; 
+    const grid = document.getElementById('videoGrid');
+    grid.innerHTML = ''; 
+    
+    if (videos.length === 0) {
+        grid.innerHTML = '<div class="empty-state">没有找到相关视频</div>';
+        return;
+    }
+
+    // 🟢 CTO 修改点 1：强行排序逻辑
+    // 让 batch 为 'trial_pack' 的视频排在最前面
+    const sortedVideos = [...videos].sort((a, b) => {
+        if (a.batch === 'trial_pack' && b.batch !== 'trial_pack') return -1;
+        if (a.batch !== 'trial_pack' && b.batch === 'trial_pack') return 1;
+        return 0; // 其他保持原样
+    });
+
+    let userAccess = [];
+    try {
+        userAccess = JSON.parse(localStorage.getItem('my_access_tags') || '["season_1"]');
+    } catch (e) { userAccess = ["season_1"]; }
+    
+    // 🟢 使用排序后的 sortedVideos 进行渲染
+    sortedVideos.forEach(v => {
+        const isLocked = v.batch && !userAccess.includes(v.batch);
+        
+        const savedProgress = localStorage.getItem('progress_' + v.id);
+        if (savedProgress) v.progress = parseInt(savedProgress);
+        const savedDone = localStorage.getItem('done_' + v.id);
+        if (savedDone === 'true') { v.isDone = true; v.progress = 100; }
+
+        let coverStyle = v.cover ? `background-image: url('${v.cover}');` : `background-color: #ddd;`;
+        let topicLabel = v.topic || "Topic"; 
+
+        let cardClickAction = `location.href='index.html?id=${v.id}'`;
+        let statusHtml = ''; 
+        let lockOverlay = '';
+
+        if (isLocked) {
+            coverStyle += 'filter: grayscale(100%); opacity: 0.8;'; 
+            lockOverlay = `<div style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; color:white; font-size:40px;"><i class="fas fa-lock"></i></div>`;
             
-            if (videos.length === 0) {
-                grid.innerHTML = '<div class="empty-state">没有找到相关视频</div>';
-                return;
-            }
-
-            let userAccess = [];
-            try {
-                userAccess = JSON.parse(localStorage.getItem('my_access_tags') || '["season_1"]');
-            } catch (e) { userAccess = ["season_1"]; }
+            // 🟢 CTO 修改点 2：点击锁定视频不再弹窗报错，而是引导去价格页
+            cardClickAction = `showPriceGuide('${v.batch}')`;
             
-            videos.forEach(v => {
-                const isLocked = v.batch && !userAccess.includes(v.batch);
-                
-                // 进度条逻辑
-                const savedProgress = localStorage.getItem('progress_' + v.id);
-                if (savedProgress) v.progress = parseInt(savedProgress);
-                const savedDone = localStorage.getItem('done_' + v.id);
-                if (savedDone === 'true') { v.isDone = true; v.progress = 100; }
-
-                // 样式处理
-                let coverStyle = v.cover ? `background-image: url('${v.cover}');` : `background-color: #ddd;`;
-                let topicKey = 'topic_' + (v.topic || 'life'); // 暂时用默认
-                let topicLabel = v.topic || "Topic"; // 直接显示原数据，或者你可以去字典里查
-
-                let cardClickAction = `location.href='index.html?id=${v.id}'`;
-                let statusHtml = ''; 
-                let lockOverlay = '';
-
-                if (isLocked) {
-                    coverStyle += 'filter: grayscale(100%);'; 
-                    lockOverlay = `<div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:40px;"><i class="fas fa-lock"></i></div>`;
-                    cardClickAction = `alert('🔒 该课程需要解锁 (需购买 ${v.batch})')`;
-                    statusHtml = `<span style="color:#666"><i class="fas fa-lock"></i> 需解锁</span>`;
-                } else {
-                    if (v.isDone) statusHtml = `<span class="status-text done"><i class="fas fa-check-circle"></i> 已完成</span>`;
-                    else if (v.progress > 0) statusHtml = `<span class="status-text watching"><i class="far fa-clock"></i> 观看至 ${v.progress}%</span>`;
-                    else statusHtml = `<span class="status-text" style="color:#999">未开始</span>`;
-                }
-
-                // 🟢 重点修改了这里的 HTML 结构
-                const html = `
-                <div class="card" onclick="${cardClickAction}">
-                    <div class="card-cover" style="${coverStyle}">
-                        ${lockOverlay}
-                        ${!isLocked ? `<div class="duration-tag">${v.duration || '00:00'}</div>` : ''}
-                        ${!isLocked ? `<div class="fav-btn ${v.isFav ? 'active' : ''}" onclick="toggleFav(${v.id}, this, event)"><i class="fas fa-heart"></i></div>` : ''}
-                    </div>
-                    <div class="card-body">
-                        <div>
-                            <!-- 👇 新增：作者和等级标签 -->
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                <span style="font-size:11px; background:#f3f4f6; color:#666; padding:2px 6px; border-radius:4px; font-weight:bold;">
-                                    ${v.hsk || 'HSK?'}
-                                </span>
-                                <span style="font-size:11px; color:#999;">
-                                    <i class="fas fa-user"></i> ${v.author || 'Vlogger'}
-                                </span>
-                            </div>
-                            <!-- 👆 新增结束 -->
-
-                            <div class="card-title" style="${isLocked ? 'color:#999' : ''}">${v.title}</div>
-                            <div class="status-row">${statusHtml}</div>
-                            <div class="card-desc">${v.desc}</div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="tag-row">
-                                <span class="pill-tag">${v.batch || '免费'}</span>
-                                <span class="pill-tag pill-topic">${topicLabel}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-                grid.innerHTML += html;
-            });
+            statusHtml = `<span style="color:#A77046"><i class="fas fa-crown"></i> 需升级解锁</span>`;
+        } else {
+            if (v.isDone) statusHtml = `<span class="status-text done"><i class="fas fa-check-circle"></i> 已完成</span>`;
+            else if (v.progress > 0) statusHtml = `<span class="status-text watching"><i class="far fa-clock"></i> 观看至 ${v.progress}%</span>`;
+            else statusHtml = `<span class="status-text" style="color:#999">未开始</span>`;
         }
+
+        const html = `
+        <div class="card" onclick="${cardClickAction}" style="${v.batch === 'trial_pack' ? 'border: 2px solid var(--primary);' : ''}">
+            <div class="card-cover" style="${coverStyle}">
+                ${lockOverlay}
+                ${v.batch === 'trial_pack' ? '<div style="position:absolute; top:10px; right:10px; background:var(--primary); color:white; font-size:10px; padding:2px 8px; border-radius:10px; font-weight:bold;">FREE TRIAL</div>' : ''}
+                ${!isLocked ? `<div class="duration-tag">${v.duration || '00:00'}</div>` : ''}
+            </div>
+            <div class="card-body">
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:11px; background:#f3f4f6; color:#666; padding:2px 6px; border-radius:4px; font-weight:bold;">
+                            ${v.hsk || 'HSK?'}
+                        </span>
+                        <span style="font-size:11px; color:#999;">
+                            <i class="fas fa-user"></i> ${v.author || 'Vlogger'}
+                        </span>
+                    </div>
+                    <div class="card-title" style="${isLocked ? 'color:#999' : ''}">${v.title}</div>
+                    <div class="status-row">${statusHtml}</div>
+                    <div class="card-desc">${v.desc}</div>
+                </div>
+                <div class="card-footer">
+                    <div class="tag-row">
+                        <span class="pill-tag">${v.batch || '免费'}</span>
+                        <span class="pill-tag pill-topic">${topicLabel}</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        grid.innerHTML += html;
+    });
+}
 
         // === 🟢 修复版：筛选逻辑 ===
         
@@ -1331,7 +1381,66 @@ async function updateUserAccess() {
         console.error("无法获取权限:", e);
     }
 }
+// 🟢 CTO 新增：点击锁定时触发的引导
+// 🟢 CTO 修复版：逻辑完全隔离，确保不报错
+// 🟢 定义在全局，确保 onclick 能找到它
+// 🟢 CTO 终极版：拦截引导逻辑
+// ==========================================
+// 🟢 CTO 调试版：引导弹窗逻辑（带点击检测）
+// ==========================================
+window.showPriceGuide = function(batchName) {
+    // 1. 调试用：如果这一行能弹出来，说明点击事件没问题
+    console.log("点击成功，尝试显示弹窗...");
+    
+    var modal = document.getElementById('priceGuideModal');
+    if (!modal) {
+        alert("找不到 ID 为 priceGuideModal 的弹窗实体，请检查 HTML 部分！");
+        return;
+    }
 
+    // 2. 语言处理
+    var lang = (typeof currentLang !== 'undefined') ? currentLang : 'cn';
+    var dict = {
+        cn: { t: "解锁完整版内容", d: "加入正式版课程，解锁 120+ 视频及全部学习工具", p: "查看特权与价格", c: "联系老师", s: "先看看其他免费视频" },
+        ru: { t: "Разблокировать курс", d: "Присоединяйтесь к полной версии, чтобы открыть 120+ видео.", p: "Цены и привилегии", c: "Связаться с учителем", s: "Сначала посмотрю бесплатные" },
+        en: { t: "Unlock Full Access", d: "Join the official course to unlock 120+ videos.", p: "Pricing & Plans", c: "Contact Teacher", s: "Watch free videos first" }
+    };
+    var t = dict[lang] || dict.cn;
+
+    // 3. 注入文字
+    document.getElementById('guideTitle').innerText = t.t;
+    document.getElementById('guideDesc').innerText = t.d;
+    document.getElementById('btnPriceText').innerText = t.p;
+    document.getElementById('btnContactText').innerText = t.c;
+    document.getElementById('btnStayText').innerText = t.s;
+
+    // 4. 执行显示
+    modal.style.display = 'flex';
+};
+
+window.closePriceGuide = function() {
+    var modal = document.getElementById('priceGuideModal');
+    if (modal) modal.style.display = 'none';
+};
     </script>
+    
+<div id="priceGuideModal" class="guide-overlay" style="display: none;">
+    <div class="guide-card">
+        <div class="guide-icon"><i class="fas fa-crown"></i></div>
+        <h2 id="guideTitle">解锁完整版内容</h2>
+        <p id="guideDesc">加入正式版课程，解锁 120+ 视频及全部学习工具</p>
+        <div class="guide-btn-group">
+            <button class="guide-btn btn-primary" onclick="location.href='price.html'">
+                <i class="fas fa-shopping-cart"></i> <span id="btnPriceText">查看特权与价格</span>
+            </button>
+            <button class="guide-btn btn-outline" onclick="window.open('https://t.me/zhouyuhe', '_blank')">
+                <i class="fab fa-telegram"></i> <span id="btnContactText">有问题？联系老师</span>
+            </button>
+            <button class="guide-btn btn-link" onclick="closePriceGuide()">
+                <span id="btnStayText">先看看其他免费视频</span>
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
