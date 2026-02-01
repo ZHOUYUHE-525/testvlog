@@ -3,362 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>汉语 Vlog | 学习工具箱</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 引入拼音库 -->
-    <script src="https://unpkg.com/pinyin-pro"></script>
-    <!-- 引入 Supabase (保持登录状态用) -->
+    <title>汉语 Vlog 课堂 | 开启沉浸式汉语学习新境界</title>
+    
+    <!-- 引入资源 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
-        :root { 
-            --primary: #6CAD9C; 
-            --bg: #F9F7F2; 
-            --white: #FFFFFF; 
-            --text: #4A3B32; 
-            --gray: #9ca3af; 
-            --cream: #f2ecde;
-            --accent-red: #d16b5b; /* 声调颜色 */
-        }
-        body { margin: 0; font-family: "PingFang SC", sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
-
-        /* === 左侧边栏 === */
-        .sidebar { width: 240px; background: var(--white); border-right: 1px solid #eee; display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
-        .logo { font-size: 18px; font-weight: 800; color: #8B3A3A; margin-bottom: 30px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        
-        .tool-nav-item { 
-            display: flex; align-items: center; gap: 12px; padding: 12px 15px; 
-            border-radius: 10px; cursor: pointer; color: #666; margin-bottom: 8px; transition: 0.2s; font-size: 14px;
-        }
-        .tool-nav-item:hover { background: #fdfdfd; color: var(--primary); }
-        .tool-nav-item.active { background: var(--cream); color: #8B3A3A; font-weight: bold; }
-        .badge-new { background: #ff4757; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: auto; }
-
-        /* === 右侧主内容 === */
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; position: relative; }
-        
-        /* 语言切换 (右上角) */
-        .lang-switch-box {
-            position: absolute; top: 30px; right: 40px; z-index: 10;
-            display: flex; gap: 5px; background: #eee; padding: 4px; border-radius: 20px;
-        }
-        .lang-btn {
-            font-size: 12px; padding: 4px 10px; border-radius: 15px; cursor: pointer; color: #666; font-weight: bold; transition: all 0.2s;
-        }
-        .lang-btn.active { background: var(--white); color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-
-        /* 工具容器 */
-        .tool-container { 
-            background: white; border-radius: 20px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
-            flex: 1; display: flex; flex-direction: column; overflow: hidden;
-            border: 1px solid #eee; margin-top: 40px; /* 留出语言栏位置 */
+        :root {
+            --primary: #6CAD9C;    /* 湖绿 */
+            --accent: #A77046;     /* 金棕 */
+            --dark-red: #612321;   /* 深红 */
+            --beige: #E5DABC;      /* 米白 */
+            --black: #0a0a0a;
         }
 
-        /* --- 拼音助手特定样式 --- */
-        .pinyin-header {
-            padding: 15px 25px; border-bottom: 1px solid #eee; background: #fffbf5;
+        * { box-sizing: border-box; }
+        body, html { 
+            margin: 0; padding: 0; font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: var(--black); color: white; scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        /* 🏛️ 头部导航（修复重叠与布局） */
+        header {
+            position: fixed; top: 0; width: 100%; padding: 25px 50px;
             display: flex; justify-content: space-between; align-items: center;
+            z-index: 2000; transition: 0.4s;
         }
-        .mode-switch { display: flex; gap: 15px; }
-        .mode-switch label { cursor: pointer; font-size: 14px; color: #888; display: flex; align-items: center; gap: 5px; }
-        .mode-switch input:checked + span { color: var(--primary); font-weight: bold; }
-
-        /* 展示区域 */
-        .display-area {
-            flex: 1; padding: 30px; overflow-y: auto; font-size: 24px; line-height: 1.8;
-            font-family: "KaiTi", "楷体", serif; white-space: pre-wrap; color: #333;
-            outline: none; /* 去掉编辑时的蓝框 */
-            scroll-behavior: smooth;
-        }
+        header.scrolled { background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(167, 112, 70, 0.3); }
+        .logo { font-size: 24px; font-weight: 900; color: var(--accent); letter-spacing: 2px; }
         
-        /* 拼音模式 */
-        .mode-pinyin .py-text { color: #8B3A3A; margin-left: 8px; font-size: 0.8em; }
+        .nav-right { display: flex; align-items: center; gap: 20px; }
 
-        /* 声调模式 */
-        .mode-tone { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 10px 0; }
-        .char-box { display: inline-flex; flex-direction: column; align-items: center; justify-content: flex-end; margin: 0 2px; min-width: 30px; }
-        .tone-mark { font-family: Arial, sans-serif; font-size: 20px; color: var(--accent-red); height: 26px; line-height: 26px; font-weight: bold; text-align: center; }
-        .hanzi-text { font-size: 32px; line-height: 1.2; }
-        .break-line { width: 100%; height: 0; margin: 5px 0; }
+        /* 🌐 强化语言切换（无国旗，解决乱码挤压） */
+        .lang-toggle-box {
+            border: 1px solid var(--accent); padding: 8px 18px; border-radius: 30px;
+            cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s;
+            background: rgba(167, 112, 70, 0.05); min-width: 140px; justify-content: center;
+        }
+        .lang-toggle-box i { color: var(--accent); font-size: 14px; }
+        .lang-toggle-box span { font-size: 13px; font-weight: 800; color: var(--accent); white-space: nowrap; }
+        .lang-toggle-box:hover { background: var(--accent); }
+        .lang-toggle-box:hover span, .lang-toggle-box:hover i { color: white; }
 
-        /* 输入区 */
-        .input-area {
-            height: 140px; padding: 20px; background: #f9f9f9; border-top: 1px solid #eee;
-            display: flex; gap: 15px;
+        .btn-top { background: var(--accent); color: white; padding: 10px 24px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s; white-space: nowrap; }
+        .btn-top:hover { filter: brightness(1.1); transform: scale(1.05); }
+
+        /* 📽️ 通用屏展示样式 */
+        section {
+            min-height: 100vh; width: 100%; display: flex; align-items: center;
+            justify-content: center; padding: 100px 10%; position: relative;
         }
-        textarea {
-            flex: 1; border: 1px solid #ddd; border-radius: 10px; padding: 15px;
-            resize: none; outline: none; font-size: 16px; font-family: inherit;
+
+        /* --- P1: Hero 震撼开场 --- */
+        .hero { 
+            text-align: center; flex-direction: column; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), var(--black)), 
+                        url('hero-bg.jpg'); 
+            background-size: cover; background-position: center; background-attachment: fixed;
         }
-        textarea:focus { border-color: var(--primary); background: white; }
+        .hero h1 { font-size: clamp(45px, 8vw, 95px); margin: 0; color: var(--beige); line-height: 1.1; font-weight: 900; text-shadow: 0 5px 30px rgba(0,0,0,0.5); }
+        .hero p { font-size: clamp(18px, 2.5vw, 26px); color: var(--accent); margin: 35px 0; font-weight: 600; }
         
-        .action-btns { display: flex; flex-direction: column; gap: 10px; width: 100px; }
-        .btn-tool {
-            border: none; padding: 0; border-radius: 8px; cursor: pointer; color: white; font-weight: bold;
-            flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 14px;
+        /* 🚀 强化向下引导按钮 */
+        .scroll-hint { 
+            position: absolute; bottom: 50px; animation: bounce 2s infinite; 
+            font-size: 45px; color: var(--accent); opacity: 0.9; cursor: pointer;
+            filter: drop-shadow(0 0 15px rgba(167, 112, 70, 0.4));
         }
-        .btn-copy { background: var(--primary); }
-        .btn-clear { background: #e5e7eb; color: #666; }
-        .btn-tool:hover { opacity: 0.9; transform: translateY(-1px); }
 
-        /* 隐藏的工具模块 */
-        .tool-module { display: none; height: 100%; flex-direction: column; }
-        .tool-module.active { display: flex; }
+        /* --- 功能模块展示排版 --- */
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; width: 100%; }
+        .feature-info { text-align: left; }
+        .feature-info .tag { color: var(--primary); font-weight: 800; font-size: 15px; letter-spacing: 3px; margin-bottom: 20px; display: block; text-transform: uppercase; }
+        .feature-info h2 { font-size: clamp(30px, 4.5vw, 55px); color: var(--beige); margin: 0 0 25px 0; line-height: 1.2; font-weight: 800; }
+        .feature-info p { font-size: 19px; line-height: 1.9; color: #ccc; margin-bottom: 35px; }
+        
+        /* Lovart 样式媒体窗口 */
+        .media-window { 
+            position: relative; border-radius: 25px; overflow: hidden; 
+            box-shadow: 0 40px 100px rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.1);
+            background: #111; aspect-ratio: 16/10;
+        }
+        .media-window video, .media-window img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { 
-                width: 100%; height: auto; flex-direction: row; padding: 10px; 
-                overflow-x: auto; border-bottom: 1px solid #eee; border-right: none;
-            }
-            .logo { display: none; }
-            .lang-switch-box { top: 10px; right: 10px; }
-            .tool-container { margin-top: 40px; } 
+        /* --- P5: 四宫格复习系统 (Lovart 核心布局) --- */
+        .centered-header { text-align: center; max-width: 900px; margin: 0 auto 70px auto; }
+        .centered-header .tag { color: var(--primary); font-weight: 800; font-size: 15px; letter-spacing: 3px; margin-bottom: 20px; display: block; }
+        .centered-header h2 { font-size: clamp(32px, 5vw, 58px); color: var(--beige); margin-bottom: 25px; font-weight: 800; }
+        .centered-header p { font-size: 20px; color: #bbb; line-height: 1.7; }
+
+        .quad-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; }
+        .quad-slot { 
+            background: #111; border-radius: 22px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);
+            transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .quad-slot:hover { transform: translateY(-15px); border-color: var(--accent); box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
+        .quad-media { width: 100%; aspect-ratio: 3/4; background: #1a1a1a; overflow: hidden; }
+        .quad-media img, .quad-media video { width: 100%; height: 100%; object-fit: cover; }
+        .quad-info { padding: 20px; background: rgba(255,255,255,0.02); text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+        .quad-info h4 { margin: 0; font-size: 16px; color: var(--accent); font-weight: 800; }
+
+        /* --- P8: 终极登录区域 --- */
+        .auth-section { background: var(--black); padding-bottom: 120px; }
+        .login-card {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(40px);
+            border: 1px solid rgba(167, 112, 70, 0.3); border-radius: 35px;
+            padding: 60px 50px; width: 100%; max-width: 480px; text-align: center;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+        }
+        .login-card h2 { color: var(--beige); font-size: 35px; margin: 0 0 10px 0; font-weight: 800; }
+        .login-card p { color: var(--accent); margin-bottom: 40px; font-size: 16px; font-weight: 600; }
+        
+        .input-group { text-align: left; margin-bottom: 20px; }
+        input {
+            width: 100%; padding: 18px; border-radius: 12px; margin-top: 10px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: white; outline: none; font-size: 16px; transition: 0.3s;
+        }
+        input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+        
+        .btn-main {
+            width: 100%; padding: 20px; border: none; border-radius: 12px;
+            background: var(--beige); color: var(--dark-red);
+            font-weight: 900; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 20px;
+        }
+        .btn-main:hover { transform: scale(1.03); filter: brightness(1.1); box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+
+        .social-links { margin-top: 50px; display: flex; justify-content: center; gap: 35px; }
+        .social-links a { color: var(--accent); font-size: 28px; transition: 0.3s; opacity: 0.7; }
+        .social-links a:hover { opacity: 1; color: var(--primary); transform: translateY(-5px); }
+
+        /* ✨ 动画 */
+        .reveal { opacity: 0; transform: translateY(60px); transition: all 1s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-15px);} 60% {transform: translateY(-8px);} }
+
+        @media (max-width: 900px) {
+            .feature-grid { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+            .quad-container { grid-template-columns: 1fr 1fr; }
+            section { padding: 80px 5%; }
+            header { padding: 20px; }
+            .logo { font-size: 18px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. 侧边栏菜单 -->
-    <div class="sidebar">
-        <div class="logo" onclick="location.href='home.html'">
-            <i class="fas fa-chevron-left"></i> <span data-i18n="back_home">返回首页</span>
-        </div>
-        
-        <!-- 按钮 A: 拼音助手 (默认选中) -->
-        <div class="tool-nav-item active" onclick="switchTool('pinyin', this)">
-            <i class="fas fa-font"></i> <span data-i18n="tool_pinyin">拼音助手</span>
-        </div>
-
-        <!-- 按钮 C: 更多 -->
-        <div class="tool-nav-item" onclick="alert('Coming Soon...')">
-            <i class="fas fa-plus-circle"></i> <span data-i18n="tool_more">更多工具</span>
-        </div>
-    </div>
-
-    <!-- 2. 主内容区 -->
-    <div class="main-content">
-        
-        <!-- 语言切换 -->
-        <div class="lang-switch-box">
-            <div class="lang-btn active" onclick="setLang('cn', this)">中</div>
-            <div class="lang-btn" onclick="setLang('en', this)">En</div>
-            <div class="lang-btn" onclick="setLang('ru', this)">Ru</div>
-        </div>
-
-        <!-- A: 拼音助手 -->
-        <div id="tool-pinyin" class="tool-container tool-module active">
-            <div class="pinyin-header">
-                <div style="font-weight:bold; color:#555;" data-i18n="pinyin_title">🛠️ 汉字转拼音/声调</div>
-                <div class="mode-switch">
-                    <label>
-                        <input type="radio" name="mode" value="pinyin" checked onchange="updateDisplay()"> 
-                        <span data-i18n="mode_py">📖 拼音模式</span>
-                    </label>
-                    <label>
-                        <input type="radio" name="mode" value="tone" onchange="updateDisplay()"> 
-                        <span data-i18n="mode_tone">🎼 声调模式</span>
-                    </label>
-                </div>
+    <header id="nav">
+        <div class="logo">HANYU-VLOG</div>
+        <div class="nav-right">
+            <!-- 🌐 语言切换：简洁圆角矩形 -->
+            <div class="lang-toggle-box" onclick="toggleLang()">
+                <i class="fas fa-globe"></i>
+                <span id="langName">CN / RU / EN</span>
             </div>
+            <a href="#login-area" class="btn-top" id="navBtn">立即登录</a>
+        </div>
+    </header>
+
+    <!-- P1: Hero -->
+    <section class="hero">
+        <h1 id="heroTitle">每一句对白<br>都是进步的阶梯</h1>
+        <p id="heroSub">沉浸于真实的 Vlog 与播客，像母语者一样思考、说话</p>
+        <div class="scroll-hint" onclick="window.scrollTo(0, window.innerHeight)"><i class="fas fa-chevron-down"></i></div>
+    </section>
+
+    <!-- P2: 120+ Vlogs -->
+    <section>
+        <div class="feature-grid reveal">
+            <div class="feature-info">
+                <span class="tag" id="tag1">地道表达</span>
+                <h2 id="f1T">120+ 真实场景视频</h2>
+                <p id="f1D">摆脱枯燥教材。从街头 Vlog 到热门播客，带你进入最真实的汉语环境，学习中国人每天都在用的口语。</p>
+            </div>
+            <div class="media-window">
+                <video autoplay muted loop playsinline><source src="vlog-demo.mp4" type="video/mp4"></video>
+            </div>
+        </div>
+    </section>
+
+    <!-- P3: 精准跳转 -->
+    <section style="background: #080808;">
+        <div class="feature-grid reveal" style="grid-template-columns: 1.2fr 1fr;">
+            <div class="media-window">
+                <video autoplay muted loop playsinline><source src="jump-demo.mp4" type="video/mp4"></video>
+            </div>
+            <div class="feature-info">
+                <span class="tag" id="tag2">自由操控</span>
+                <h2 id="f2T">点击句子，精准跳转</h2>
+                <p id="f2D">点击任意台词，视频立即跳转，实现单句精听自由。配合拼音、汉字、双语翻译的随心开关，彻底吃透每一处细节。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- P4: 权威查词 -->
+    <section>
+        <div class="feature-grid reveal">
+            <div class="feature-info">
+                <span class="tag" id="tag3">即时交互</span>
+                <h2 id="f3T">点击单词，即刻释义</h2>
+                <p id="f3D">遇见生词点一下，俄语/英语双向解释瞬间呈现，并直接链接权威词典。更支持“纯音频模式”，百分百练习精听。</p>
+            </div>
+            <div class="media-window">
+                <video autoplay muted loop playsinline><source src="dict-demo.mp4" type="video/mp4"></video>
+            </div>
+        </div>
+    </section>
+
+    <!-- P5: 四宫格复习系统 (内容归位) -->
+    <section style="background: #080808; flex-direction: column;">
+        <div class="centered-header reveal">
+            <span class="tag" id="tag4">科学记忆</span>
+            <h2 id="f4T">科学记忆复习系统</h2>
+            <p id="f4D">包含闪卡、填空、跟读、平行视频四大板块，配合艾宾浩斯遗忘曲线辅助，确保生词长久记忆。</p>
+        </div>
+        <div class="quad-container reveal">
+            <!-- 槽位 1: 闪卡 -->
+            <div class="quad-slot">
+                <div class="quad-media">
+                    <video autoplay muted loop playsinline><source src="flash-demo.mp4" type="video/mp4"></video>
+                </div>
+                <div class="quad-info"><h4 data-f="q1">智能单词闪卡</h4></div>
+            </div>
+            <!-- 槽位 2: 填空 -->
+            <div class="quad-slot">
+                <div class="quad-media"><img src="cloze-cover.jpg"></div>
+                <div class="quad-info"><h4 data-f="q2">听力填空练习</h4></div>
+            </div>
+            <!-- 槽位 3: 跟读 -->
+            <div class="quad-slot">
+                <div class="quad-media"><img src="shadow-cover.jpg"></div>
+                <div class="quad-info"><h4 data-f="q3">影子跟读模式</h4></div>
+            </div>
+            <!-- 槽位 4: 艾宾浩斯曲线 -->
+            <div class="quad-slot">
+                <div class="quad-media"><img src="ebbinghaus-cover.jpg"></div>
+                <div class="quad-info"><h4 data-f="q4">艾宾浩斯遗忘曲线</h4></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- P6: 精读打印 -->
+    <section>
+        <div class="feature-grid reveal">
+            <div class="feature-info">
+                <span class="tag" id="tag5">学习笔记</span>
+                <h2 id="f5T">精读剧本与台词打印</h2>
+                <p id="f5D">在线做笔记，离线打印台词本。同样支持开关拼音、汉字和翻译。配合海量学习 PDF 电子书资源，构建你的汉语资料库。</p>
+            </div>
+            <div class="media-window">
+                <video autoplay muted loop playsinline><source src="script-demo.mp4" type="video/mp4"></video>
+            </div>
+        </div>
+    </section>
+
+    <!-- P7: 小工具展示 -->
+    <section style="background: #080808;">
+        <div class="feature-grid reveal" style="grid-template-columns: 1fr 1.2fr;">
+            <div class="media-window"><img src="tools-demo.jpg"></div>
+            <div class="feature-info">
+                <span class="tag" id="tag6">全能辅助</span>
+                <h2 id="f6T">搜词功能与学习工具</h2>
+                <p id="f6D">首页全局搜词，快速定位包含该词的所有视频。更有打字自动显拼音声调、田字格字帖生成、俄语地道翻译等全能工具。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- P8: 终极登录注册 -->
+    <section id="login-area" class="auth-section">
+        <div class="login-card reveal">
+            <h2 id="modeTitle">开始您的学习之旅</h2>
+            <p id="modeDesc">沉浸式学汉语 · 登录网站</p>
+
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email / 邮箱 / Логин">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Password / 密码 / Пароль">
+            </div>
+
+            <button class="btn-main" onclick="handleAuthAction()" id="actionBtn">登录网站</button>
             
-            <div id="display" class="display-area mode-pinyin" contenteditable="true" spellcheck="false"></div>
+            <div id="msg" style="margin-top:20px; font-size:14px; min-height: 20px;"></div>
 
-            <div class="input-area">
-                <textarea id="input" placeholder="..." oninput="updateDisplay()"></textarea>
-                <div class="action-btns">
-                    <button class="btn-tool btn-copy" onclick="copyResult()">
-                        <i class="far fa-copy"></i> <span data-i18n="btn_copy">复制</span>
-                    </button>
-                    <button class="btn-tool btn-clear" onclick="clearAll()">
-                        <i class="fas fa-eraser"></i> <span data-i18n="btn_clear">清空</span>
-                    </button>
-                </div>
+            <div style="margin-top:30px; font-size:14px;">
+                <span id="toggleTip">还没有账号？</span>
+                <span onclick="toggleMode()" id="toggleBtn" style="color:var(--accent); font-weight:bold; cursor:pointer; text-decoration:underline;">免费注册</span>
+            </div>
+
+            <div class="social-links">
+                <a href="https://t.me/zhouyuhe" target="_blank" title="Telegram"><i class="fab fa-telegram"></i></a>
+                <a href="mailto:zhouyuhe525@gmail.com" title="Email"><i class="fas fa-envelope"></i></a>
+                <a onclick="copyWeChat()" style="cursor:pointer" title="WeChat"><i class="fab fa-weixin"></i></a>
             </div>
         </div>
-
-    </div>
+    </section>
 
     <script>
-        // === 1. 多语言字典 ===
+        const loginClient = window.supabase.createClient('https://bwweaohahsafbecogist.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw');
+
+        let currentLang = 'cn';
+        let isSignUpMode = false;
+
         const uiDict = {
             cn: {
-                back_home: "返回首页", tool_pinyin: "拼音助手", tool_more: "更多工具",
-                pinyin_title: "🛠️ 汉字转拼音/声调", mode_py: "📖 拼音模式", mode_tone: "🎼 声调模式",
-                btn_copy: "复制结果", btn_clear: "清空",
-                input_ph: "请在此输入汉字...", copy_ok: "✅ 内容已复制！"
-            },
-            en: {
-                back_home: "Back Home", tool_pinyin: "Pinyin Helper", tool_more: "More",
-                pinyin_title: "🛠️ Hanzi to Pinyin/Tone", mode_py: "📖 Pinyin Mode", mode_tone: "🎼 Tone Mode",
-                btn_copy: "Copy", btn_clear: "Clear",
-                input_ph: "Type Chinese here...", copy_ok: "✅ Copied!"
+                heroT: "每一句对白<br>都是进步的阶梯", heroS: "沉浸于真实的 Vlog 与播客，像母语者一样思考、说话",
+                tag1: "地道表达", f1T: "120+ 真实场景视频", f1D: "摆脱枯燥教材。从街头 Vlog 到热门播客，带你进入最真实的汉语环境。",
+                tag2: "自由操控", f2T: "点击句子，精准跳转", f2D: "点击台词视频即跳转，实现单句精听自由。配合拼音、汉字、翻译开关随心开关。",
+                tag3: "即时交互", f3T: "点击单词，即刻释义", f3D: "遇见生词点一下，俄/英翻译与例句瞬间呈现，并链接权威词典。更有音频模式专攻听力。",
+                tag4: "科学记忆", f4T: "科学记忆复习系统", f4D: "包含闪卡、填空、跟读、平行视频四大板块，配合艾宾浩斯曲线，让记忆更牢固。",
+                tag5: "学习笔记", f5T: "精读剧本与台词打印", f5D: "在线笔记，离线打印。剧本同样支持开关拼音汉字翻译。配套大量 PDF 电子书资源。",
+                tag6: "全能辅助", f6T: "查词功能与学习工具", f6D: "首页全局搜词。配有拼音工具、田字格生成、俄语地道翻译等全能自学工具。",
+                login: "开始您的学习之旅", signup: "登录网站", btn_l: "登录网站", btn_s: "立即注册",
+                tip_l: "还没有账号？", tip_s: "已有账号？", link_l: "立即登录", link_s: "免费注册",
+                q1: "智能单词闪卡", q2: "听力填空练习", q3: "影子跟读模式", q4: "艾宾浩斯遗忘曲线",
+                lang_bar: "CN / RU / EN"
             },
             ru: {
-                back_home: "На главную", tool_pinyin: "Пиньинь", tool_more: "Ещё",
-                pinyin_title: "🛠️ Ханзи в Пиньинь", mode_py: "📖 Текст", mode_tone: "🎼 Тоны",
-                btn_copy: "Копия", btn_clear: "Сброс",
-                input_ph: "Введите китайский текст...", copy_ok: "✅ Скопировано!"
+                heroT: "Каждая фраза<br>— шаг к мастерству", heroS: "Погрузитесь в реальные влоги и подкасты, думайте и говорите как носитель",
+                tag1: "ЖИВАЯ РЕЧЬ", f1T: "120+ реальных влогов", f1D: "Забудьте о скучных учебниках. Погрузитесь в настоящую среду китайского языка.",
+                tag2: "КОНТРОЛЬ", f2T: "Переход по фразам", f2D: "Нажмите на субтитр — видео перейдет к нему. Практикуйте аудирование с переключением пиньиня и перевода.",
+                tag3: "ИНТЕРАКТИВ", f3T: "Мгновенный словарь", f3D: "Нажмите на слово — получите перевод, примеры и ссылку на БКРС. Плюс аудио-режим для тренировки слуха.",
+                tag4: "ПАМЯТЬ", f4T: "Система повторения", f4D: "Карточки,填空,跟读 и видео из XHS. С поддержкой кривой Эббингауза для надежного запоминания.",
+                tag5: "ЗАМЕТКИ", f5T: "Скрипты и печать", f5D: "Заметки онлайн, печать скриптов офлайн с настройкой отображения. База PDF-книг.",
+                tag6: "ИНСТРУМЕНТЫ", f6T: "Поиск и помощники", f6D: "Глобальный поиск по видео. Помощник по тонам, сетка для иероглифов и перевод.",
+                login: "Ваш путь к китайскому", signup: "Вход на сайт", btn_l: "Вход на сайт", btn_s: "Регистрация",
+                tip_l: "Нет аккаунта?", tip_s: "Есть аккаунт?", link_l: "Войти", link_s: "Регистрация бесплатно",
+                q1: "Карточки слов", q2: "Аудирование", q3: "Практика тени", q4: "Кривая Эббингауза",
+                lang_bar: "RU / CN / EN"
+            },
+            en: {
+                heroT: "Every Dialogue<br>Is Your Ladder", heroS: "Authentic Vlogs and Podcasts. Think and speak like a native.",
+                tag1: "FLUENCY", f1T: "120+ Real-life Videos", f1D: "Real environment learning. From street Vlogs to trending podcasts.",
+                tag2: "CONTROL", f2T: "Click-to-Jump Navigation", f2D: "Click any line, video jumps instantly for focused listening. Toggle Pinyin and translations freely.",
+                tag3: "INTERACT", f3T: "Instant Word Lookup", f3D: "Get RU/EN meanings and authority dictionaries in one click. Audio mode available.",
+                tag4: "MEMORY", f4T: "Scientific Review System", f4D: "Flashcards, Cloze, Shadowing, and social media clips. Powered by Ebbinghaus Curve.",
+                tag5: "STUDY NOTES", f5T: "Scripts & Printing", f5D: "Online notes, offline printing. Toggle Pinyin/translations on scripts.",
+                tag6: "POWER TOOLS", f6T: "Search & Assistant", f6D: "Global word search across videos. Pinyin tones, grid generator and translation.",
+                login: "Start Your Journey", signup: "Log in to Website", btn_l: "Log in to Website", btn_s: "Sign Up Now",
+                tip_l: "New student?", tip_s: "Member?", link_l: "Login Now", link_s: "Create Account Free",
+                q1: "Flashcards", q2: "Cloze Test", q3: "Shadowing", q4: "Ebbinghaus Curve",
+                lang_bar: "EN / CN / RU"
             }
         };
 
-        let curLang = 'cn';
-
-        function setLang(lang, btn) {
-            curLang = lang;
-            // 按钮变色
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            if(btn) btn.classList.add('active');
-
-            // 文字替换
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if(uiDict[lang][key]) el.innerText = uiDict[lang][key];
-            });
-
-            // 替换 placeholder
-            document.getElementById('input').placeholder = uiDict[lang].input_ph;
+        function updateUI() {
+            const d = uiDict[currentLang];
+            document.getElementById('heroTitle').innerHTML = d.heroT;
+            document.getElementById('heroSub').innerText = d.heroS;
+            ['f1T','f1D','f2T','f2D','f3T','f3D','f4T','f4D','f5T','f5D','f6T','f6D'].forEach(k => document.getElementById(k).innerText = d[k]);
+            ['tag1','tag2','tag3','tag4','tag5','tag6'].forEach(k => document.getElementById(k).innerText = d[k]);
+            document.getElementById('modeTitle').innerText = isSignUpMode ? d.signup : d.login;
+            document.getElementById('modeDesc').innerText = isSignUpMode ? d.btn_s : d.signup;
+            document.getElementById('actionBtn').innerText = isSignUpMode ? d.btn_s : d.btn_l;
+            document.getElementById('toggleTip').innerText = isSignUpMode ? d.tip_s : d.tip_l;
+            document.getElementById('toggleBtn').innerText = isSignUpMode ? d.link_l : d.link_s;
+            document.getElementById('navBtn').innerText = isSignUpMode ? d.link_l : d.link_s;
+            document.getElementById('langName').innerText = d.lang_bar;
+            document.querySelectorAll('[data-f]').forEach(el => el.innerText = d[el.getAttribute('data-f')]);
         }
 
-        function switchTool(toolId, btn) {
-            document.querySelectorAll('.tool-nav-item').forEach(el => el.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.tool-module').forEach(el => el.classList.remove('active'));
-            document.getElementById('tool-' + toolId).classList.add('active');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        window.addEventListener('scroll', () => { document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50); });
+
+        function toggleLang() {
+            currentLang = (currentLang === 'cn') ? 'ru' : (currentLang === 'ru' ? 'en' : 'cn');
+            updateUI();
         }
+        function toggleMode() { isSignUpMode = !isSignUpMode; updateUI(); }
+        function copyWeChat() { navigator.clipboard.writeText("zz1285829414").then(() => alert("微信 ID 已复制: zz1285829414")); }
 
-        // === 2. 拼音核心逻辑 ===
-        const input = document.getElementById('input');
-        const display = document.getElementById('display');
-        let currentMode = 'pinyin';
-        const toneMap = { 1: 'ˉ', 2: 'ˊ', 3: 'ˇ', 4: 'ˋ', 5: '˙', 0: '˙' };
-
-        function updateDisplay() {
-            if (typeof pinyinPro === 'undefined') return;
-            const { pinyin } = pinyinPro;
-
-            // 获取当前模式
-            const modes = document.getElementsByName('mode');
-            for(let m of modes) { if(m.checked) currentMode = m.value; }
-
-            // 切换 CSS 类名以适配不同排版
-            display.className = "display-area " + (currentMode === 'pinyin' ? 'mode-pinyin' : 'mode-tone');
-
-            const text = input.value;
-            if (!text) { display.innerHTML = ''; return; }
-
-            if (currentMode === 'pinyin') {
-                // 模式 A: 汉字 + 拼音 (流式文本)
-                const lines = text.split('\n');
-                const processedLines = lines.map(line => {
-                    if (!line.trim()) return "";
-                    const py = pinyin(line, { toneType: 'symbol', type: 'string', nonZh: 'spaced' });
-                    return line + " <span class='py-text'>" + py + "</span>"; 
-                });
-                display.innerHTML = processedLines.join('\n');
-            } else {
-                // 模式 B: 汉字上方标声调 (方块布局)
-                let html = '';
-                const lines = text.split('\n');
-                lines.forEach((line) => {
-                    if (!line) { html += '<div class="break-line"></div>'; return; }
-                    const chars = line.split('');
-                    chars.forEach(char => {
-                        if (/[\u4e00-\u9fa5]/.test(char)) {
-                            let toneSymbol = '&nbsp;'; 
-                            try {
-                                // 获取声调数字 (1-4)
-                                const pyArr = pinyin(char, { pattern: 'num', type: 'array' });
-                                if (pyArr && pyArr.length > 0) {
-                                    const toneNum = parseInt(pyArr[0].slice(-1));
-                                    if(!isNaN(toneNum)) toneSymbol = toneMap[toneNum] || '˙';
-                                    else toneSymbol = '˙';
-                                }
-                            } catch(e) {}
-                            html += `<div class="char-box"><div class="tone-mark">${toneSymbol}</div><div class="hanzi-text">${char}</div></div>`;
-                        } else {
-                            // 标点符号
-                            html += `<div class="char-box"><div class="tone-mark">&nbsp;</div><div class="hanzi-text">${char}</div></div>`;
-                        }
-                    });
-                    html += '<div class="break-line"></div>';
-                });
-                display.innerHTML = html;
-            }
-
-            // 🟢 自动滚动到底部
-            setTimeout(() => {
-                display.scrollTop = display.scrollHeight;
-            }, 50);
+        async function handleAuthAction() {
+            const email = document.getElementById('email').value, password = document.getElementById('password').value, msg = document.getElementById('msg');
+            if(!email || !password) { msg.style.color="red"; msg.innerText = "Required!"; return; }
+            msg.style.color = "white"; msg.innerText = "Connecting...";
+            try {
+                if (isSignUpMode) {
+                    const { error } = await loginClient.auth.signUp({ email, password });
+                    if (error) throw error;
+                    msg.style.color = "var(--primary)"; msg.innerText = "Success! Log in now.";
+                    setTimeout(toggleMode, 1500);
+                } else {
+                    const { data, error } = await loginClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    const newToken = Date.now() + "_" + Math.random();
+                    await loginClient.from('profiles').upsert({ id: data.user.id, session_token: newToken });
+                    localStorage.setItem('my_session_token', newToken);
+                    window.location.href = 'home.html?from_login=1';
+                }
+            } catch (err) { msg.style.color = "#ff4d4f"; msg.innerText = err.message; }
         }
-
-        // === 3. 智能复制逻辑 ===
-        function copyResult() {
-            if(!input.value) return;
-            const { pinyin } = pinyinPro;
-
-            // 情况 A: 拼音模式 -> 直接复制网页上看到的 (包含用户手动修改过的)
-            if (currentMode === 'pinyin') {
-                const textToCopy = display.innerText;
-                navigator.clipboard.writeText(textToCopy).then(() => alert(uiDict[curLang].copy_ok));
-                return;
-            }
-
-            // 情况 B: 声调模式 -> 自动重组为"两行格式" (方便粘贴到 PPT)
-            if (currentMode === 'tone') {
-                let finalString = "";
-                const lines = input.value.split('\n');
-
-                lines.forEach(line => {
-                    if (!line.trim()) { finalString += "\n"; return; }
-                    
-                    let toneLine = "";
-                    let charLine = "";
-                    const chars = line.split('');
-
-                    chars.forEach(char => {
-                        // 汉字行：每个字后面加个空格，为了视觉对齐
-                        charLine += char + " "; 
-                        
-                        let toneSymbol = " "; 
-                        if (/[\u4e00-\u9fa5]/.test(char)) {
-                             try {
-                                const pyArr = pinyin(char, { pattern: 'num', type: 'array' });
-                                if (pyArr && pyArr.length > 0) {
-                                    const toneNum = parseInt(pyArr[0].slice(-1));
-                                    // 找到对应的符号
-                                    toneSymbol = toneMap[toneNum] || '˙';
-                                } else { toneSymbol = '˙'; }
-                            } catch(e) {}
-                        }
-                        // 声调行：符号后面也加空格
-                        toneLine += toneSymbol + " "; 
-                    });
-
-                    // 拼装：声调行 + 换行 + 汉字行 + 换行
-                    finalString += toneLine.trimEnd() + "\n" + charLine.trimEnd() + "\n";
-                });
-
-                navigator.clipboard.writeText(finalString).then(() => {
-                    let tip = curLang === 'en' ? "Copied 2-line format!" : "已复制双行格式 (可直接粘贴到PPT)";
-                    alert("✅ " + tip);
-                });
-            }
-        }
-
-        function clearAll() {
-            input.value = "";
-            updateDisplay();
-            input.focus();
-        }
-
-        // 初始化
-        window.onload = () => {
-            setLang('cn'); // 默认中文
-            if(input.value) updateDisplay();
-        };
+        document.addEventListener('DOMContentLoaded', updateUI);
+         // 🟢 自动计数器：只要有人打开页面，就往 Supabase 记一笔
+async function countVisit() {
+    if (typeof supabaseClient !== 'undefined' || typeof loginClient !== 'undefined') {
+        const client = typeof loginClient !== 'undefined' ? loginClient : supabaseClient;
+        await client.from('site_visits').insert({ page_name: window.location.pathname });
+    }
+}
+countVisit();
     </script>
 </body>
 </html>
