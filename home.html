@@ -361,43 +361,7 @@
             /* 弹窗 */
             .profile-card { width: 85%; }
         }
-        /* 🟢 CTO 新增：拦截弹窗样式 */
-/* 🟢 CTO 修正：平铺式 CSS，绝对不会报错 */
-.guide-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8) !important; 
-    backdrop-filter: blur(8px) !important;
-    display: none; align-items: center; justify-content: center;
-    z-index: 9999 !important;
-}
-.guide-card {
-    background: #E5DABC !important; 
-    width: 90%; max-width: 400px; border-radius: 24px;
-    padding: 40px 30px; text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    border: 1px solid #A77046;
-}
-.guide-icon { font-size: 50px; color: #A77046; margin-bottom: 20px; }
-.guide-card h2 { color: #612321; margin: 0 0 10px 0; font-size: 24px; }
-.guide-card p { color: #4A3B32; font-size: 15px; margin-bottom: 30px; line-height: 1.5; }
-
-.guide-btn-group { display: flex; flex-direction: column; gap: 12px; }
-
-/* 注意：这里的按钮样式要独立出来写 */
-.guide-btn {
-    padding: 15px; border-radius: 12px; border: none;
-    font-size: 16px; font-weight: bold; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    transition: all 0.2s;
-}
-.btn-primary { background: #612321 !important; color: #E5DABC !important; }
-.btn-outline { background: white !important; color: #6CAD9C !important; border: 1px solid #6CAD9C !important; }
-.btn-link { background: transparent !important; color: #888 !important; text-decoration: underline !important; margin-top: 10px; border: none !important; cursor: pointer; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-</style>
+    </style>
 </head>
 <body>
 <!-- 悬浮按钮 -->
@@ -497,16 +461,16 @@
                 <span data-i18n="menu_tools">学习工具</span>
             </div>
             <!-- 跳转到规则页 -->
+             <!-- 🟢 CTO 新增：价格与特权按钮 -->
+<div class="menu-item" onclick="location.href='price.html'" style="border: 1px solid var(--yellow); margin-top: 10px; background: rgba(229, 204, 132, 0.1);">
+    <i class="fas fa-crown" style="color: var(--terracotta);"></i> 
+    <span style="font-weight: bold; color: var(--dark-red);" data-i18n="menu_pricing">价格与特权</span>
+</div>
             <div class="menu-item" onclick="location.href='rules.html'">
                 <i class="fas fa-info-circle"></i> 
                 <!-- 🟢 加上 data-i18n="menu_rules" -->
                 <span data-i18n="menu_rules">使用须知</span>
             </div>
-            <!-- 🟢 CTO 新增：价格与特权按钮 -->
-<div class="menu-item" onclick="location.href='price.html'" style="border: 1px solid var(--yellow); margin-top: 10px; background: rgba(229, 204, 132, 0.1);">
-    <i class="fas fa-crown" style="color: var(--terracotta);"></i> 
-    <span style="font-weight: bold; color: var(--dark-red);" data-i18n="menu_pricing">价格与特权</span>
-</div>
             
             
         
@@ -952,6 +916,7 @@ if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my
                 topic_study: "Учёба",
                 menu_tools: "Инструменты (Tools)",
                 menu_pricing: "Цены и Привилегии",
+               
             },
             en: {
                 // 原有词条
@@ -1382,65 +1347,16 @@ async function updateUserAccess() {
     }
 }
 // 🟢 CTO 新增：点击锁定时触发的引导
-// 🟢 CTO 修复版：逻辑完全隔离，确保不报错
-// 🟢 定义在全局，确保 onclick 能找到它
-// 🟢 CTO 终极版：拦截引导逻辑
-// ==========================================
-// 🟢 CTO 调试版：引导弹窗逻辑（带点击检测）
-// ==========================================
-window.showPriceGuide = function(batchName) {
-    // 1. 调试用：如果这一行能弹出来，说明点击事件没问题
-    console.log("点击成功，尝试显示弹窗...");
+function showPriceGuide(batchName) {
+    // 我们可以先弹一个有礼貌的提示，然后跳转
+    const msg = currentLang === 'ru' 
+        ? "Этот курс заблокирован. Перейти к ценам?" 
+        : "该课程尚未解锁。是否前往价格页查看特权？";
     
-    var modal = document.getElementById('priceGuideModal');
-    if (!modal) {
-        alert("找不到 ID 为 priceGuideModal 的弹窗实体，请检查 HTML 部分！");
-        return;
+    if(confirm(msg)) {
+        window.location.href = 'price.html';
     }
-
-    // 2. 语言处理
-    var lang = (typeof currentLang !== 'undefined') ? currentLang : 'cn';
-    var dict = {
-        cn: { t: "解锁完整版内容", d: "加入正式版课程，解锁 120+ 视频及全部学习工具", p: "查看特权与价格", c: "联系老师", s: "先看看其他免费视频" },
-        ru: { t: "Разблокировать курс", d: "Присоединяйтесь к полной версии, чтобы открыть 120+ видео.", p: "Цены и привилегии", c: "Связаться с учителем", s: "Сначала посмотрю бесплатные" },
-        en: { t: "Unlock Full Access", d: "Join the official course to unlock 120+ videos.", p: "Pricing & Plans", c: "Contact Teacher", s: "Watch free videos first" }
-    };
-    var t = dict[lang] || dict.cn;
-
-    // 3. 注入文字
-    document.getElementById('guideTitle').innerText = t.t;
-    document.getElementById('guideDesc').innerText = t.d;
-    document.getElementById('btnPriceText').innerText = t.p;
-    document.getElementById('btnContactText').innerText = t.c;
-    document.getElementById('btnStayText').innerText = t.s;
-
-    // 4. 执行显示
-    modal.style.display = 'flex';
-};
-
-window.closePriceGuide = function() {
-    var modal = document.getElementById('priceGuideModal');
-    if (modal) modal.style.display = 'none';
-};
+}
     </script>
-    
-<div id="priceGuideModal" class="guide-overlay" style="display: none;">
-    <div class="guide-card">
-        <div class="guide-icon"><i class="fas fa-crown"></i></div>
-        <h2 id="guideTitle">解锁完整版内容</h2>
-        <p id="guideDesc">加入正式版课程，解锁 120+ 视频及全部学习工具</p>
-        <div class="guide-btn-group">
-            <button class="guide-btn btn-primary" onclick="location.href='price.html'">
-                <i class="fas fa-shopping-cart"></i> <span id="btnPriceText">查看特权与价格</span>
-            </button>
-            <button class="guide-btn btn-outline" onclick="window.open('https://t.me/zhouyuhe', '_blank')">
-                <i class="fab fa-telegram"></i> <span id="btnContactText">有问题？联系老师</span>
-            </button>
-            <button class="guide-btn btn-link" onclick="closePriceGuide()">
-                <span id="btnStayText">先看看其他免费视频</span>
-            </button>
-        </div>
-    </div>
-</div>
 </body>
 </html>
