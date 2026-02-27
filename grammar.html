@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语语法大百科 | Grammar Library</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="grammar_data.js"></script>
+    
+    <style>
+        /* --- 字体定义：俄语优先使用西文字体，中文使用楷体 --- */
+        :root { 
+            --primary: #5A927A; 
+            --dark-red: #8E354A; 
+            --brown: #7B5E4D; 
+            --bg: #F4F2EE; 
+            --white: #FFFFFF;
+            --sidebar-width: 260px;
+            --font-main: "Georgia", "Times New Roman", "STKaiti", "Kaiti", "楷体", serif;
+        }
+        
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: var(--font-main); background: var(--bg); color: #333; display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- 侧边栏 (Sidebar) --- */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: var(--white); 
+            border-right: 1px solid #dcdcdc; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+            transition: 0.3s; 
+            position: relative; 
+            z-index: 1000; /* 确保在最上层 */
+        }
+        .sidebar.collapsed { margin-left: calc(-1 * var(--sidebar-width)); }
+        
+        /* 侧边栏收起按钮 */
+        .toggle-btn { 
+            position: absolute; right: -12px; top: 50%; transform: translateY(-50%); 
+            width: 24px; height: 48px; background: var(--white); border: 1px solid #ccc; 
+            border-radius: 6px; cursor: pointer; display: flex; align-items: center; 
+            justify-content: center; z-index: 1001; font-size: 12px;
+        }
+
+        .sidebar-header { padding: 10px; border-bottom: 1px solid #eee; background: #fff; }
+        .search-box { 
+            width: 100%; padding: 6px 12px; border-radius: 12px; border: 1px solid #ddd; 
+            font-size: 13px; margin-bottom: 8px; font-family: var(--font-main); outline: none;
+        }
+        .view-switcher { display: flex; background: #eee; border-radius: 6px; padding: 2px; }
+        .view-btn { 
+            flex: 1; border: none; padding: 4px; font-size: 11px; cursor: pointer; 
+            border-radius: 4px; font-family: var(--font-main); transition: 0.2s;
+        }
+        .view-btn.active { background: var(--white); color: var(--primary); font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        .nav-menu { flex: 1; overflow-y: auto; background: #fff; }
+        .nav-group-header { 
+            padding: 8px 12px; cursor: pointer; display: flex; align-items: center; 
+            justify-content: space-between; font-size: 12px; font-weight: bold; 
+            background: #fafafa; border-bottom: 1px solid #eee; color: #555;
+        }
+        
+        .nav-items-container { overflow: hidden; transition: max-height 0.3s ease-in-out; }
+        .nav-items-container.collapsed-list { max-height: 0 !important; }
+
+        .nav-item { 
+            padding: 6px 15px 6px 25px; cursor: pointer; font-size: 12px; color: #666; 
+            border-bottom: 1px dotted #eee; display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav-item:hover { background: #f0f7f5; color: var(--primary); }
+        .nav-item.active { background: #f0f7f5; color: var(--primary); border-right: 4px solid var(--primary); font-weight: bold; }
+
+        /* --- 主内容区 (Main Content) --- */
+        .main-content { flex: 1; overflow-y: auto; background: var(--bg); position: relative; z-index: 1; }
+        header { 
+            background: var(--white); padding: 0 30px; height: 50px; display: flex; 
+            align-items: center; justify-content: space-between; border-bottom: 1px solid #ddd; 
+            position: sticky; top: 0; z-index: 100;
+        }
+        .container { max-width: 950px; margin: 0 auto; padding: 20px 30px; width: 100%; }
+
+        /* 内容板块设计 */
+        .glass-card { background: var(--white); border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .sec-header { font-size: 15px; font-weight: bold; color: var(--dark-red); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
+        
+        .section-struct { border-top: 4px solid var(--primary); background: #F8FBFA; }
+        .formula { font-size: 22px; font-weight: bold; text-align: center; color: #2C5244; letter-spacing: 1px; }
+
+        .section-diff { background: #FCF9F2; border-left: 5px solid #D4AF37; }
+        .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .diff-card { background: white; padding: 10px; border-radius: 5px; border: 1px solid #eee; font-size: 14px; }
+
+        .section-mistake { background: #FFF5F5; border: 1px solid #FED7D7; }
+        .compare-row { display: flex; gap: 30px; margin: 10px 0; font-size: 15px; }
+        .wrong { color: #C53030; text-decoration: line-through; font-weight: bold; }
+        .right { color: #2F855A; font-weight: bold; }
+
+        .g-title { font-size: 28px; color: var(--dark-red); margin: 0 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 12px; }
+        .hsk-tag { font-size: 12px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; vertical-align: middle; }
+        .lang-switch { cursor: pointer; padding: 4px 12px; border-radius: 15px; background: var(--primary); color: white; font-size: 11px; font-weight: bold; }
+
+        /* 图片置底区域 */
+        .image-footer { margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc; text-align: center; }
+        .image-footer img { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        /* 二级组标题样式 */
+.sub-group-header {
+    padding: 8px 15px 8px 25px !important; /* 比一级标题更靠右 */
+    background: #fdfdfd;
+    font-size: 12px;
+    color: var(--primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* 二级菜单容器 */
+.sub-items-container {
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    max-height: 500px; /* 展开状态 */
+}
+
+/* 二级菜单收起状态 */
+.sub-items-container.sub-collapsed {
+    max-height: 0 !important;
+}
+
+/* 二级菜单里的具体项 */
+.nav-item.sub-item {
+    padding-left: 40px !important; /* 深度缩进 */
+    font-size: 11px;
+    background: #fff;
+}
+/* 返回首页按钮样式 */
+.back-home-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.back-home-btn:hover {
+    background-color: #f0f7f5;
+    color: var(--dark-red);
+}
+
+.back-home-btn i {
+    font-size: 14px;
+}
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+        <div class="toggle-btn" onclick="toggleSidebar()"><i class="fas fa-chevron-left" id="toggleIcon"></i></div>
+        
+        <div class="sidebar-header">
+            <!-- 新增：返回首页按钮 -->
+    <a href="home.html" class="back-home-btn" id="homeBtn">
+        <i class="fas fa-home"></i> <span>首页</span>
+    </a>
+            <input type="text" class="search-box" id="searchBar" placeholder="Search..." oninput="renderSidebar()">
+            <div class="view-switcher">
+                <button class="view-btn active" id="btn-cat" onclick="switchView('category')">Type</button>
+                <button class="view-btn" id="btn-lvl" onclick="switchView('level')">Level</button>
+            </div>
+        </div>
+        
+        <nav class="nav-menu" id="sideMenu"></nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <header>
+            <div id="ui-lib-title" style="font-weight: bold; color: var(--dark-red); font-size: 16px;"></div>
+            <div class="lang-switch" onclick="toggleLang()">🌐 <span id="langLabel">RU</span></div>
+        </header>
+        
+        <div class="container" id="contentArea">
+            <!-- 动态渲染内容 -->
+        </div>
+    </main>
+
+    <script>
+        // --- 1. 全局 UI 翻译字典 (包含四大核心分类) ---
+        const UI_STRINGS = {
+            title: { cn: "汉语语法大百科", en: "Grammar Wiki", ru: "Библиотека грамматики" },
+            search: { cn: "搜索...", en: "Search...", ru: "Поиск..." },
+            btn_cat: { cn: "按类别", en: "Category", ru: "По типу" },
+            btn_lvl: { cn: "按等级", en: "Level", ru: "По уровню" },
+            // 四大金刚分类
+            cat_word: { cn: "词类", en: "Word Classes", ru: "Части речи" },
+    cat_sent_type: { cn: "句类", en: "Sentence Types", ru: "Типы предложений" },
+    cat_component: { cn: "句子成分", en: "Constituents", ru: "Члены предложения" },
+    cat_special: { cn: "特殊句式和固定结构", en: "Special Structures", ru: "Особые конструкции" },
+            // 板块标题
+            sec_struct: { cn: "结构图解", en: "Structure", ru: "Структурная схема" },
+            sec_usage: { cn: "使用规则", en: "Usage", ru: "Правила использования" },
+            sec_diff: { cn: "辨析", en: "Analysis", ru: "Различия" },
+            sec_mistake: { cn: "避坑指南", en: "Watch Out", ru: "Типичные ошибки" },
+            sec_ex: { cn: "接地气例句", en: "Examples", ru: "Примеры" },
+            sec_note: { cn: "注意", en: "Note", ru: "Примечание" }, // 新增这一行
+            btn_home: { cn: "返回首页", en: "Back Home", ru: "На главную" },
+            tip: { cn: "解析", en: "Tip", ru: "Подсказка" }
+            
+        };
+
+        let currentLang = 'ru';
+        let viewMode = 'category'; 
+        let currentId = 'ba_1';
+        let openGroups = new Set(['cat_special', 'cat_word']); // 默认展开
+
+        const getL = (obj) => obj ? (obj[currentLang] || obj['en'] || obj['cn'] || '---') : '---';
+
+
+
+        // --- 3. 核心交互逻辑 ---
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const icon = document.getElementById('toggleIcon');
+            sb.classList.toggle('collapsed');
+            icon.classList.toggle('fa-chevron-right');
+            icon.classList.toggle('fa-chevron-left');
+        }
+
+        function toggleLang() {
+            const langs = ['cn', 'en', 'ru'];
+            currentLang = langs[(langs.indexOf(currentLang) + 1) % 3];
+            document.getElementById('langLabel').innerText = currentLang.toUpperCase();
+            updateUI();
+        }
+
+        function updateUI() {
+    document.getElementById('ui-lib-title').innerText = UI_STRINGS.title[currentLang];
+    document.getElementById('searchBar').placeholder = UI_STRINGS.search[currentLang];
+    
+    // 新增这一行：
+    document.getElementById('homeBtn').querySelector('span').innerText = UI_STRINGS.btn_home[currentLang];
+
+    document.getElementById('btn-cat').innerText = UI_STRINGS.btn_cat[currentLang];
+    document.getElementById('btn-lvl').innerText = UI_STRINGS.btn_lvl[currentLang];
+    renderSidebar();
+    renderContent();
+}
+
+        function switchView(mode) {
+            viewMode = mode;
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(mode === 'category' ? 'btn-cat' : 'btn-lvl').classList.add('active');
+            renderSidebar();
+        }
+
+        function toggleGroup(key) {
+            if (openGroups.has(key)) openGroups.delete(key);
+            else openGroups.add(key);
+            renderSidebar();
+        }
+
+        let openSubGroups = new Set(); // 记录哪些二级组（如“呢”）被展开了
+
+function renderSidebar() {
+    const menu = document.getElementById('sideMenu');
+    const query = document.getElementById('searchBar').value.toLowerCase();
+    const groups = {};
+
+    // 1. 分组逻辑
+    GRAMMAR_DB.forEach(item => {
+        let groupKey = viewMode === 'category' ? item.category_id : item.level;
+        let groupDisplay = viewMode === 'category' ? UI_STRINGS[item.category_id][currentLang] : item.level;
+        
+        if (getL(item.title).toLowerCase().includes(query)) {
+            if (!groups[groupKey]) groups[groupKey] = { display: groupDisplay, items: [] };
+            groups[groupKey].items.push(item);
+        }
+    });
+
+    const categoryOrder = ['cat_word', 'cat_sent_type', 'cat_component', 'cat_special'];
+    const levelOrder = ['HSK 1', 'HSK 2', 'HSK 3', 'HSK 4', 'HSK 5', 'HSK 6'];
+    const activeOrder = viewMode === 'category' ? categoryOrder : levelOrder;
+
+    menu.innerHTML = activeOrder.map(key => {
+        const group = groups[key];
+        if (!group || group.items.length === 0) return '';
+
+        const isOpen = openGroups.has(key);
+        let itemsHTML = "";
+        
+        if (viewMode === 'category') {
+            const processedGroupTags = new Set();
+            
+            group.items.forEach(item => {
+                if (item.group_tag) {
+                    // 如果是带组标签的（如“呢”），且还没处理过这个组
+                    if (!processedGroupTags.has(item.group_tag)) {
+                        const subItems = group.items.filter(i => i.group_tag === item.group_tag);
+                        const isSubOpen = openSubGroups.has(item.group_tag);
+                        
+                        itemsHTML += `
+                            <div class="sub-group-wrapper">
+                                <div class="sub-group-header" onclick="toggleSubGroup('${item.group_tag}', event)">
+                                    <span>${getL(item.group_name)}</span>
+                                    <i class="fas fa-caret-${isSubOpen ? 'down' : 'right'}" style="font-size: 10px;"></i>
+                                </div>
+                                <div class="sub-items-container ${isSubOpen ? '' : 'sub-collapsed'}">
+                                    ${subItems.map(si => `
+                                        <div class="nav-item sub-item ${currentId === si.id ? 'active' : ''}" 
+                                             onclick="currentId='${si.id}'; renderContent(); renderSidebar();">
+                                            ${getL(si.title)}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                        processedGroupTags.add(item.group_tag);
+                    }
+                } else {
+                    // 普通不带组的项
+                    itemsHTML += `
+                        <div class="nav-item ${currentId === item.id ? 'active' : ''}" 
+                             onclick="currentId='${item.id}'; renderContent(); renderSidebar();">
+                            <span>${getL(item.title)}</span>
+                            <span style="font-size:9px; opacity:0.6;">${item.level}</span>
+                        </div>
+                    `;
+                }
+            });
+        } else {
+            // Level 视图保持线性平铺
+            itemsHTML = group.items.map(item => `
+                <div class="nav-item ${currentId === item.id ? 'active' : ''}" 
+                     onclick="currentId='${item.id}'; renderContent(); renderSidebar();">
+                    <span>${getL(item.title)}</span>
+                    <span style="font-size:9px; opacity:0.6;">${UI_STRINGS[item.category_id][currentLang]}</span>
+                </div>
+            `).join('');
+        }
+
+        return `
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="toggleGroup('${key}')">
+                    <span>${group.display}</span>
+                    <i class="fas fa-chevron-down" style="transition:0.3s; transform: ${isOpen ? 'rotate(0deg)' : 'rotate(-90deg)'}"></i>
+                </div>
+                <div class="nav-items-container ${isOpen ? '' : 'collapsed-list'}">
+                    ${itemsHTML}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// 修改二级切换逻辑，增加刷新
+function toggleSubGroup(tag, event) {
+    event.stopPropagation(); // 阻止触发一级菜单的点击
+    if (openSubGroups.has(tag)) {
+        openSubGroups.delete(tag);
+    } else {
+        openSubGroups.add(tag);
+    }
+    renderSidebar();
+}
+
+        function renderContent() {
+            const data = GRAMMAR_DB.find(i => i.id === currentId);
+            if (!data) return;
+            const det = data.details;
+
+            let html = `
+                <div class="g-title">
+                    ${getL(data.title)} <span class="hsk-tag">${data.level}</span>
+                </div>
+
+                ${(det.structure && getL(det.structure) !== '---') ? `
+    <div class="glass-card section-struct">
+        <div class="sec-header"><i class="fas fa-project-diagram"></i> ${UI_STRINGS.sec_struct[currentLang]}</div>
+        <div class="formula">${getL(det.structure)}</div>
+    </div>
+` : ''}
+
+                <div class="glass-card">
+                    <div class="sec-header"><i class="fas fa-scroll"></i> ${UI_STRINGS.sec_usage[currentLang]}</div>
+                    <ul style="margin:0; padding-left:20px; font-size:15px; line-height:1.6;">
+                        ${det.rules.map(r => `<li>${getL(r)}</li>`).join('')}
+                    </ul>
+                </div>
+
+                ${det.discriminations ? `
+                    <div class="glass-card section-diff">
+                        <div class="sec-header"><i class="fas fa-balance-scale"></i> ${UI_STRINGS.sec_diff[currentLang]} - ${getL(det.discriminations.title)}</div>
+                        <div class="diff-grid">
+                            ${det.discriminations.content.map(d => `
+                                <div class="diff-card"><b>${d.word}</b>: ${getL(d.desc)}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                ${det.notes ? `
+    <div class="glass-card" style="background: #F0F4FF; border-left: 5px solid #5A67D8;">
+        <div class="sec-header" style="color: #434190;"><i class="fas fa-th-list"></i> ${UI_STRINGS.sec_note[currentLang]}</div>
+        <div style="font-size: 14px; line-height: 1.6;">
+            ${getL(det.notes)}
+        </div>
+    </div>
+` : ''}
+
+                ${det.mistakes ? `
+                    <div class="glass-card section-mistake">
+                        <div class="sec-header"><i class="fas fa-exclamation-circle"></i> ${UI_STRINGS.sec_mistake[currentLang]}</div>
+                        <div class="compare-row">
+                            <div class="wrong">${det.mistakes.w}</div>
+                            <div class="right">${det.mistakes.r}</div>
+                        </div>
+                        <div style="font-size:13px; background:#fff; padding:10px; border-radius:5px; border-left:4px solid #F6AD55;">
+                            💡 <b>${UI_STRINGS.tip[currentLang]}:</b> ${getL(det.mistakes.reason)}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <div class="glass-card">
+                    <div class="sec-header"><i class="fas fa-quote-left"></i> ${UI_STRINGS.sec_ex[currentLang]}</div>
+                    ${det.examples.map(ex => `
+                        <div style="margin-bottom:12px; border-bottom:1px dotted #eee; padding-bottom:8px;">
+                            <div style="font-size:19px; font-weight:bold; color:#333;">${ex.hz}</div>
+                            <div style="color:var(--brown); font-size:14px; font-family: sans-serif; margin:4px 0;">${ex.py}</div>
+                            <div style="color:#666; font-size:14px;">${getL(ex)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${det.img_url ? `
+                    <div class="image-footer">
+                        <img src="${det.img_url}" alt="Visual Representation">
+                    </div>
+                ` : ''}
+            `;
+            document.getElementById('contentArea').innerHTML = html;
+        }
+
+        window.onload = updateUI;
+    </script>
+</body>
+</html>

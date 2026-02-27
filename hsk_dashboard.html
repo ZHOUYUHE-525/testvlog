@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK 资源中心 | 汉语 Vlog 课堂</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <!-- 确保这两个数据文件存在 -->
+    <script src="hsk_data.js"></script>
+    <script src="grammar_data.js"></script>
+    <style>
+        /* ========== 全局变量 & 基础 ========== */
+        :root {
+            --primary: #6CAD9C;
+            --accent: #E5CC84;
+            --bg: #F9F7F2;
+            --white: #FFFFFF;
+            --text: #4A3B32;
+            --hsk1: #f39c12;
+            --hsk2: #27ae60;
+            --hsk3: #e74c3c;
+            --hsk4: #8B3A3A;
+            --hsk5: #2980b9;
+            --hsk6: #2c3e50;
+            --terracotta: #A77046;
+            --dark-red: #8E354A;        /* 语法库用 */
+            --brown: #7B5E4D;            /* 语法库用 */
+            --retro-red: #8B3A3A;         /* 词汇旗舰版用 */
+            --retro-teal: #6CAD9C;
+            --border: #E0DDD5;
+            --shadow: 0 4px 20px rgba(0,0,0,0.05);
+
+            --sidebar-width: 240px;
+            --sidebar-collapsed-width: 70px;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "PingFang SC", "STHeiti", "Georgia", "Times New Roman", "STKaiti", "Kaiti", serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ========== 主侧边栏 (综合菜单) ========== */
+        .main-sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            border-right: 1px solid rgba(0,0,0,0.05);
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.02);
+            z-index: 100;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s;
+            overflow: hidden;
+        }
+        .main-sidebar.collapsed { width: var(--sidebar-collapsed-width); padding: 25px 10px; }
+        .logo-area { padding: 0 10px 30px 10px; font-size: 20px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f9f9f9; margin-bottom: 20px; white-space: nowrap; }
+        .main-sidebar.collapsed .logo-area span { display: none; }
+        .menu-item {
+            padding: 14px 18px; border-radius: 12px; cursor: pointer; display: flex;
+            align-items: center; gap: 12px; margin-bottom: 8px; transition: all 0.2s;
+            font-size: 15px; color: #555; font-weight: 500;
+            white-space: nowrap;
+        }
+        .menu-item:hover { background: #fdfaf5; color: var(--primary); }
+        .menu-item.active { background: var(--primary); color: white; font-weight: 800; }
+        .main-sidebar.collapsed .menu-item span { display: none; }
+        .main-sidebar.collapsed .menu-item { justify-content: center; padding: 14px 0; }
+        .menu-item i { width: 20px; text-align: center; flex-shrink: 0; }
+
+        /* ========== 内容包装器 ========== */
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ========== 顶部通栏 (全局) ========== */
+        .top-header {
+            padding: 15px 30px;
+            background: var(--white);
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .toggle-btn {
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; cursor: pointer; color: var(--primary); transition: 0.2s;
+        }
+        .toggle-btn:hover { background: #f0f7f5; }
+        .view-title { font-size: 20px; font-weight: 800; }
+
+        /* 全局搜索框 (默认隐藏，词汇标签时显示) */
+        .global-search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+            display: none;
+        }
+        .global-search-box i {
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa;
+        }
+        .global-search-box input {
+            width: 100%; padding: 10px 15px 10px 40px; border-radius: 25px;
+            border: 1px solid #ddd; background: #fdfaf5; outline: none; font-size: 14px;
+        }
+
+        .lang-switch {
+            cursor: pointer; font-weight: bold; color: var(--primary); font-size: 14px;
+            margin-left: 20px; flex-shrink: 0;
+        }
+
+        /* ========== 听力模块 ========== */
+        .series-tabs { display: flex; gap: 10px; margin: 20px 30px 0 30px; }
+        .tab-btn { padding: 8px 18px; border-radius: 20px; background: white; border: 1.5px solid #ddd; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #5a3a1a; }
+        .scroll-content { flex: 1; overflow-y: auto; padding: 20px 30px; }
+        .level-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .level-card { background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: 0.3s; }
+        .level-card:hover { transform: translateY(-5px); }
+        .level-cover { height: 240px; display: flex; align-items: center; justify-content: center; background: #eee; }
+        .level-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .level-info { padding: 12px; text-align: center; font-weight: 800; }
+
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: none; justify-content: flex-end; backdrop-filter: blur(4px); }
+        .drawer { width: 400px; background: white; height: 100%; padding: 30px; overflow-y: auto; }
+        .drawer .lesson-item { border: 1px solid #f0f0f0; border-radius: 10px; margin-bottom: 10px; }
+        .drawer .lesson-header { padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; }
+        .drawer .ex-links { display: none; background: #f9fafb; padding: 12px; gap: 8px; flex-wrap: wrap; }
+        .drawer .lesson-item.open .ex-links { display: flex; }
+        .ex-btn { padding: 6px 12px; background: white; border-radius: 6px; font-size: 12px; color: var(--primary); text-decoration: none; border: 1px solid var(--primary); font-weight: bold; }
+
+        /* ========== 词汇模块 (限定在 #tab-vocab-content 内) ========== */
+        #tab-vocab-content {
+            flex: 1;
+            overflow: hidden;
+            display: none;
+        }
+        #tab-vocab-content main {
+            display: flex !important;
+            height: 100%;
+            width: 100%;
+            background: #F9F7F2;
+        }
+        /* 词汇侧边栏 (等级抽屉) */
+        #tab-vocab-content .sidebar {
+            width: 220px;
+            border-right: 1px solid var(--border);
+            background: var(--white);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        #tab-vocab-content .nav-level {
+            padding: 15px 20px;
+            font-weight: bold;
+            background: #fdfaf5;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        #tab-vocab-content .lesson-list {
+            display: none;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+        }
+        #tab-vocab-content .lesson-list.active { display: block; }
+        #tab-vocab-content .lesson-item {
+            padding: 10px 40px;
+            font-size: 12px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            color: #666;
+        }
+        #tab-vocab-content .lesson-item.active {
+            background: #FAF8F5;
+            color: var(--retro-red);
+            font-weight: bold;
+            border-left-color: var(--retro-red);
+        }
+
+        /* 单词网格 */
+        #tab-vocab-content .word-list-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+            align-content: flex-start;
+            background: #F4F2EB;
+        }
+        #tab-vocab-content .word-mini-card {
+            background: var(--white);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            transition: 0.3s;
+        }
+        #tab-vocab-content .word-mini-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--retro-teal);
+        }
+        #tab-vocab-content .mini-hz { font-size: 22px; font-weight: bold; margin-bottom: 4px; color: #333; }
+        #tab-vocab-content .mini-py { font-size: 11px; color: var(--retro-teal); font-weight: 500; }
+        #tab-vocab-content .source-tag {
+            position: absolute; top: 4px; right: 6px; font-size: 7px; color: #bbb; font-weight: bold;
+        }
+
+        /* 详情面板 */
+        #tab-vocab-content .detail-panel {
+            width: 380px;
+            border-left: 1px solid var(--border);
+            background: var(--white);
+            padding: 25px;
+            overflow-y: auto;
+            display: none;
+            flex-shrink: 0;
+        }
+        #tab-vocab-content #writer-container {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0;
+        }
+        #tab-vocab-content .char-box-wrapper {
+            background: #fff; border: 1.5px solid #f0f0f0; border-radius: 10px; padding: 6px; cursor: pointer;
+        }
+        #tab-vocab-content .py-row {
+            display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;
+        }
+        #tab-vocab-content .speak-btn {
+            width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--retro-teal);
+        }
+        #tab-vocab-content .section-box { margin-top: 20px; }
+        #tab-vocab-content .label {
+            font-size: 9px; color: #bbb; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 6px; display: block;
+        }
+        #tab-vocab-content .trans-val { font-size: 16px; color: var(--retro-red); font-weight: bold; }
+        #tab-vocab-content .phrase-item {
+            background: #f0ede5; padding: 4px 10px; border-radius: 8px; display: inline-block; margin: 3px;
+            font-size: 12px; border: 1px solid #e0ddd5;
+        }
+        #tab-vocab-content .example-box {
+            line-height: 1.6; font-size: 12px; background: #FAF9F6; padding: 12px;
+            border-radius: 10px; border-left: 3px solid var(--retro-teal); margin-bottom: 8px;
+        }
+        #tab-vocab-content .add-basket-btn {
+            padding: 10px 20px; border-radius: 20px; border: none;
+            background: var(--retro-red); color: white; font-weight: bold;
+            cursor: pointer; font-size: 13px; min-width: 160px; transition: 0.3s;
+        }
+        #tab-vocab-content .add-basket-btn:hover { background: #6b2d2d; transform: scale(1.02); }
+
+        /* 打印按钮 (全局) */
+        #print-basket {
+            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;
+            background: var(--retro-red); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 20px rgba(139, 58, 58, 0.4); cursor: pointer; z-index: 200;
+        }
+        #basket-count {
+            position: absolute; top: 0; right: 0; background: var(--retro-teal);
+            color: white; width: 18px; height: 18px; border-radius: 50%;
+            font-size: 9px; display: flex; align-items: center; justify-content: center;
+            border: 2px solid white;
+        }
+
+        /* 打印舞台 */
+        /* 打印舞台 (平时隐藏) */
+        #print-stage { display: none; }
+
+        /* 🌟 重构的强力打印排版 */
+        @media print {
+            /* 1. 全局清理：强制开启色彩打印，并让所有元素默认为可见（准备重排） */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                visibility: visible !important;
+            }
+
+            /* 2. 隐藏不需要打印的核心外壳（侧边栏、顶部导航等） */
+            .main-sidebar, .top-header, .series-tabs, .drawer-overlay,
+            #tab-audio-content, #tab-grammar-content, #tab-practice-content,
+            #print-basket {
+                display: none !important;
+            }
+
+            /* 3. 隐藏词汇模块内不需要打印的部分（只保留 #print-stage） */
+            #tab-vocab-content > main > aside, 
+            #tab-vocab-content > main > section.word-list-container,
+            #tab-vocab-content > main > section.detail-panel {
+                display: none !important;
+            }
+
+            /* 4. 打通任督二脉：确保包含 print-stage 的所有父级容器都是 block 且高度自适应 */
+            html, body, .content-wrapper, #tab-vocab-content, #tab-vocab-content > main {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+                position: static !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* 5. 隆重请出打印容器！ */
+            #print-stage { 
+                display: grid !important; 
+                grid-template-columns: 1fr 1fr !important;   /* 一行两个卡片 */
+                gap: 5mm !important;
+                width: 100% !important;
+                padding: 0 !important; /* 取消外边距，为卡片争取最大空间 */
+                box-sizing: border-box !important;
+                background: white !important;
+                position: static !important; 
+                margin: 0 auto !important;
+            }
+
+            /* 6. 词卡内部样式恢复 */
+            .flash-card {
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                border: 1px dashed #bbb !important;
+                padding: 8px !important;
+                text-align: center !important;
+                background: white !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important; 
+                height: 6.5cm !important; /* 🌟 关键：A4纸高度约29.7cm，减去浏览器上下边距，6.5cm x 4排 刚好能完美塞进一页！ */
+            }
+
+            .fc-hz {
+                display: block !important;
+                font-size: 38px !important;
+                font-weight: bold !important;
+                margin: 2px 0 !important;
+                color: #000 !important;
+                line-height: 1.2 !important;
+            }
+
+            .fc-py {
+                display: block !important;
+                font-size: 11px !important;
+                color: #666 !important;
+                font-weight: bold !important;
+                margin: 2px 0 !important;
+            }
+
+            .fc-tr {
+                display: block !important;
+                font-size: 10px !important;
+                color: #8B3A3A !important;
+                font-weight: bold !important;
+                line-height: 1.3 !important;
+                margin: 2px 0 !important;
+            }
+
+            .fc-tr div { display: block !important; margin: 1px 0 !important; }
+
+            .fc-ex {
+                display: block !important;
+                margin-top: 4px !important;
+                font-size: 8px !important;
+                color: #555 !important;
+                border-top: 1px dotted #ccc !important;
+                padding-top: 3px !important;
+                width: 100% !important;
+                line-height: 1.2 !important;
+            }
+
+            .fc-ex i { display: block !important; font-size: 7px !important; color: #777 !important; }
+        }
+
+        /* ========== 语法模块 (保留完整原样) ========== */
+        #tab-grammar-content {
+            flex: 1;
+            overflow: hidden;
+            display: none;
+        }
+        #tab-grammar-content main { display: flex; height: 100%; width: 100%; }
+        .sidebar-grammar { width: 260px; border-right: 1px solid #dcdcdc; background: #fff; display: flex; flex-direction: column; flex-shrink: 0; position: relative; transition: 0.3s; }
+        .sidebar-grammar.collapsed { margin-left: -260px; }
+        .grammar-toggle-btn { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 48px; background: #fff; border: 1px solid #ccc; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1001; font-size: 12px; }
+        .sidebar-header { padding: 10px; border-bottom: 1px solid #eee; background: #fff; }
+        .search-box-g { width: 100%; padding: 6px 12px; border-radius: 12px; border: 1px solid #ddd; font-size: 13px; margin-bottom: 8px; font-family: "Georgia", "Times New Roman", "STKaiti", "Kaiti", "楷体", serif; outline: none; }
+        .view-switcher-g { display: flex; background: #eee; border-radius: 6px; padding: 2px; }
+        .view-btn-g { flex: 1; border: none; padding: 4px; font-size: 11px; cursor: pointer; border-radius: 4px; font-family: "Georgia", "Times New Roman", "STKaiti", "Kaiti", "楷体", serif; transition: 0.2s; }
+        .view-btn-g.active { background: #fff; color: #5A927A; font-weight: bold; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .nav-menu { flex: 1; overflow-y: auto; background: #fff; }
+        .nav-group-header { padding: 8px 12px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: bold; background: #fafafa; border-bottom: 1px solid #eee; color: #555; }
+        .nav-items-container { overflow: hidden; transition: max-height 0.3s ease-in-out; }
+        .nav-items-container.collapsed-list { max-height: 0 !important; }
+        .nav-item { padding: 6px 15px 6px 25px; cursor: pointer; font-size: 12px; color: #666; border-bottom: 1px dotted #eee; display: flex; justify-content: space-between; align-items: center; }
+        .nav-item:hover { background: #f0f7f5; color: #5A927A; }
+        .nav-item.active { background: #f0f7f5; color: #5A927A; border-right: 4px solid #5A927A; font-weight: bold; }
+        .sub-group-header { padding: 8px 15px 8px 25px !important; background: #fdfdfd; font-size: 12px; color: #5A927A; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .sub-items-container { overflow: hidden; transition: max-height 0.3s ease-in-out; max-height: 500px; }
+        .sub-items-container.sub-collapsed { max-height: 0 !important; }
+        .nav-item.sub-item { padding-left: 40px !important; font-size: 11px; background: #fff; }
+
+        .main-content-grammar { flex: 1; overflow-y: auto; background: #F4F2EE; padding: 30px; }
+        .grammar-header { background: #fff; padding: 0 30px; height: 50px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
+        .g-title { font-size: 28px; color: var(--dark-red); margin: 0 0 15px 0; font-weight: bold; display: flex; align-items: center; gap: 12px; }
+        .hsk-tag { font-size: 12px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; vertical-align: middle; }
+        .glass-card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 15px; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .sec-header { font-size: 15px; font-weight: bold; color: #8E354A; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
+        .section-struct { border-top: 4px solid #5A927A; background: #F8FBFA; }
+        .formula { font-size: 22px; font-weight: bold; text-align: center; color: #2C5244; letter-spacing: 1px; }
+        .section-diff { background: #FCF9F2; border-left: 5px solid #D4AF37; }
+        .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .diff-card { background: white; padding: 10px; border-radius: 5px; border: 1px solid #eee; font-size: 14px; }
+        .section-mistake { background: #FFF5F5; border: 1px solid #FED7D7; }
+        .compare-row { display: flex; gap: 30px; margin: 10px 0; font-size: 15px; }
+        .wrong { color: #C53030; text-decoration: line-through; font-weight: bold; }
+        .right { color: #2F855A; font-weight: bold; }
+        .image-footer { margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc; text-align: center; }
+        .image-footer img { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+        /* 练习占位 */
+        #tab-practice-content { display: none; padding: 30px; }
+    </style>
+</head>
+<body>
+
+    <!-- 主侧边栏 (综合菜单) -->
+<div class="main-sidebar" id="sidebar">
+    <div class="logo-area"><i class="fas fa-graduation-cap"></i> <span>HSK HUB</span></div>
+    <!-- 交互式课本 -->
+    <div class="menu-item" onclick="switchMainTab('book', this)">
+        <i class="fas fa-book"></i> <span id="menu-book">交互式课本</span>
+    </div>
+    <!-- 课文听力 -->
+    <div class="menu-item active" onclick="switchMainTab('audio', this)">
+        <i class="fas fa-headphones"></i> <span id="menu-audio">课文听力</span>
+    </div>
+    <!-- 词语词库 -->
+    <div class="menu-item" onclick="switchMainTab('vocab', this)">
+        <i class="fas fa-language"></i> <span id="menu-vocab">词语词库</span>
+    </div>
+    <!-- 语法百科 -->
+    <div class="menu-item" onclick="switchMainTab('grammar', this)">
+        <i class="fas fa-project-diagram"></i> <span id="menu-grammar">语法百科</span>
+    </div>
+    <!-- 同步练习 -->
+    <div class="menu-item" onclick="switchMainTab('practice', this)">
+        <i class="fas fa-edit"></i> <span id="menu-practice">同步练习</span>
+    </div>
+    <div style="margin-top: auto; padding: 5px;">
+        <!-- 返回首页 -->
+        <div class="menu-item" onclick="location.href='home.html'" style="color: #999;">
+            <i class="fas fa-home"></i> <span id="menu-home">返回首页</span>
+        </div>
+    </div>
+</div>
+
+    <!-- 内容包装器 -->
+    <div class="content-wrapper">
+        <!-- 全局顶部栏 -->
+        <div class="top-header">
+            <div class="header-left">
+                <div class="toggle-btn" onclick="toggleMainSidebar()"><i class="fas fa-bars"></i></div>
+                <div class="view-title" id="viewTitle">课文听力</div>
+                <!-- 全局搜索框 (词汇模块专用) -->
+                <div class="global-search-box" id="globalSearchBox">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="main-search" placeholder="搜索汉字, Pinyin, Russian..." oninput="vocabHandleSearch()">
+                </div>
+            </div>
+            <div class="lang-switch" onclick="toggleLang()" id="globalLangLabel">RU</div>
+        </div>
+
+        <!-- 听力模块 -->
+        <div id="tab-audio-content">
+            <div class="series-tabs" id="seriesTabs">
+                <button class="tab-btn active" onclick="switchSeries('v2', this)">HSK 2.0 (旧版)</button>
+                <button class="tab-btn" onclick="switchSeries('v3', this)">HSK 3.0 (新版)</button>
+            </div>
+            <div class="scroll-content" id="mainScrollArea">
+                <div id="levelGrid" class="level-grid"></div>
+            </div>
+        </div>
+
+        <!-- 词汇模块 (完整嵌入独立版) -->
+        <div id="tab-vocab-content">
+            <main>
+                <!-- 左侧等级抽屉 -->
+                <aside class="sidebar">
+                    <!-- HSK 1 抽屉 -->
+                    <div class="level-group">
+                        <div class="nav-level" onclick="toggleLevel(1)">
+                            <span>HSK 1 (3.0)</span>
+                            <i class="fas fa-chevron-down" id="arrow-1"></i>
+                        </div>
+                        <div id="lesson-list-1" class="lesson-list active"></div>
+                    </div>
+                    <div class="level-group">
+                        <div class="nav-level" onclick="toggleLevel(2)">
+                            <span>HSK 2 (3.0)</span>
+                            <i class="fas fa-chevron-down" id="arrow-2"></i>
+                        </div>
+                        <div id="lesson-list-2" class="lesson-list"></div>
+                    </div>
+                    <div class="level-group">
+                        <div class="nav-level" onclick="toggleLevel(3)">
+                            <span>HSK 3 (3.0)</span>
+                            <i class="fas fa-chevron-down" id="arrow-3"></i>
+                        </div>
+                        <div id="lesson-list-3" class="lesson-list"></div>
+                    </div>
+                    <div class="level-group">
+                        <div class="nav-level" onclick="toggleLevel(4)">
+                            <span>HSK 4 (3.0)</span>
+                            <i class="fas fa-chevron-down" id="arrow-4"></i>
+                        </div>
+                        <div id="lesson-list-4" class="lesson-list"></div>
+                    </div>
+                    <div class="level-group">
+                        <div class="nav-level" onclick="toggleLevel(5)">
+                            <span>HSK 5 (3.0)</span>
+                            <i class="fas fa-chevron-down" id="arrow-5"></i>
+                        </div>
+                        <div id="lesson-list-5" class="lesson-list"></div>
+                    </div>
+                    <div class="level-group">
+                        <div class="nav-level" onclick="toggleLevel(6)">
+                            <span>HSK 6 (3.0)</span>
+                            <i class="fas fa-chevron-down" id="arrow-6"></i>
+                        </div>
+                        <div id="lesson-list-6" class="lesson-list"></div>
+                    </div>
+                    <div class="level-group">
+                        <div class="nav-level" onclick="toggleLevel('7-9')">
+                            <span>HSK 7-9 (3.0)</span>
+                            <i class="fas fa-chevron-down" id="arrow-7-9"></i>
+                        </div>
+                        <div id="lesson-list-7-9" class="lesson-list"></div>
+                    </div>
+                </aside>
+
+                <!-- 中间单词网格 -->
+                <section class="word-list-container" id="word-grid"></section>
+
+                <!-- 右侧详情面板 -->
+                <section class="detail-panel" id="detail-panel">
+                    <div id="writer-container"></div>
+                    <div class="py-row">
+                        <div id="d-pinyin" style="font-size:18px; color:var(--retro-teal); font-weight:bold;"></div>
+                        <div class="speak-btn" onclick="vocabPlaySpeech()"><i class="fas fa-volume-up"></i></div>
+                    </div>
+                    <div class="section-box">
+                        <span class="label">Translation / Перевод</span>
+                        <div class="trans-val" id="d-trans"></div>
+                    </div>
+                    <div class="section-box">
+                        <span class="label">常用词组 / Phrases</span>
+                        <div id="d-phrases"></div>
+                    </div>
+                    <div class="section-box">
+                        <span class="label">标准例句 / Examples</span>
+                        <div id="d-examples-list"></div>
+                    </div>
+                    <div style="text-align:center; margin-top:25px;">
+                        <button class="add-basket-btn" onclick="vocabAddToBasket()"><i class="fas fa-plus"></i> 加入闪卡清单</button>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- 语法模块 -->
+        <div id="tab-grammar-content">
+            <main style="display:flex; height:100%; width:100%;">
+                <aside class="sidebar-grammar" id="grammarSidebar">
+                    <div class="grammar-toggle-btn" onclick="grammarToggleSidebar()"><i class="fas fa-chevron-left" id="grammarToggleIcon"></i></div>
+                    <div class="sidebar-header">
+                        <input type="text" class="search-box-g" id="searchBarGrammar" placeholder="搜索..." oninput="grammarRenderSidebar()">
+                        <div class="view-switcher-g">
+                            <button class="view-btn-g active" id="grammarBtnCat" onclick="grammarSwitchView('category')">Type</button>
+                            <button class="view-btn-g" id="grammarBtnLvl" onclick="grammarSwitchView('level')">Level</button>
+                        </div>
+                    </div>
+                    <nav class="nav-menu" id="sideMenuGrammar"></nav>
+                </aside>
+                <section class="main-content-grammar">
+                    <header class="grammar-header">
+                        <div id="grammarLibTitle" style="font-weight: bold; color: var(--dark-red); font-size: 16px;"></div>
+                        <div class="lang-switch" onclick="toggleLang()"><span id="grammarLangLabel">RU</span></div>
+                    </header>
+                    <div class="container" id="grammarContentArea" style="max-width:850px; margin:0 auto;"></div>
+                </section>
+            </main>
+        </div>
+
+        <!-- 练习占位 -->
+        <div id="tab-practice-content">
+            <p>同步练习 建设中...</p>
+        </div>
+
+        <!-- 打印按钮 & 抽屉 -->
+        <div id="print-basket" onclick="vocabGeneratePrintPage()">
+            <i class="fas fa-print"></i>
+            <span id="basket-count">0</span>
+        </div>
+        <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrawer()">
+            <div class="drawer" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                    <h2 id="drawerTitle"></h2>
+                    <i class="fas fa-times" onclick="closeDrawer()" style="cursor:pointer;"></i>
+                </div>
+                <div id="lessonList"></div>
+            </div>
+        </div>
+        <div id="print-stage"></div>
+    </div>
+
+    <script>
+        // ---------- 全局变量 ----------
+        let currentTab = 'audio';
+        let currentSeries = 'v2';
+        let currentLang = 'ru';
+
+        // 词汇专用变量
+        let hsk_data = window.hsk_data || [];
+        let currentVocabLevel = 1;
+        let currentVocabLesson = 1;
+        let selectedWord = null;
+        let basket = [];
+
+        // 语法专用变量 (从原语法库移植)
+        const UI_STRINGS = {
+            title: { cn: "汉语语法大百科", en: "Grammar Wiki", ru: "Библиотека грамматики" },
+            search: { cn: "搜索...", en: "Search...", ru: "Поиск..." },
+            btn_cat: { cn: "按类别", en: "Category", ru: "По типу" },
+            btn_lvl: { cn: "按等级", en: "Level", ru: "По уровню" },
+            cat_word: { cn: "词类", en: "Word Classes", ru: "Части речи" },
+            cat_sent_type: { cn: "句类", en: "Sentence Types", ru: "Типы предложений" },
+            cat_component: { cn: "句子成分", en: "Constituents", ru: "Члены предложения" },
+            cat_special: { cn: "特殊句式和固定结构", en: "Special Structures", ru: "Особые конструкции" },
+            sec_struct: { cn: "结构图解", en: "Structure", ru: "Структурная схема" },
+            sec_usage: { cn: "使用规则", en: "Usage", ru: "Правила использования" },
+            sec_diff: { cn: "辨析", en: "Analysis", ru: "Различия" },
+            sec_mistake: { cn: "避坑指南", en: "Watch Out", ru: "Типичные ошибки" },
+            sec_ex: { cn: "接地气例句", en: "Examples", ru: "Примеры" },
+            sec_note: { cn: "注意", en: "Note", ru: "Примечание" },
+            tip: { cn: "解析", en: "Tip", ru: "Подсказка" }
+        };
+        // ---------- 全局界面文本字典 (新增) ----------
+const UI_TEXTS = {
+    viewTitle: {
+        book:   { cn: "交互式课本", en: "Interactive Textbook", ru: "Интерактивный учебник" },
+        audio:  { cn: "课文听力", en: "Audio Lessons", ru: "Аудиоуроки" },
+        vocab:  { cn: "词语词库", en: "Vocabulary", ru: "Словарь" },
+        grammar:{ cn: "语法百科", en: "Grammar", ru: "Грамматика" },
+        practice:{ cn: "同步练习", en: "Practice", ru: "Упражнения" }
+    },
+    vocab: {
+        searchPlaceholder: { cn: "搜索汉字, Pinyin, Russian...", en: "Search Hanzi, Pinyin, English...", ru: "Поиск иероглифов, пиньинь, русский..." },
+        allWords:          { cn: "全部词汇 / All Words", en: "All Words", ru: "Все слова" },
+        transLabel:        { cn: "Translation / Перевод", en: "Translation", ru: "Перевод" },
+        phrasesLabel:      { cn: "常用词组 / Phrases", en: "Phrases", ru: "Фразы" },
+        examplesLabel:     { cn: "标准例句 / Examples", en: "Examples", ru: "Примеры" },
+        addButton:         { cn: "加入闪卡清单", en: "Add to Flashcard List", ru: "Добавить в список" },
+        inListAlert:       { cn: "已经在清单中", en: "Already in list", ru: "Уже в списке" },
+        emptyListAlert:    { cn: "清单为空", en: "List is empty", ru: "Список пуст" }
+    },
+    audio: {
+        v2Tab: { cn: "HSK 2.0 (旧版)", en: "HSK 2.0 (Old)", ru: "HSK 2.0 (старый)" },
+        v3Tab: { cn: "HSK 3.0 (新版)", en: "HSK 3.0 (New)", ru: "HSK 3.0 (новый)" }
+    },
+     
+    practice: {
+        building: { cn: "同步练习 建设中...", en: "Practice Under Construction...", ru: "Упражнения в разработке..." }
+    },
+
+    sidebar: {
+        book:    { cn: "交互式课本", en: "Interactive Textbook", ru: "Интерактивный учебник" },
+        audio:   { cn: "课文听力", en: "Audio Lessons", ru: "Аудиоуроки" },
+        vocab:   { cn: "词语词库", en: "Vocabulary", ru: "Словарь" },
+        grammar: { cn: "语法百科", en: "Grammar", ru: "Грамматика" },
+        practice:{ cn: "同步练习", en: "Practice", ru: "Упражнения" },
+        home:    { cn: "返回首页", en: "Back Home", ru: "На главную" }
+    }
+};
+        let grammarViewMode = 'category';
+        let currentGrammarId = 'ba_1';
+        let grammarOpenGroups = new Set(['cat_special', 'cat_word']);
+        let grammarOpenSubGroups = new Set();
+
+        // 通用获取翻译
+        function getL(obj) { return obj ? (obj[currentLang] || obj['en'] || obj['cn'] || '---') : '---'; }
+
+        // ---------- 主侧边栏折叠 ----------
+        function toggleMainSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+        // ---------- 语言切换 (全局) ----------
+        function toggleLang() {
+            const langs = ['cn', 'en', 'ru'];
+            currentLang = langs[(langs.indexOf(currentLang) + 1) % 3];
+            document.getElementById('globalLangLabel').innerText = currentLang.toUpperCase();
+            // 更新语法头部
+            const grammarLabel = document.getElementById('grammarLangLabel');
+            if(grammarLabel) grammarLabel.innerText = currentLang.toUpperCase();
+            grammarUpdateUI();   // 刷新语法
+            updateUITexts(); 
+
+            // 刷新词汇界面 (如果当前是词汇标签)
+            if (currentTab === 'vocab') {
+                if (selectedWord) vocabRefreshDetail();
+                else vocabLoadLesson(currentVocabLevel, currentVocabLesson);
+            }
+        }
+        // ---------- 更新所有界面文本 (新增) ----------
+// ---------- 更新所有界面文本 ----------
+function updateUITexts() {
+    const lang = currentLang; // 'cn', 'en', 'ru'
+
+    // 更新顶部标题（根据当前标签）
+    const viewTitleEl = document.getElementById('viewTitle');
+    if (viewTitleEl && currentTab) {
+        viewTitleEl.innerText = UI_TEXTS.viewTitle[currentTab][lang] || UI_TEXTS.viewTitle[currentTab].en;
+    }
+
+    // 更新全局搜索框 placeholder
+    const searchInput = document.getElementById('main-search');
+    if (searchInput) {
+        searchInput.placeholder = UI_TEXTS.vocab.searchPlaceholder[lang];
+    }
+
+    // 更新词汇模块标签
+    const labelTrans = document.getElementById('label-trans');
+    if (labelTrans) labelTrans.innerText = UI_TEXTS.vocab.transLabel[lang];
+
+    const labelPhrases = document.getElementById('label-phrases');
+    if (labelPhrases) labelPhrases.innerText = UI_TEXTS.vocab.phrasesLabel[lang];
+
+    const labelExamples = document.getElementById('label-examples');
+    if (labelExamples) labelExamples.innerText = UI_TEXTS.vocab.examplesLabel[lang];
+
+    const addBtn = document.getElementById('btn-add-basket');
+    if (addBtn) {
+        addBtn.innerHTML = `<i class="fas fa-plus"></i> ${UI_TEXTS.vocab.addButton[lang]}`;
+    }
+
+    // 更新听力标签页
+    const tabV2 = document.getElementById('tab-v2');
+    if (tabV2) tabV2.innerText = UI_TEXTS.audio.v2Tab[lang];
+
+    const tabV3 = document.getElementById('tab-v3');
+    if (tabV3) tabV3.innerText = UI_TEXTS.audio.v3Tab[lang];
+
+    // 更新练习占位
+    const practiceMsg = document.getElementById('practice-message');
+    if (practiceMsg) practiceMsg.innerText = UI_TEXTS.practice.building[lang];
+
+    // ===== 新增：更新侧边栏菜单 =====
+    const menuBook = document.getElementById('menu-book');
+    if (menuBook) menuBook.innerText = UI_TEXTS.sidebar.book[lang];
+
+    const menuAudio = document.getElementById('menu-audio');
+    if (menuAudio) menuAudio.innerText = UI_TEXTS.sidebar.audio[lang];
+
+    const menuVocab = document.getElementById('menu-vocab');
+    if (menuVocab) menuVocab.innerText = UI_TEXTS.sidebar.vocab[lang];
+
+    const menuGrammar = document.getElementById('menu-grammar');
+    if (menuGrammar) menuGrammar.innerText = UI_TEXTS.sidebar.grammar[lang];
+
+    const menuPractice = document.getElementById('menu-practice');
+    if (menuPractice) menuPractice.innerText = UI_TEXTS.sidebar.practice[lang];
+
+    const menuHome = document.getElementById('menu-home');
+    if (menuHome) menuHome.innerText = UI_TEXTS.sidebar.home[lang];
+    // ===== 结束新增 =====
+
+    // 如果当前是词汇标签，重新生成左侧菜单（因为“全部词汇”文本需要国际化）
+    if (currentTab === 'vocab') {
+        vocabInitLessonNav();
+        vocabLoadLesson(currentVocabLevel, currentVocabLesson);
+    }
+}
+
+        // ---------- 主菜单切换 ----------
+        function switchMainTab(tab, btn) {
+            currentTab = tab;
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            btn.classList.add('active');
+            const titles = { book:'交互式课本', audio:'课文听力', vocab:'词语词库', grammar:'语法百科', practice:'同步练习' };
+            document.getElementById('viewTitle').innerText = titles[tab];
+
+            // 显示/隐藏各板块
+            document.getElementById('tab-audio-content').style.display = (tab === 'audio') ? 'block' : 'none';
+            document.getElementById('tab-vocab-content').style.display = (tab === 'vocab') ? 'flex' : 'none';
+            document.getElementById('tab-grammar-content').style.display = (tab === 'grammar') ? 'flex' : 'none';
+            document.getElementById('tab-practice-content').style.display = (tab === 'practice') ? 'block' : 'none';
+
+            // 全局搜索框显示控制 (仅词汇使用)
+            const searchBox = document.querySelector('.global-search-box');
+            if(searchBox) searchBox.style.display = (tab === 'vocab') ? 'block' : 'none';
+
+            // 打印按钮显示控制 (仅词汇使用)
+            const printBtn = document.getElementById('print-basket');
+            if(printBtn) printBtn.style.display = (tab === 'vocab') ? 'flex' : 'none';
+
+            // 标签激活时的初始化
+            if (tab === 'vocab') {
+                vocabInitLessonNav();
+                // 尝试从URL恢复或默认第一课
+                const params = new URLSearchParams(window.location.search);
+                const urlLv = params.get('lv') || 1;
+                const urlLesson = params.get('lesson');
+                if (urlLesson !== null) {
+                    vocabLoadLesson(urlLv, urlLesson === 'null' ? null : parseInt(urlLesson));
+                } else {
+                    vocabLoadLesson(1, 1);
+                }
+            }
+            if (tab === 'grammar') {
+                grammarRenderSidebar();
+                grammarRenderContent();
+            }
+            if (tab === 'audio') {
+                renderLevelGrid();
+            }
+        }
+
+        // ========== 听力模块函数 ==========
+        const R2_URL = "https://pub-3cebf65e25cf4f95a5b613d3178b4ff3.r2.dev/";
+        const textbookData = {
+            v2: { levels: [ { lv:1, title:"HSK 1", color:"var(--hsk1)", lessons:15, cover:R2_URL+"cover002.png" }, { lv:2, title:"HSK 2", color:"var(--hsk2)", lessons:15, cover:R2_URL+"cover003.png" }, { lv:3, title:"HSK 3", color:"var(--hsk3)", lessons:20, cover:R2_URL+"cover004.png" }, { lv:4, title:"HSK 4", color:"var(--hsk4)", lessons:20, cover:R2_URL+"cover005.png" } ] },
+            v3: { levels: [ { lv:1, title:"HSK 1 (3.0)", color:"#333", lessons:15, cover:R2_URL+"cover001.png" } ] }
+        };
+        function switchSeries(series, btn) {
+            currentSeries = series;
+            document.querySelectorAll('.tab-btn').forEach(i => i.classList.remove('active'));
+            btn.classList.add('active');
+            renderLevelGrid();
+        }
+        function renderLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            if (currentTab === 'audio') {
+                textbookData[currentSeries].levels.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'level-card';
+                    card.onclick = () => openLessons(item);
+                    card.innerHTML = `<div class="level-cover" style="background:${item.color}"><img src="${item.cover}" alt="${item.title}"></div><div class="level-info">${item.title}</div>`;
+                    grid.appendChild(card);
+                });
+            } else grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:50px; color:#999;">内容建设中...</p>`;
+        }
+        function openLessons(level) {
+            document.getElementById('drawerTitle').innerText = level.title;
+            const list = document.getElementById('lessonList');
+            list.innerHTML = '';
+            for (let i = 1; i <= level.lessons; i++) {
+                const idPrefix = (currentSeries === 'v3') ? `3hsk${level.lv}` : `hsk${level.lv}`;
+                const div = document.createElement('div');
+                div.className = 'lesson-item';
+                div.innerHTML = `<div class="lesson-header" onclick="this.parentElement.classList.toggle('open')"><span>第 ${i} 课</span><i class="fas fa-chevron-down" style="font-size:10px; opacity:0.3"></i></div><div class="ex-links"><a href="hsk_player.html?id=${idPrefix}-${i}-1" class="ex-btn">🎧 课文 1</a><a href="hsk_player.html?id=${idPrefix}-${i}-2" class="ex-btn">🎧 课文 2</a><a href="hsk_player.html?id=${idPrefix}-${i}-3" class="ex-btn">🎧 课文 3</a></div>`;
+                list.appendChild(div);
+            }
+            document.getElementById('drawerOverlay').style.display = 'flex';
+        }
+        function closeDrawer() { document.getElementById('drawerOverlay').style.display = 'none'; }
+
+        // ========== 词汇模块函数 (独立版移植) ==========
+        function toggleLevel(lv) {
+            const list = document.getElementById(`lesson-list-${lv}`);
+            const arrow = document.getElementById(`arrow-${lv}`);
+            if (list) {
+                list.classList.toggle('active');
+                if(arrow) arrow.style.transform = list.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+        }
+
+        function vocabInitLessonNav() {
+            const allLevels = [1, 2, 3, 4, 5, 6, '7-9'];
+            allLevels.forEach(lv => {
+                const container = document.getElementById(`lesson-list-${lv}`);
+                if (!container) return;
+                const lvData = hsk_data.filter(w => w.level == lv);
+                if (lvData.length === 0) return;
+                const lessons = [...new Set(lvData.map(w => w.lesson))].sort((a,b) => {
+                    if (a === null) return 1;
+                    if (b === null) return -1;
+                    return a - b;
+                });
+                container.innerHTML = lessons.map(l => {
+    const label = (l === null) ? UI_TEXTS.vocab.allWords[currentLang] : `Lesson ${l}`;
+    const lessonVal = (l === null) ? 'null' : l;
+    return `<div class="lesson-item" id="btn-l-${lv}-${lessonVal}" onclick="vocabLoadLesson('${lv}', ${lessonVal})">${label}</div>`;
+}).join('');
+            });
+        }
+
+        function vocabLoadLesson(lv, num) {
+            currentVocabLevel = lv;
+            currentVocabLesson = num;
+            document.querySelectorAll('#tab-vocab-content .lesson-item').forEach(i => i.classList.remove('active'));
+            const btnId = `btn-l-${lv}-${num}`;
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.add('active');
+
+            const filtered = hsk_data.filter(w => w.level == lv && w.lesson === num);
+            vocabRenderWords(filtered, false);
+        }
+
+        function vocabRenderWords(list, isSearch) {
+            const grid = document.getElementById('word-grid');
+            grid.innerHTML = list.map(w => `
+                <div class="word-mini-card" onclick="vocabShowDetail(${w.id})">
+                    ${isSearch ? `<span class="source-tag">H${w.level}·L${w.lesson}</span>` : ''}
+                    <div class="mini-hz">${w.word}</div>
+                    <div class="mini-py">${w.pinyin}</div>
+                </div>
+            `).join('');
+        }
+
+        function vocabShowDetail(id) {
+            selectedWord = hsk_data.find(w => w.id === id);
+            vocabRefreshDetail();
+            document.getElementById('detail-panel').style.display = 'block';
+        }
+
+        function vocabRefreshDetail() {
+            document.getElementById('d-pinyin').innerText = selectedWord.pinyin;
+            document.getElementById('d-trans').innerText = selectedWord[currentLang];
+            document.getElementById('d-phrases').innerHTML = (selectedWord.phrases || []).map(p => `<span class="phrase-item">${p}</span>`).join('');
+            document.getElementById('d-examples-list').innerHTML = (selectedWord.examples || []).map(ex => `
+                <div class="example-box">
+                    <div style="font-size:10px; color:var(--retro-teal); font-weight:bold;">${ex.py}</div>
+                    <div style="font-weight:bold; margin:3px 0; font-size:14px;">${ex.hz}</div>
+                    <div style="font-size:11px; color:#888; font-style:italic;">${ex[currentLang]}</div>
+                </div>
+            `).join('');
+
+            const container = document.getElementById('writer-container');
+            container.innerHTML = "";
+            selectedWord.word.split('').forEach((char, idx) => {
+                if(char.match(/[\u4e00-\u9fa5]/)) {
+                    const div = document.createElement('div');
+                    div.className = 'char-box-wrapper';
+                    div.id = `writer-${idx}`;
+                    container.appendChild(div);
+                    HanziWriter.create(div.id, char, { width: 80, height: 80, padding: 5, strokeColor: '#8B3A3A' }).animateCharacter();
+                    div.onclick = () => {
+                        div.innerHTML = "";
+                        HanziWriter.create(div.id, char, { width: 80, height: 80, padding: 5, strokeColor: '#8B3A3A' }).animateCharacter();
+                    };
+                }
+            });
+        }
+
+        function vocabPlaySpeech() {
+            if (!selectedWord) return;
+            const msg = new SpeechSynthesisUtterance(selectedWord.word);
+            msg.lang = 'zh-CN'; msg.rate = 0.8;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function vocabHandleSearch() {
+            const q = document.getElementById('main-search').value.toLowerCase().trim();
+            if (!q) { vocabLoadLesson(currentVocabLevel, currentVocabLesson); return; }
+            const filtered = hsk_data.filter(w => 
+                w.word.includes(q) || 
+                w.pinyin.toLowerCase().includes(q) || 
+                (w.ru && w.ru.toLowerCase().includes(q)) || 
+                (w.en && w.en.toLowerCase().includes(q))
+            );
+            vocabRenderWords(filtered, true);
+        }
+
+        function vocabAddToBasket() {
+    const lang = currentLang === 'ru' ? 'ru' : 'en';
+    if (!selectedWord) return;
+    if (basket.find(b => b.id === selectedWord.id)) {
+        alert(lang === 'ru' ? 'Уже в списке' : 'Already in list');
+        return;
+    }
+    basket.push(selectedWord);
+    document.getElementById('basket-count').innerText = basket.length;
+}
+
+        // 🖨️ 智能打印生成逻辑
+        function vocabGeneratePrintPage() {
+            if (basket.length === 0) {
+                alert(currentLang === 'ru' ? 'Список пуст' : 'List is empty');
+                return;
+            }
+            const stage = document.getElementById('print-stage');
+            
+            stage.innerHTML = basket.map(item => {
+                // 取第一个例句
+                const firstEx = (item.examples && item.examples[0]) ? item.examples[0] : { hz: '', py: '', ru: '', en: '' };
+                const exHz = firstEx.hz || '';
+
+                // 🌟 核心修改：根据当前语言 (currentLang) 动态拼接翻译内容
+                let transHtml = '';
+                let exTransHtml = '';
+
+                if (currentLang === 'ru') {
+                    // 仅显示俄语
+                    transHtml = `<div style="color:var(--retro-red);">🇷🇺 ${item.ru || '—'}</div>`;
+                    exTransHtml = firstEx.ru ? `<i>🇷🇺 ${firstEx.ru}</i>` : '';
+                } else if (currentLang === 'en') {
+                    // 仅显示英语
+                    transHtml = `<div style="color:var(--retro-red);">🇬🇧 ${item.en || '—'}</div>`;
+                    exTransHtml = firstEx.en ? `<i>🇬🇧 ${firstEx.en}</i>` : '';
+                } else {
+                    // 中文模式下，默认双语都显示
+                    transHtml = `<div style="color:var(--retro-red);">🇷🇺 ${item.ru || '—'}</div>
+                                 <div style="color:var(--retro-red);">🇬🇧 ${item.en || '—'}</div>`;
+                    exTransHtml = (firstEx.ru ? `<i>🇷🇺 ${firstEx.ru}</i><br>` : '') + 
+                                  (firstEx.en ? `<i>🇬🇧 ${firstEx.en}</i>` : '');
+                }
+
+                return `
+                <div class="flash-card">
+                    <div class="fc-py">${item.pinyin}</div>
+                    <div class="fc-hz">${item.word}</div>
+                    <div class="fc-tr">
+                        ${transHtml}
+                    </div>
+                    ${exHz ? `
+                    <div class="fc-ex">
+                        <b>例</b> ${exHz}<br>
+                        ${exTransHtml}
+                    </div>` : ''}
+                </div>
+            `}).join('');
+            
+            void stage.offsetHeight;
+            window.print();
+        }
+
+        // ========== 语法模块函数 (完整保留) ==========
+        function grammarToggleSidebar() {
+            const sb = document.getElementById('grammarSidebar');
+            const icon = document.getElementById('grammarToggleIcon');
+            sb.classList.toggle('collapsed');
+            icon.classList.toggle('fa-chevron-right');
+            icon.classList.toggle('fa-chevron-left');
+        }
+        function grammarSwitchView(mode) {
+            grammarViewMode = mode;
+            document.querySelectorAll('.view-btn-g').forEach(b => b.classList.remove('active'));
+            document.getElementById(mode === 'category' ? 'grammarBtnCat' : 'grammarBtnLvl').classList.add('active');
+            grammarRenderSidebar();
+        }
+        function grammarToggleGroup(key) {
+            if (grammarOpenGroups.has(key)) grammarOpenGroups.delete(key);
+            else grammarOpenGroups.add(key);
+            grammarRenderSidebar();
+        }
+        function grammarToggleSubGroup(tag, event) {
+            event.stopPropagation();
+            if (grammarOpenSubGroups.has(tag)) grammarOpenSubGroups.delete(tag);
+            else grammarOpenSubGroups.add(tag);
+            grammarRenderSidebar();
+        }
+        function grammarRenderSidebar() {
+            const menu = document.getElementById('sideMenuGrammar');
+            if (!menu) return;
+            const query = document.getElementById('searchBarGrammar').value.toLowerCase();
+            const groups = {};
+            GRAMMAR_DB.forEach(item => {
+                let groupKey = grammarViewMode === 'category' ? item.category_id : item.level;
+                let groupDisplay = grammarViewMode === 'category' ? UI_STRINGS[item.category_id][currentLang] : item.level;
+                if (getL(item.title).toLowerCase().includes(query)) {
+                    if (!groups[groupKey]) groups[groupKey] = { display: groupDisplay, items: [] };
+                    groups[groupKey].items.push(item);
+                }
+            });
+            const categoryOrder = ['cat_word', 'cat_sent_type', 'cat_component', 'cat_special'];
+            const levelOrder = ['HSK 1', 'HSK 2', 'HSK 3', 'HSK 4', 'HSK 5', 'HSK 6'];
+            const activeOrder = grammarViewMode === 'category' ? categoryOrder : levelOrder;
+            menu.innerHTML = activeOrder.map(key => {
+                const group = groups[key];
+                if (!group || group.items.length === 0) return '';
+                const isOpen = grammarOpenGroups.has(key);
+                let itemsHTML = "";
+                if (grammarViewMode === 'category') {
+                    const processedGroupTags = new Set();
+                    group.items.forEach(item => {
+                        if (item.group_tag) {
+                            if (!processedGroupTags.has(item.group_tag)) {
+                                const subItems = group.items.filter(i => i.group_tag === item.group_tag);
+                                const isSubOpen = grammarOpenSubGroups.has(item.group_tag);
+                                itemsHTML += `
+                                    <div class="sub-group-wrapper">
+                                        <div class="sub-group-header" onclick="grammarToggleSubGroup('${item.group_tag}', event)">
+                                            <span>${getL(item.group_name)}</span>
+                                            <i class="fas fa-caret-${isSubOpen ? 'down' : 'right'}" style="font-size:10px;"></i>
+                                        </div>
+                                        <div class="sub-items-container ${isSubOpen ? '' : 'sub-collapsed'}">
+                                            ${subItems.map(si => `
+                                                <div class="nav-item sub-item ${currentGrammarId === si.id ? 'active' : ''}" 
+                                                     onclick="currentGrammarId='${si.id}'; grammarRenderContent(); grammarRenderSidebar();">
+                                                    ${getL(si.title)}
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                                processedGroupTags.add(item.group_tag);
+                            }
+                        } else {
+                            itemsHTML += `
+                                <div class="nav-item ${currentGrammarId === item.id ? 'active' : ''}" 
+                                     onclick="currentGrammarId='${item.id}'; grammarRenderContent(); grammarRenderSidebar();">
+                                    <span>${getL(item.title)}</span>
+                                    <span style="font-size:9px; opacity:0.6;">${item.level}</span>
+                                </div>
+                            `;
+                        }
+                    });
+                } else {
+                    itemsHTML = group.items.map(item => `
+                        <div class="nav-item ${currentGrammarId === item.id ? 'active' : ''}" 
+                             onclick="currentGrammarId='${item.id}'; grammarRenderContent(); grammarRenderSidebar();">
+                            <span>${getL(item.title)}</span>
+                            <span style="font-size:9px; opacity:0.6;">${UI_STRINGS[item.category_id][currentLang]}</span>
+                        </div>
+                    `).join('');
+                }
+                return `
+                    <div class="nav-group">
+                        <div class="nav-group-header" onclick="grammarToggleGroup('${key}')">
+                            <span>${group.display}</span>
+                            <i class="fas fa-chevron-down" style="transition:0.3s; transform: ${isOpen ? 'rotate(0deg)' : 'rotate(-90deg)'}"></i>
+                        </div>
+                        <div class="nav-items-container ${isOpen ? '' : 'collapsed-list'}">
+                            ${itemsHTML}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        function grammarRenderContent() {
+            const data = GRAMMAR_DB.find(i => i.id === currentGrammarId);
+            if (!data) return;
+            const det = data.details;
+            let html = `
+                <div class="g-title">${getL(data.title)} <span class="hsk-tag">${data.level}</span></div>
+                ${(det.structure && getL(det.structure) !== '---') ? `<div class="glass-card section-struct"><div class="sec-header"><i class="fas fa-project-diagram"></i> ${UI_STRINGS.sec_struct[currentLang]}</div><div class="formula">${getL(det.structure)}</div></div>` : ''}
+                <div class="glass-card"><div class="sec-header"><i class="fas fa-scroll"></i> ${UI_STRINGS.sec_usage[currentLang]}</div><ul style="margin:0; padding-left:20px; font-size:15px; line-height:1.6;">${det.rules.map(r => `<li>${getL(r)}</li>`).join('')}</ul></div>
+                ${det.discriminations ? `<div class="glass-card section-diff"><div class="sec-header"><i class="fas fa-balance-scale"></i> ${UI_STRINGS.sec_diff[currentLang]} - ${getL(det.discriminations.title)}</div><div class="diff-grid">${det.discriminations.content.map(d => `<div class="diff-card"><b>${d.word}</b>: ${getL(d.desc)}</div>`).join('')}</div></div>` : ''}
+                ${det.notes ? `<div class="glass-card" style="background:#F0F4FF; border-left:5px solid #5A67D8;"><div class="sec-header" style="color:#434190;"><i class="fas fa-th-list"></i> ${UI_STRINGS.sec_note[currentLang]}</div><div style="font-size:14px; line-height:1.6;">${getL(det.notes)}</div></div>` : ''}
+                ${det.mistakes ? `<div class="glass-card section-mistake"><div class="sec-header"><i class="fas fa-exclamation-circle"></i> ${UI_STRINGS.sec_mistake[currentLang]}</div><div class="compare-row"><div class="wrong">${det.mistakes.w}</div><div class="right">${det.mistakes.r}</div></div><div style="font-size:13px; background:#fff; padding:10px; border-radius:5px; border-left:4px solid #F6AD55;">💡 <b>${UI_STRINGS.tip[currentLang]}:</b> ${getL(det.mistakes.reason)}</div></div>` : ''}
+                <div class="glass-card"><div class="sec-header"><i class="fas fa-quote-left"></i> ${UI_STRINGS.sec_ex[currentLang]}</div>${det.examples.map(ex => `<div style="margin-bottom:12px; border-bottom:1px dotted #eee; padding-bottom:8px;"><div style="font-size:19px; font-weight:bold; color:#333;">${ex.hz}</div><div style="color:var(--brown); font-size:14px; font-family:sans-serif; margin:4px 0;">${ex.py}</div><div style="color:#666; font-size:14px;">${getL(ex)}</div></div>`).join('')}</div>
+                ${det.img_url ? `<div class="image-footer"><img src="${det.img_url}" alt="Visual"></div>` : ''}
+            `;
+            document.getElementById('grammarContentArea').innerHTML = html;
+        }
+        function grammarUpdateUI() {
+            const titleEl = document.getElementById('grammarLibTitle');
+            if(titleEl) titleEl.innerText = UI_STRINGS.title[currentLang];
+            const searchEl = document.getElementById('searchBarGrammar');
+            if(searchEl) searchEl.placeholder = UI_STRINGS.search[currentLang];
+            document.getElementById('grammarBtnCat').innerText = UI_STRINGS.btn_cat[currentLang];
+            document.getElementById('grammarBtnLvl').innerText = UI_STRINGS.btn_lvl[currentLang];
+            grammarRenderSidebar();
+            grammarRenderContent();
+        }
+
+        // ---------- 初始化 ----------
+        window.onload = function() {
+            // 听力模块初始化
+            renderLevelGrid();
+            // 语法模块初始化
+            grammarUpdateUI();
+            updateUITexts();
+            // 词汇模块初始化 (但不会自动显示)
+            if (typeof hsk_data !== 'undefined' && hsk_data.length > 0) {
+                vocabInitLessonNav();
+            }
+            // 设置默认语言标签
+            document.getElementById('globalLangLabel').innerText = currentLang.toUpperCase();
+            // 默认激活听力标签
+            document.querySelector('.menu-item.active').classList.remove('active');
+            document.querySelectorAll('.menu-item')[1].classList.add('active'); // 第二个是听力
+            switchMainTab('audio', document.querySelectorAll('.menu-item')[1]);
+        };
+    </script>
+</body>
+</html>

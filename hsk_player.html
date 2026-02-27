@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    
+    <!-- 2. 直接引入 HSK 课文数据文件（以后有新课，就在这里加一行） -->
+    <script src="data_hsk/lesson_hsk3-1-1.js"></script>
+
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. 引入 Supabase (必须在最前) -->
+    <!-- 1. 电脑浏览器标签页图标 -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- 2. 苹果/安卓手机“添加到桌面”后的图标 -->
+<link rel="apple-touch-icon" href="logo.png">
+
+<!-- 3. 设置移动端状态栏颜色（让它更像 App） -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-capable" content="yes">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- 2. 🔴 加上这行！这就是锁！ -->
+    <script src="auth.js"></script>
+    
+    <!-- 3. 引入课程数据 -->
+    <!-- 🟢 动态加载 HSK 课程数据补丁 -->
+<script>
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const lessonId = urlParams.get('id');
+        if (lessonId) {
+            const script = document.createElement('script');
+            // 它会自动去加载 data_hsk/lesson_v2_l1_1.js 这种文件
+            script.src = `data_hsk/lesson_${lessonId}.js`;
+            document.head.appendChild(script);
+            console.log("正在请求文件:", script.src);
+        }
+    })();
+</script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #6CAD9C; --dark-red: #612321; --brown: #A77046; --yellow: #E5CC84; --bg: #F9F7F2; --white: #FFFFFF; --highlight: #EAF6F4; --word-hover: #ffecb3; }
+        body { margin: 0; padding: 0; font-family: "PingFang SC", sans-serif; background-color: var(--bg); height: 100vh; display: flex; flex-direction: column; color: var(--dark-red); }
+        header { background: var(--white); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--yellow); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-size: 20px; font-weight: 800; color: var(--dark-red); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .main-container { display: flex; flex: 1; padding: 20px 40px; gap: 30px; overflow: hidden; max-width: 1600px; margin: 0 auto; width: 100%; box-sizing: border-box; transition: all 0.3s ease; }
+        body.focus-mode .subtitle-section { display: none; } body.focus-mode .video-section { flex: 1; max-width: 1000px; margin: 0 auto; }
+        .video-section { flex: 7; display: flex; flex-direction: column; gap: 20px; min-width: 0; transition: all 0.3s ease; }
+        .video-wrapper { background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(97, 35, 33, 0.15); border: 4px solid #fff; aspect-ratio: 16/9; position: relative; }
+        video { width: 100%; height: 100%; display: block; outline: none; }
+        .lang-switch { cursor: pointer; padding: 6px 12px; border-radius: 20px; background: #eee; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .lang-switch:hover { background: #e0f2fe; color: var(--primary); }
+        .audio-visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #4A3B32 0%, #2c241f 100%); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        .audio-visualizer.active { display: flex; }
+        .wave-container { display: flex; gap: 6px; height: 60px; align-items: center; }
+        .wave-bar { width: 8px; background: var(--yellow); border-radius: 4px; animation: wave 1s infinite ease-in-out; }
+        .wave-bar:nth-child(odd) { background: var(--primary); } .wave-bar:nth-child(1) { height: 20px; animation-delay: 0.1s; } .wave-bar:nth-child(2) { height: 40px; animation-delay: 0.2s; } .wave-bar:nth-child(3) { height: 50px; animation-delay: 0.3s; } .wave-bar:nth-child(4) { height: 30px; animation-delay: 0.4s; } .wave-bar:nth-child(5) { height: 40px; animation-delay: 0.5s; }
+        @keyframes wave { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.5); } }
+        .tools-panel { background: var(--white); padding: 15px; border-radius: 12px; display: flex; flex-wrap: wrap; gap: 10px; border: 1px solid rgba(167, 112, 70, 0.1); justify-content: center; }
+        .control-row { width: 100%; display: flex; justify-content: space-between; gap: 10px; }
+        .control-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; flex: 1; border: 2px solid #eee; border-radius: 10px; background: white; color: var(--text-main); cursor: pointer; transition: all 0.2s; font-size: 12px; gap: 4px; min-width: 60px; }
+        .control-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-play { background: var(--primary); border-color: var(--primary); color: white; flex: 1.5; } .btn-play:hover { background: var(--primary-dark); }
+        .control-btn.active { background: var(--highlight); border-color: var(--primary); color: var(--primary); }
+        .speed-select { height: 60px; padding: 0 10px; border: 2px solid #eee; border-radius: 10px; background: white; font-weight: bold; color: var(--brown); outline: none; cursor: pointer; flex: 0.8; text-align: center;}
+        .practice-btn { width: 100%; height: 55px; margin-top: 5px; border: none; border-radius: 12px; background: linear-gradient(90deg, #E5CC84 0%, #d4b158 100%); color: #4A3B32; font-weight: 800; font-size: 16px; letter-spacing: 1px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(229, 204, 132, 0.4); }
+        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(229, 204, 132, 0.6); } .practice-btn i { font-size: 22px; }
+        .subtitle-section { flex: 4; background: var(--white); border-radius: 12px; display: flex; flex-direction: column; height: 100%; border: 1px solid rgba(167, 112, 70, 0.1); }
+        .sub-header { padding: 20px; border-bottom: 2px solid var(--bg); display: flex; justify-content: space-between; align-items: center; }
+        .sub-title { font-weight: 800; font-size: 16px; color: var(--dark-red); max-width: 50%; }
+        .header-actions { display: flex; gap: 10px; }
+        .toggle-circle { width: 36px; height: 36px; border-radius: 50%; background: #eee; color: #999; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .toggle-circle.on { background: var(--primary); color: white; } .toggle-circle:hover { transform: scale(1.1); }
+        .subtitle-list { flex: 1; overflow-y: auto; padding: 15px; scroll-behavior: smooth; position: relative; }
+        .sub-item { padding: 16px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; border-left: 4px solid transparent; background: #fff; transition: all 0.2s; }
+        .sub-item:hover { background-color: var(--bg); }
+        .sub-item.active { background-color: var(--highlight); border-left-color: var(--primary); transform: scale(1.02); }
+        .pinyin { font-size: 14px; color: var(--brown); margin-bottom: 4px; font-family: "Courier New", monospace; }
+        .chinese { font-size: 20px; color: var(--dark-red); font-weight: 800; margin-bottom: 6px; line-height: 1.5; }
+        .trans { font-size: 13px; color: #888; font-style: italic; }
+        .hide-py .pinyin { opacity: 0; } .hide-py .sub-item:hover .pinyin { opacity: 1; } .hide-cn .chinese { opacity: 0; } .hide-cn .sub-item:hover .chinese { opacity: 1; } .hide-trans .trans { opacity: 0; } .hide-trans .sub-item:hover .trans { opacity: 1; }
+        body.word-mode .sub-item { cursor: default; } body.word-mode .sub-item:hover { background-color: white; }
+        .word-span { border-radius: 4px; padding: 0 2px; transition: all 0.2s; cursor: pointer; } body.word-mode .word-span:hover { background-color: var(--yellow); color: var(--dark-red); }
+        .dict-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 2px solid var(--primary); z-index: 1000; display: none; text-align: center; }
+        .dict-modal.show { display: block; animation: popIn 0.3s; }
+        @keyframes popIn { from {opacity:0; transform:translate(-50%, -40%);} to {opacity:1; transform:translate(-50%, -50%);} }
+        .dict-word { font-size: 32px; font-weight: bold; color: var(--dark-red); margin-bottom: 5px; } .dict-pinyin { font-size: 16px; color: var(--brown); margin-bottom: 15px; font-family: "Courier New"; } .dict-meaning { font-size: 16px; color: #555; margin-bottom: 20px; background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: left; } .dict-btn { padding: 8px 20px; background: var(--primary); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; } .dict-close { position: absolute; top: 10px; right: 15px; cursor: pointer; color: #999; font-size: 20px; } .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:999; display:none; } .overlay.show { display: block; }
+        /* 弹窗按钮样式 */
+        .dict-btn-link, .dict-btn-add {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 8px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+            text-decoration: none; cursor: pointer; border: none; transition: all 0.2s;
+        }
+        /* BKRS 按钮 (蓝色) */
+        .dict-btn-link { background: #e0f2fe; color: #0369a1; }
+        .dict-btn-link:hover { background: #bae6fd; }
+        
+        /* 生词本按钮 (黄色) */
+        .dict-btn-add { background: #fef3c7; color: #b45309; }
+        .dict-btn-add:hover { background: #fde68a; }
+        /* === 📱 视频页手机端：瀑布流式布局 (字幕铺满) === */
+        /* === 📱 手机版：上半部分固定，下半部分滚动 === */
+        @media (max-width: 768px) {
+            #layoutToggleBtn { display: none !important; }
+            .control-btn i { font-size: 20px !important; }
+            /* --- 1. 缩小 Header 边距和高度 --- */
+            header { 
+                position: sticky !important; /* 👈 核心：焊死在顶部 */
+                top: 0 !important; 
+                z-index: 2000 !important; 
+                background: #fff !important; 
+                padding: 0 6px !important; 
+                height: 40px !important; 
+                display: flex !important;
+                align-items: center !important;
+            }
+
+            /* --- 2. 缩小 Logo 文字，防止挤压右侧 --- */
+            .logo { 
+                font-size: 16px !important; 
+                gap: 1px !important; 
+            }
+
+            /* --- 3. 🔴 重点：缩小 Header 右侧按钮的间距 --- */
+            header div[style*="display:flex"] { 
+                gap: 1px !important; /* 把 15px 缩小到 5px */
+            }
+
+            /* --- 4. 缩小 Header 里的控制按钮尺寸 --- */
+            header .control-btn { 
+                width: 25px !important; 
+                height: 25px !important; 
+                padding: 0 !important; 
+                font-size: 6px !important;
+                flex-direction: row !important;
+            }
+            
+            /* 隐藏按钮里的文字，只留图标，腾出最大空间 */
+            header .control-btn span { display: none !important; }
+
+            /* --- 5. 缩小语言切换球的大小 --- */
+            .lang-switch { 
+                padding: 3px 6px !important; 
+                font-size: 12px !important; 
+                white-space: nowrap !important;
+            }
+            /* 1. 锁死大网页，禁止晃动 */
+            body { 
+                height: 100vh !important; 
+                overflow: hidden !important; 
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* 2. 容器撑满屏幕 */
+             .main-container { 
+                flex: 1; 
+                display: flex !important; 
+                flex-direction: column !important;
+                padding: 0 !important; 
+                margin: 0 !important;
+                overflow: hidden !important; 
+                width: 100vw !important; /* 👈 核心：强制占满手机屏幕宽度 */
+            }
+
+            /* 3. 视频区：固定高度 */
+            .video-section { flex: none !important; width: 100%; padding: 0; }
+            .video-wrapper { border-radius: 0; border: none; aspect-ratio: 16/9; }
+
+            /* --- 4. 极简功能键栏：8个按钮挤成一行（清理重叠版） --- */
+            .tools-panel { 
+                padding: 0px 6px !important; 
+                border: none; 
+                background: #f9f9f9; 
+                gap: 0 !important; 
+            }
+            .control-row { 
+                display: grid !important; 
+                /* 🔴 旋钮 1：这里分成了 7 份。
+                   前 6 个图标占 1 份，最后的语速按钮占 1.8 份宽。
+                   如果觉得语速还是窄，就把 1.8 改成 2.2 */
+                grid-template-columns: 0.8fr 0.8fr 0.8fr 0.9fr 0.8fr 0.8fr 2.2fr !important; 
+                gap: 3px !important; 
+                width: 100% !important;
+                align-items: center;
+                margin: 0 !important;
+            }
+            
+            .control-btn { 
+                /* 🔴 旋钮 2：高度。
+                   统一改为 38px，这样点起来才舒服 */
+                height: 38px !important; 
+                font-size: 14px !important;
+                border-radius: 6px !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                margin: 0 !important;
+            }
+            .control-btn span { display: none !important; }
+
+            /* --- 重新按 7 个位置排队 --- */
+
+            /* 循环按钮（HTML里第6个）：坐第 1 位 */
+            #loopBtn { 
+                grid-column: 1 / 2 !important; 
+                grid-row: 1 !important; 
+            }
+
+            /* 5个播放键：依次坐 2,3,4,5,6 位（会自动排列） */
+            
+            /* 语速选择框（HTML里第7个）：坐第 7 位（最右边） */
+            .speed-select { 
+                grid-column: 7 / 8 !important; 
+                grid-row: 1 !important;
+                /* 👈 高度必须同步改为 38px */
+                height: 38px !important; 
+                width: 100% !important; 
+                font-size: 11px !important; 
+                padding: 0 2px !important;
+                margin: 0 !important;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                background: #fff;
+                text-align: center;
+            }
+
+            /* 🔴 重要：请务必删除您代码里剩下的那段 height: 26px 的重复代码 🔴 */
+            
+            /* 🔴 注意：我删掉了您代码后面那个重复的 height: 26px 的代码块，
+               因为它才是导致按钮变小的罪魁祸首 🔴 */
+
+            /* 中间那 5 个播放控制键会自动坐在 2,3,4,5,6 这几个位置 */
+            /* 中间那 5 个播放控制键（上一句、-5s等）会自动填满第 2 到第 6 个位置 */
+            
+        
+        
+            
+        
+
+            /* 5. 🔴 大面积字幕区：占据下方所有空间 */
+            .subtitle-section { 
+                flex: 1 !important; 
+                display: flex !important;
+                flex-direction: column !important;
+                min-height: 0; 
+                margin: 0 !important;
+                border: none !important;
+                background: #fff !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                position: relative !important;
+                top: 0 !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+
+            /* 标题栏固定 */
+            .sub-header {
+                flex: none !important;
+                padding: 0px 15px;
+                border-bottom: 1px solid #eee;
+                background: #fff;
+            }
+
+            /* 字幕列表：彻底开启，能看多少看多少 */
+            .subtitle-list { 
+                flex: 1 !important;
+                overflow-y: auto !important; 
+                padding: 10px 15px !important; 
+                height: auto !important;
+                max-height: none !important; /* 👈 解除单行限制 */
+            }
+
+            /* 字幕项：间距回归正常 */
+            .sub-item {
+                margin-bottom: 20px !important; 
+                padding: 5px !important;
+                text-align: center;
+                border-bottom: 1px solid #f5f5f5;
+                
+            
+            }
+            
+            /* 查词框适配 */
+            .dict-modal { width: 90% !important; }
+        }
+        
+        /* --- 🔴 只在开启上下布局模式时生效的“补丁” --- */
+
+/* --- 🔴 弹性等高版：上下布局模式 --- */
+
+/* --- 老师专属：功能键拉高美化版 --- */
+
+body.vertical-mode .video-section {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: #fff; 
+    display: flex; 
+    flex-direction: row; 
+    padding: 10px 25px;
+    gap: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    box-sizing: border-box;
+    /* 👈 关键：让右侧面板的高度强制等于左侧视频高度 */
+    align-items: stretch; 
+    justify-content: center;
+}
+
+body.vertical-mode .video-wrapper {
+    flex: 1; 
+    max-width: 1000px; /* 宽屏下允许视频更大 */
+    min-width: 0;
+    border-radius: 12px;
+}
+
+body.vertical-mode .tools-panel {
+    flex: 0 0 160px; /* 固定一个合适的宽度 */
+    background: #fdfaf5;
+    padding: 12px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    /* 👈 关键：让内部的按钮容器占据所有高度 */
+    justify-content: space-between; 
+    box-sizing: border-box;
+}
+
+body.vertical-mode .control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    /* 👈 关键：让这个容器填满 tools-panel 剩下的空间 */
+    flex: 1; 
+    justify-content: space-between; 
+}
+
+/* 🔴 核心修改：大幅增加按钮高度 */
+body.vertical-mode .control-btn {
+    width: 100%;
+    /* 👈 使用 flex: 1 让按钮自动瓜分高度，但限制一个最大值防止变成砖头 */
+    flex: 1;
+    min-height: 45px; 
+    max-height: 65px; 
+    
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 0 15px;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--dark-red);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+body.vertical-mode .btn-play {
+    background: var(--primary);
+    color: white;
+    border: none;
+    justify-content: center;
+    max-height: 80px; /* 播放按钮可以更高一点 */
+}
+
+/* 练习按钮也拉高 */
+body.vertical-mode .practice-btn {
+    height: 60px; /* 固定一个比较大的高度 */
+    flex: none;
+    margin-top: 10px;
+    font-size: 15px;
+    border-radius: 12px;
+}
+
+/* 速度选择框 */
+body.vertical-mode .speed-select {
+    width: 100%;
+    height: 45px;
+    flex: none;
+    border-radius: 10px;
+    border: 1px solid #eee;
+}
+
+/* 针对窄屏的保护逻辑保持不变 */
+@media (max-width: 1150px) {
+    body.vertical-mode .tools-panel { flex: 0 0 70px; padding: 10px 5px; }
+    body.vertical-mode .control-btn span, body.vertical-mode .practice-btn span { display: none; }
+    body.vertical-mode .control-btn { justify-content: center; padding: 0; }
+}
+
+/* --- 🔴 老师专用：上下模式“单行窗口”补丁 --- */
+
+/* 1. 开启上下模式时，锁死网页，禁止整页滚动 */
+body.vertical-mode { 
+    height: 100vh; 
+    overflow: hidden; 
+}
+
+/* --- 🔴 只改动这一块：调整盒子位置、宽度和强制显示开关 --- */
+body.vertical-mode .subtitle-section {
+    position: fixed;
+    top: 650px; /* 👈 往上提一点，确保不挡住标题和开关 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 1600px;
+    height: 160px; /* 👈 盒子给够 320px 高度，保证翻译绝对能装下 */
+    background: white;
+    z-index: 900;
+    display: flex !important;
+    flex-direction: column;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* --- 🔴 修正：用智能对齐取代死数字 gap，实现随屏缩短 --- */
+body.vertical-mode .sub-header {
+    display: flex !important;
+    visibility: visible !important;
+    /* 左右内边距：和顶部的 Header 保持一致，这样开关就正好在右侧功能键下方 */
+    padding: 5px 30px !important; 
+    background: #fff;
+    border-bottom: 1px solid #eee;
+
+    /* 1. 👈 核心修改：大屏分居两侧，小屏自动缩短中间空隙 */
+    justify-content: space-between !important; 
+    
+    /* 2. 👈 确保垂直居中对齐 */
+    align-items: center !important;
+    
+    /* 3. 👈 防止文字被挤压成竖排 */
+    white-space: nowrap !important;
+    gap: 20px; /* 保证最挤的时候也有 20px 的缝隙 */
+}
+
+/* 保护标题，防止标题太长挤掉开关 */
+body.vertical-mode .sub-title {
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 标题太长显示省略号 */
+    white-space: nowrap;
+}
+
+/* --- 3. 内部滚动区域（字幕在里面跑的那个空间） --- */
+body.vertical-mode .subtitle-list {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    /* 【内边距】第一个10是上下，第二个1是左右。
+       如果想让第一句字幕出现时不要死贴着标题栏，把第一个10改大（如 30） */
+    padding: 5px 1px !important; 
+    scroll-behavior: smooth;
+}
+
+/* 4. 字幕项在盒子里间距拉大，确保一次只看一句 */
+/* --- 🔴 只改动这一块：压缩字幕块内部间距，让翻译露出来 --- */
+body.vertical-mode .sub-item {
+    /* 👈 重点：每一句之间空出 100px，确保滚动时盒子里只剩这一句 */
+    
+    margin-bottom: 80px !important; 
+    
+    /* 👈 重点：压缩内部，让拼音、汉字、翻译抱得更紧，不留空位 */
+    padding: 0 !important; 
+    padding-left: 0% !important; 
+    padding-right: 15% !important; 
+    box-sizing: border-box !important; 
+    background: transparent !important;
+    text-align: center;
+    display: flex;
+    flex-direction: column;  
+    gap: 1px; /* 👈 拼音汉字翻译之间的微小缝隙 */
+}
+/* --- 🔴 字幕内容醒目化补丁 --- */
+body.vertical-mode .sub-item {
+    margin-bottom: 180px !important; /* 👈 间距拉大到 150，防止大字体干扰 */
+    padding-right: 12% !important; 
+    box-sizing: border-box !important; 
+    text-align: center;
+    display: flex;
+    flex-direction: column;  
+    gap: 1px !important; /* 👈 调大到 8px，防止拼音和汉字挤在一起 */
+}
+
+/* --- 🔴 下面是新增的字体控制： --- */
+
+/* 汉字：宣传视频的主角，要最大、最黑 */
+body.vertical-mode .sub-item .chinese {
+    font-size: 36px !important; /* 👈 调大字号，建议 32px - 40px 之间 */
+    font-weight: 800 !important; /* 👈 加粗到极致 */
+    color: var(--dark-red); /* 保持你的深红色，非常醒目 */
+    line-height: 1.2;
+}
+
+/* 拼音：辅助阅读，适中大小 */
+body.vertical-mode .sub-item .pinyin {
+    font-size: 18px !important; /* 👈 调大到 18px */
+    font-weight: 500;
+    color: var(--brown);
+}
+
+/* 翻译：宣传视频也要看清意思 */
+body.vertical-mode .sub-item .trans {
+    font-size: 16px !important; /* 👈 调大到 16px */
+    color: #666; /* 灰色稍微加深一点 */
+    font-style: italic;
+}
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="location.href='hsk.html'"><i class="fas fa-chevron-left"></i> <span data-i18n="back">返回课程大厅</span></div>
+        <div style="display:flex; gap:15px;">
+            <button class="control-btn" onclick="toggleWordMode()" id="wordModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;">
+                <i class="fas fa-book-open"></i> <span data-i18n="word_mode">查词模式: 关</span>
+            </button>
+            <button class="control-btn" onclick="toggleAudioMode()" id="audioModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;">
+                <i class="fas fa-headphones"></i> <span data-i18n="audio_mode">音频模式</span>
+            </button>
+            <button class="control-btn" onclick="toggleFullscreen()" id="fullscreenBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; background:var(--bg); border:none;"><i class="fas fa-expand"></i></button>
+            <button class="control-btn" onclick="toggleDesktopLayout()" id="layoutToggleBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; margin-right:10px;">
+    <i class="fas fa-columns"></i> <span id="layoutText">左右布局</span>
+</button>
+            <div class="lang-switch" onclick="toggleLang()"><i class="fas fa-globe"></i> <span id="langLabel">RU</span></div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="video-section">
+            <div class="video-wrapper">
+                <video id="myVideo" controls playsinline webkit-playsinline>
+    <source src="" type="video/mp4">
+</video>
+                <div class="audio-visualizer" id="audioVisualizer"><div class="wave-container"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div><div class="audio-text">Playing...</div></div>
+            </div>
+            <div class="tools-panel">
+                <div class="control-row">
+                    <button class="control-btn" onclick="seekRelative(-1)"><i class="fas fa-step-backward"></i><span data-i18n="prev">上一句</span></button>
+                    <button class="control-btn" onclick="video.currentTime -= 5"><i class="fas fa-undo"></i><span>-5s</span></button>
+                    <button class="control-btn btn-play" onclick="togglePlay()"><i class="fas fa-play" id="playIcon"></i></button>
+                    <button class="control-btn" onclick="video.currentTime += 5"><i class="fas fa-redo"></i><span>+5s</span></button>
+                    <button class="control-btn" onclick="seekRelative(1)"><i class="fas fa-step-forward"></i><span data-i18n="next">下一句</span></button>
+                    <button class="control-btn" id="loopBtn" onclick="toggleLoop()"><i class="fas fa-sync-alt"></i><span data-i18n="loop">循环</span></button>
+                    <select class="speed-select" onchange="changeSpeed(this.value)"><option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1.0" selected>1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option></select>
+                </div>
+                <button class="practice-btn" onclick="goToPractice()"><i class="fas fa-graduation-cap"></i><span data-i18n="start_practice">开始本课练习</span></button>
+            </div>
+        </div>
+        <div class="subtitle-section" id="subContainer">
+            <div class="sub-header">
+                <div class="sub-title" id="lessonTitle">Loading...</div>
+                <div class="header-actions">
+                    <div class="toggle-circle on" onclick="toggleVisibility('py', this)">拼</div>
+                    <div class="toggle-circle on" onclick="toggleVisibility('cn', this)">汉</div>
+                    <div class="toggle-circle on" id="transToggle" onclick="toggleVisibility('trans', this)">RU</div>
+                </div>
+            </div>
+            <div class="subtitle-list" id="subtitleList"></div>
+        </div>
+    </div>
+
+    <!-- 1. 关键：引入中央数据库 -->
+    <!-- 1. 引入 Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 2. 引入云端加载器 -->
+    <script src="lesson_hsk3-1-1.js"></script> 
+    
+    <!-- === 补丁 1：查词弹窗 (插入在 </body> 之前) === -->
+    <div class="overlay" id="overlay" onclick="closeDict()"></div>
+    <div class="dict-modal" id="dictModal">
+        <div class="dict-close" onclick="closeDict()">×</div>
+        <div class="dict-word" id="d-word">加载中...</div>
+        <div class="dict-pinyin" id="d-pinyin">...</div>
+        <div class="dict-meaning" id="d-mean">
+            <i class="fas fa-spinner fa-spin"></i> AI 正在思考...
+        </div>
+    </div>
+
+    <script>
+        // === 2. 使用数据库 ===
+        const params = new URLSearchParams(window.location.search);
+    const id = params.get('id') || "hsk3-1-1"; 
+        
+        // 确保数据库已加载
+        let lesson = null;
+        if (window.lessonDatabase) {
+            lesson = window.lessonDatabase[id];
+        } else {
+            alert("Error: data.js not found!");
+        }
+
+        const video = document.getElementById('myVideo');
+        const list = document.getElementById('subtitleList');
+        const container = document.getElementById('subContainer');
+        const playIcon = document.getElementById('playIcon');
+        let loopEnabled = false, activeIndex = -1, isAudioMode = false, isWordMode = false;
+        let currentLang = 'ru'; 
+        // === 补丁 2：查词核心逻辑 (插入在 let currentLang = 'ru'; 下面) ===
+        
+        // 🔴🔴🔴 请在这里填入你的 API Key 🔴🔴🔴
+        const API_KEY = "sk-..."; 
+
+        function toggleWordMode() {
+            isWordMode = !isWordMode;
+            const btn = document.getElementById('wordModeBtn');
+            // 更新按钮文字
+            if (isWordMode) {
+                btn.classList.add('active');
+                btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode_on || "查词: 开"}`;
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode || "查词: 关"}`;
+            }
+            // 重新渲染字幕，把文字变成可点击的状态
+            renderSubtitles();
+        }
+
+        // === 🟢 终极修复版：查词弹窗 (双语显示 + 双词典) ===
+        function lookupWord(word, event) {
+            event.stopPropagation(); 
+            video.pause(); 
+
+            // 显示弹窗
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('dictModal').classList.add('show');
+            document.getElementById('d-word').innerText = word;
+            
+            // 获取本地数据
+            const dictData = lesson.dictionary && lesson.dictionary[word];
+
+            let html = '';
+
+            if (dictData) {
+                // 1. 拼音
+                document.getElementById('d-pinyin').innerText = dictData.py || "";
+                
+                // 2. 俄语含义 (主释义，加粗大字)
+                html += `<div style="font-weight:bold; font-size:18px; color:#333; margin-bottom:4px;">${dictData.mean}</div>`;
+                
+                // 3. ✅ 找回英语含义 (如果有，显示在下方)
+                if (dictData.mean_en) {
+                    html += `<div style="font-size:14px; color:#666; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">🇺🇸 ${dictData.mean_en}</div>`;
+                } else {
+                    html += `<div style="margin-bottom:10px;"></div>`; // 占位
+                }
+                
+                // 4. 词组
+                if(dictData.phrases && dictData.phrases.length > 0) {
+                    html += `<div style="font-size:13px; color:#555; margin-bottom:8px; background:#f3f4f6; padding:6px; border-radius:6px;">
+                        🔹 ${dictData.phrases.join(', ')}
+                    </div>`;
+                }
+                
+                // 5. 例句
+                if(dictData.ex) {
+                    const exText = dictData.ex.replace(/\n/g, '<br>');
+                    html += `<div style="font-size:13px; color:#444; background:#fffbeb; padding:8px; border-radius:6px; border-left:3px solid #f59e0b; line-height:1.4;">
+                        ${exText}
+                    </div>`;
+                }
+            } else {
+                document.getElementById('d-pinyin').innerText = "---";
+                html += `<div style="color:#999; margin-bottom:10px;">(该词汇未收录在离线词典中)</div>`;
+            }
+
+            // 6. ✅ 底部按钮区 (两排布局)
+            html += `
+                <div style="margin-top:15px; display:flex; gap:8px;">
+                    <!-- 俄语词典 BKRS -->
+                    <a href="https://bkrs.info/slovo.php?ch=${word}" target="_blank" class="dict-btn-link" style="flex:1; background:#e0f2fe; color:#0369a1;">
+                        🇷🇺 BKRS
+                    </a>
+                    <!-- 英语词典 MDBG -->
+                    <a href="https://www.mdbg.net/chinese/dictionary?page=worddict&wdrst=0&wdq=${word}" target="_blank" class="dict-btn-link" style="flex:1; background:#fce7f3; color:#be185d;">
+                        🇺🇸 MDBG
+                    </a>
+                </div>
+                <!-- 收藏按钮 -->
+                <div style="margin-top:8px;">
+                    <button onclick="addToNotebook('${word}')" class="dict-btn-add" style="width:100%;">
+                        ⭐ 加入生词本
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('d-mean').innerHTML = html;
+        }
+
+        // === 🟢 修复版：加入生词本 (同时初始化复习进度) ===
+        function addToNotebook(word) {
+            // 1. 读取旧列表
+            let vocabList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
+            
+            // 2. 查重
+            if (vocabList.includes(word)) {
+                alert(`"${word}" 已经在你的生词本里啦！`);
+                return;
+            }
+            
+            // 3. 保存到列表
+            vocabList.push(word);
+            localStorage.setItem('my_vocab_list', JSON.stringify(vocabList));
+
+            // 4. 🟢 关键：同时初始化“元数据” (让复习页能立即识别)
+            let vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+            const now = Date.now();
+            // 如果 Meta 里没有这个词，就初始化它
+            if (!vocabMeta[word]) {
+                vocabMeta[word] = { 
+                    created: now,      // 创建时间
+                    nextReview: now,   // 下次复习时间 (立即)
+                    level: 0,          // 记忆等级 0
+                    note: ""           // 笔记
+                };
+                localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
+            }
+            
+            // 5. 反馈
+            alert(`✅ 已将 "${word}" 加入生词本！\n(当前共 ${vocabList.length} 个词)`);
+        }
+
+        function closeDict() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('dictModal').classList.remove('show');
+        }
+
+        const uiDict = {
+            ru: { back: "Назад", word_mode: "Словарь", word_mode_on: "Словарь", audio_mode: "Аудио", prev: "Пред.", next: "След.", loop: "Повтор", start_practice: "Начать упражнения", trans_label: "RU" },
+            en: { back: "Back", word_mode: "Dictionary", word_mode_on: "Dictionary", audio_mode: "Audio Mode", prev: "Prev", next: "Next", loop: "Loop", start_practice: "Start Practice", trans_label: "EN" },
+            cn: { back: "返回", word_mode: "词典", word_mode_on: "词典", audio_mode: "音频模式", prev: "上一句", next: "下一句", loop: "循环", start_practice: "开始本课练习", trans_label: "译" }
+        };
+
+        if(lesson) {
+            document.getElementById('lessonTitle').innerText = lesson.title;
+            video.src = lesson.video;
+            window.currentSubtitles = lesson.subs; 
+            updateLanguage();
+
+            // 🟢 新增：断点续播 (读取本地进度)
+            const savedTimePercent = localStorage.getItem('progress_' + id);
+            if (savedTimePercent && parseInt(savedTimePercent) > 0 && parseInt(savedTimePercent) < 100) {
+                // 等视频元数据加载完再跳转，防止黑屏
+                video.addEventListener('loadedmetadata', () => {
+                    const jumpTime = video.duration * (parseInt(savedTimePercent) / 100);
+                    if(jumpTime > 0) {
+                        video.currentTime = jumpTime;
+                        console.log(`已恢复进度到: ${parseInt(savedTimePercent)}%`);
+                    }
+                }, { once: true }); // 只执行一次
+            }
+        }
+
+        function toggleLang() {
+            if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
+            updateLanguage();
+        }
+        function toggleDesktopLayout() {
+    const container = document.body; // 我们直接给 body 加 class，这样全局都能控制
+    const btnText = document.getElementById('layoutText');
+    const btnIcon = document.querySelector('#layoutToggleBtn i');
+
+    if (container.classList.contains('vertical-mode')) {
+        // 恢复左右布局
+        container.classList.remove('vertical-mode');
+        btnText.innerText = "左右布局";
+        btnIcon.className = "fas fa-columns";
+        localStorage.setItem('pref_layout', 'side');
+    } else {
+        // 进入上下布局
+        container.classList.add('vertical-mode');
+        btnText.innerText = "上下布局";
+        btnIcon.className = "fas fa-grip-lines";
+        localStorage.setItem('pref_layout', 'vertical');
+    }
+    // 强制刷新一下高亮位置
+    activeIndex = -1;
+}
+
+// 页面加载时恢复用户喜欢的布局
+window.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('pref_layout') === 'vertical') {
+        toggleDesktopLayout();
+    }
+});
+
+        function updateLanguage() {
+            let label = 'RU';
+            if (currentLang === 'en') label = 'EN';
+            if (currentLang === 'cn') label = 'CN';
+            document.getElementById('langLabel').innerText = label;
+            document.getElementById('transToggle').innerText = uiDict[currentLang].trans_label;
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
+            });
+            renderSubtitles();
+        }
+
+        function renderSubtitles() {
+            list.innerHTML = '';
+            window.currentSubtitles.forEach((sub, index) => {
+                const div = document.createElement('div');
+                div.className = 'sub-item';
+                div.id = 'sub-' + index;
+
+                let transText = sub.ru;
+                if (currentLang === 'en') transText = sub.en || sub.ru;
+                if (currentLang === 'cn') transText = `${sub.ru} <br> ${sub.en || ''}`;
+
+                let chineseContent = sub.cn;
+                if (isWordMode && window.Intl && Intl.Segmenter) {
+                    const segmenter = new Intl.Segmenter('zh-CN', { granularity: 'word' });
+                    const segments = segmenter.segment(sub.cn);
+                    chineseContent = '';
+                    for (const segment of segments) {
+                        chineseContent += `<span class="word-span" onclick="lookupWord('${segment.segment}', event)">${segment.segment}</span>`;
+                    }
+                }
+                div.innerHTML = `<div class="pinyin">${sub.py}</div><div class="chinese">${chineseContent}</div><div class="trans">${transText}</div>`;
+                div.onclick = () => { if (!isWordMode) { video.currentTime = sub.start; video.play(); } };
+                list.appendChild(div);
+            });
+        }
+
+        // ... (省略 AI 查词和播放逻辑，保持不变) ...
+        // 为了确保能运行，我把基础播放逻辑补全：
+        
+        // === 修改后的播放逻辑 (自动保存进度) ===
+        video.ontimeupdate = () => {
+            const time = video.currentTime;
+            const duration = video.duration;
+            const subs = window.currentSubtitles;
+
+            // 1. 计算并保存进度 (新功能)
+            if (duration > 0) {
+                const percent = Math.floor((time / duration) * 100);
+                
+                // 只有进度变了才保存，减少性能消耗
+                // Key 的格式是: 'progress_课程ID'
+                const oldPercent = localStorage.getItem('progress_' + id);
+                if (percent > (oldPercent || 0)) {
+                    localStorage.setItem('progress_' + id, percent);
+                    
+                    // 如果超过 90%，标记为“已完成”
+                    if (percent >= 90) {
+                        localStorage.setItem('done_' + id, 'true');
+                    }
+                }
+            }
+
+            // 2. 循环逻辑 (保持不变)
+            if (loopEnabled && activeIndex !== -1 && time >= subs[activeIndex].end) {
+                video.currentTime = subs[activeIndex].start; video.play();
+            }
+
+            // 3. 高亮逻辑 (保持不变)
+            const currentIndex = subs.findIndex(s => time >= s.start && time < s.end);
+            if (currentIndex !== -1 && currentIndex !== activeIndex) {
+                if (activeIndex !== -1) document.getElementById('sub-' + activeIndex)?.classList.remove('active');
+                const activeItem = document.getElementById('sub-' + currentIndex);
+                if (activeItem) { 
+            activeItem.classList.add('active'); 
+            
+            // 无论哪种模式，都让当前字幕滚动到容器（小窗口）的正中间
+            activeItem.scrollIntoView({ behavior: "smooth", block: "center" }); 
+        }
+                activeIndex = currentIndex;
+            }
+        };
+
+        function seekRelative(offset) {
+            let target = activeIndex + offset;
+            if (target < 0) target = 0; if (target >= window.currentSubtitles.length) target = window.currentSubtitles.length - 1;
+            if (window.currentSubtitles[target]) { video.currentTime = window.currentSubtitles[target].start; video.play(); }
+        }
+        function togglePlay() { if (video.paused) { video.play(); playIcon.className = 'fas fa-pause'; } else { video.pause(); playIcon.className = 'fas fa-play'; } }
+        function changeSpeed(rate) { video.playbackRate = rate; }
+        function toggleLoop() { loopEnabled = !loopEnabled; document.getElementById('loopBtn').classList.toggle('active'); }
+        function toggleAudioMode() { isAudioMode = !isAudioMode; document.getElementById('audioVisualizer').classList.toggle('active'); document.getElementById('audioModeBtn').classList.toggle('active'); }
+        function toggleFullscreen() { document.body.classList.toggle('focus-mode'); }
+        function toggleVisibility(type, btn) { const cls = 'hide-' + type; if (container.classList.contains(cls)) { container.classList.remove(cls); btn.classList.add('on'); } else { container.classList.add(cls); btn.classList.remove('on'); } }
+        function goToPractice() { location.href = 'practice.html?id=' + id; }
+        
+        video.onplay = () => playIcon.className = 'fas fa-pause';
+        video.onpause = () => playIcon.className = 'fas fa-play';
+    </script>
+</body>
+</html>

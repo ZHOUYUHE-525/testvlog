@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSK 词库旗舰版 | 汉语 Vlog</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script> 
+    <script src="hsk_data.js"></script>
+
+    <style>
+        :root {
+            --cream: #F9F7F2;
+            --retro-red: #8B3A3A;
+            --retro-teal: #6CAD9C;
+            --text: #4A3B32;
+            --border: #E0DDD5;
+            --white: #FFFFFF;
+            --shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        body { 
+            margin: 0; font-family: "PingFang SC", "STHeiti", sans-serif; 
+            background: var(--cream); color: var(--text); 
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        header {
+            background: var(--white); border-bottom: 1px solid var(--border);
+            padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;
+            z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.02); gap: 10px;
+        }
+        .back-btn { cursor: pointer; color: var(--retro-red); font-weight: bold; display: flex; align-items: center; gap: 5px; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+        
+        .search-box { flex: 1; max-width: 350px; position: relative; }
+        .search-box input {
+            width: 100%; padding: 8px 12px 8px 35px; border-radius: 20px;
+            border: 1px solid var(--border); background: var(--cream); outline: none; transition: 0.3s; font-size: 13px;
+        }
+        .search-box i { position: absolute; left: 12px; top: 10px; color: #aaa; font-size: 12px; }
+
+        .lang-toggle { 
+            display: flex; background: #f0f0f0; padding: 3px; border-radius: 20px; 
+            gap: 2px; flex-shrink: 0; border: 1px solid #ddd;
+        }
+        .lang-btn {
+            padding: 4px 10px; border-radius: 15px; font-size: 10px; font-weight: bold;
+            cursor: pointer; transition: 0.3s; border: none; color: #888; background: none;
+        }
+        .lang-btn.active { background: var(--white); color: var(--retro-red); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        main { flex: 1; display: flex; overflow: hidden; }
+
+        .sidebar { width: 220px; border-right: 1px solid var(--border); background: var(--white); overflow-y: auto; flex-shrink: 0; }
+        .nav-level { padding: 15px 20px; font-weight: bold; background: #fdfaf5; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .lesson-list { display: none; background: var(--white); border-bottom: 1px solid var(--border); }
+        .lesson-list.active { display: block; }
+        .lesson-item { padding: 10px 40px; font-size: 12px; cursor: pointer; border-left: 4px solid transparent; color: #666; }
+        .lesson-item.active { background: #FAF8F5; color: var(--retro-red); font-weight: bold; border-left-color: var(--retro-red); }
+
+        .word-list-container { flex: 1; padding: 20px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; align-content: flex-start; background: #F4F2EB; }
+        .word-mini-card { background: var(--white); padding: 15px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; text-align: center; position: relative; transition: 0.3s; }
+        .word-mini-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--retro-teal); }
+        .mini-hz { font-size: 22px; font-weight: bold; margin-bottom: 4px; color: #333; }
+        .mini-py { font-size: 11px; color: var(--retro-teal); font-weight: 500; }
+        .source-tag { position: absolute; top: 4px; right: 6px; font-size: 7px; color: #bbb; font-weight: bold; }
+
+        .detail-panel { width: 380px; border-left: 1px solid var(--border); background: var(--white); padding: 25px; overflow-y: auto; display: none; flex-shrink: 0; }
+        #writer-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0; }
+        .char-box-wrapper { background: #fff; border: 1.5px solid #f0f0f0; border-radius: 10px; padding: 6px; cursor: pointer; }
+
+        .py-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .speak-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--retro-teal); }
+
+        .section-box { margin-top: 20px; }
+        .label { font-size: 9px; color: #bbb; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 6px; display: block; }
+        .trans-val { font-size: 16px; color: var(--retro-red); font-weight: bold; }
+        .phrase-item { background: #f0ede5; padding: 4px 10px; border-radius: 8px; display: inline-block; margin: 3px; font-size: 12px; border: 1px solid #e0ddd5; }
+        .example-box { line-height: 1.6; font-size: 12px; background: #FAF9F6; padding: 12px; border-radius: 10px; border-left: 3px solid var(--retro-teal); margin-bottom: 8px; }
+
+        .add-basket-btn {
+            padding: 10px 20px; border-radius: 20px; border: none; 
+            background: var(--retro-red); color: white; font-weight: bold; 
+            cursor: pointer; font-size: 13px; min-width: 160px; transition: 0.3s;
+        }
+        .add-basket-btn:hover { background: #6b2d2d; transform: scale(1.02); }
+
+        #print-basket { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--retro-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(139, 58, 58, 0.4); cursor: pointer; z-index: 200; }
+        #basket-count { position: absolute; top: 0; right: 0; background: var(--retro-teal); color: white; width: 18px; height: 18px; border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid white; }
+
+        #print-stage { display: none; }
+        @media print {
+            body > *:not(#print-stage) { display: none !important; }
+            #print-stage { display: grid !important; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, 1fr); width: 210mm; height: 297mm; padding: 10mm; gap: 5mm; box-sizing: border-box; background: white !important; }
+            .flash-card { display: flex !important; flex-direction: column; justify-content: center; align-items: center; border: 1px dashed #bbb; padding: 15px; text-align: center; height: 65mm; background: white !important; box-sizing: border-box; }
+            .fc-hz { font-size: 46px; font-weight: bold; margin: 5px 0; color: #000; }
+            .fc-py { font-size: 12px; color: #666; font-weight: bold; }
+            .fc-tr { font-size: 14px; color: #8B3A3A; font-weight: bold; }
+            .fc-ex { margin-top: 8px; font-size: 9px; color: #999; border-top: 1px dotted #eee; padding-top: 5px; width: 90%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="no-print">
+        <div class="back-btn" onclick="handleBack()">
+            <i class="fas fa-arrow-left"></i> <span data-i18n="back_btn">返回</span>
+        </div>
+        
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="main-search" data-i18n-placeholder="search_ph" oninput="handleSearch()">
+        </div>
+
+        <div class="lang-toggle">
+            <button class="lang-btn active" id="btn-ru" onclick="switchLang('ru')">RU</button>
+            <button class="lang-btn" id="btn-en" onclick="switchLang('en')">EN</button>
+        </div>
+    </header>
+
+    <main class="no-print">
+        <aside class="sidebar">
+            <!-- HSK 1 抽屉 -->
+            <div class="level-group">
+                <div class="nav-level" onclick="toggleLevel(1)">
+                    <span>HSK 1 (3.0)</span>
+                    <i class="fas fa-chevron-down" id="arrow-1"></i>
+                </div>
+                <div id="lesson-list-1" class="lesson-list active"></div>
+            </div>
+            <!-- HSK 2 抽屉 -->
+            <div class="level-group">
+                <div class="nav-level" onclick="toggleLevel(2)">
+                    <span>HSK 2 (3.0)</span>
+                    <i class="fas fa-chevron-down" id="arrow-2"></i>
+                </div>
+                <div id="lesson-list-2" class="lesson-list"></div>
+            </div>
+            <!-- HSK 3 抽屉 -->
+            <div class="level-group">
+                <div class="nav-level" onclick="toggleLevel(3)">
+                    <span>HSK 3 (3.0)</span>
+                    <i class="fas fa-chevron-down" id="arrow-3"></i>
+                </div>
+                <div id="lesson-list-3" class="lesson-list"></div>
+            </div>
+            <!-- HSK 4 抽屉 -->
+            <div class="level-group">
+                <div class="nav-level" onclick="toggleLevel(4)">
+                    <span>HSK 4 (3.0)</span>
+                    <i class="fas fa-chevron-down" id="arrow-4"></i>
+                </div>
+                <div id="lesson-list-4" class="lesson-list"></div>
+            </div>
+            <!-- HSK 5 抽屉 -->
+            <div class="level-group">
+                <div class="nav-level" onclick="toggleLevel(5)">
+                    <span>HSK 5 (3.0)</span>
+                    <i class="fas fa-chevron-down" id="arrow-5"></i>
+                </div>
+                <div id="lesson-list-5" class="lesson-list"></div>
+            </div>
+            <!-- HSK 6 抽屉 -->
+            <div class="level-group">
+                <div class="nav-level" onclick="toggleLevel(6)">
+                    <span>HSK 6 (3.0)</span>
+                    <i class="fas fa-chevron-down" id="arrow-6"></i>
+                </div>
+                <div id="lesson-list-6" class="lesson-list"></div>
+            </div>
+            <!-- HSK 7-9 抽屉 -->
+            <div class="level-group">
+                <div class="nav-level" onclick="toggleLevel('7-9')">
+                    <span>HSK 7-9 (3.0)</span>
+                    <i class="fas fa-chevron-down" id="arrow-7-9"></i>
+                </div>
+                <div id="lesson-list-7-9" class="lesson-list"></div>
+            </div>
+        </aside>
+
+        <section class="word-list-container" id="word-grid"></section>
+
+        <!-- 找到这一行，确保内部结构如下 -->
+<section class="detail-panel" id="detail-panel" style="width:380px; border-left:1px solid #E0DDD5; background:#fff; padding:25px; overflow-y:auto; display:none; flex-shrink: 0;">
+    <!-- 1. 汉字动画区域 -->
+    <div id="writer-container"></div>
+
+    <!-- 2. 拼音和发音 -->
+    <div class="py-row" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:15px;">
+        <div id="d-pinyin" style="font-size:18px; color:var(--primary); font-weight:bold;"></div>
+        <div class="speak-btn" onclick="playSpeech()" style="cursor:pointer; color:var(--primary);"><i class="fas fa-volume-up"></i></div>
+    </div>
+    
+    <!-- 3. 翻译区域 -->
+    <div class="section-box">
+        <span class="label" style="font-size:9px; color:#bbb; text-transform:uppercase;">Translation / Перевод</span>
+        <div class="trans-val" id="d-trans" style="font-size:18px; color:#8B3A3A; font-weight:bold;"></div>
+    </div>
+
+    <!-- 4. 词组区域 -->
+    <div class="section-box">
+        <span class="label" style="font-size:9px; color:#bbb;">常用词组 / Phrases</span>
+        <div id="d-phrases" style="margin-top:5px;"></div>
+    </div>
+
+    <!-- 5. 例句区域 -->
+    <div class="section-box">
+        <span class="label" style="font-size:9px; color:#bbb;">标准例句 / Examples</span>
+        <div id="d-examples-list" style="margin-top:10px;"></div>
+    </div>
+</section>
+    </main>
+
+    <div id="print-basket" class="no-print" onclick="generatePrintPage()">
+        <i class="fas fa-print"></i>
+        <span id="basket-count">0</span>
+    </div>
+
+    <div id="print-stage"></div>
+
+    <script>
+        const uiDict = {
+            cn: { back_btn: "返回", add_btn: "加入闪卡清单", search_ph: "搜汉字、拼音或翻译...", trans_label: "翻译", phrases_label: "常用词组", examples_label: "标准例句", in_list: "已经在清单中", empty_list: "清单为空" },
+            en: { back_btn: "Back", add_btn: "Add to Flashcard List", search_ph: "Search Hanzi, Pinyin...", trans_label: "Translation", phrases_label: "Phrases", examples_label: "Examples", in_list: "Already in list", empty_list: "List is empty" },
+            ru: { back_btn: "Назад", add_btn: "Добавить в список", search_ph: "Поиск Иероглифов, Пиньинь, Русский", trans_label: "Перевод", phrases_label: "Фразы", examples_label: "Примеры", in_list: "Уже в списке", empty_list: "Список пуст" }
+        };
+
+        let hsk_data = window.hsk_data || [];
+        let currentLang = 'ru';
+        let currentLevel = 1;
+        let currentLesson = 1;
+        let selectedWord = null;
+        let basket = [];
+
+        window.onload = () => {
+            if (hsk_data.length === 0) { console.error("❌ 数据加载失败！"); return; }
+            initLessonNav();
+            handleUrlParams();
+            updateUIStrings(); 
+        };
+
+        function handleBack() {
+            const ref = document.referrer;
+            if (ref.includes('hsk.html')) { window.location.href = 'hsk.html'; } 
+            else if (ref.includes('tools.html')) { window.location.href = 'tools.html'; } 
+            else { window.location.href = 'home.html'; }
+        }
+        
+        function handleUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const urlLv = params.get('lv') || 1;
+            const urlLesson = params.get('lesson');
+
+            const list = document.getElementById(`lesson-list-${urlLv}`);
+            if (list) list.classList.add('active');
+            
+            if (urlLesson) {
+                const lessonVal = urlLesson === 'null' ? null : parseInt(urlLesson);
+                loadLesson(urlLv, lessonVal);
+            } else {
+                if(urlLv != 1) loadLesson(urlLv, null);
+                else loadLesson(1, 1);
+            }
+        }
+
+        function switchLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${lang}`).classList.add('active');
+            updateUIStrings(); 
+            if(selectedWord) refreshDetail();
+            loadLesson(currentLevel, currentLesson); 
+        }
+
+        function updateUIStrings() {
+            const lang = currentLang === 'ru' ? 'ru' : 'en';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (uiDict[lang][key]) el.innerText = uiDict[lang][key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (uiDict[lang][key]) el.placeholder = uiDict[lang][key];
+            });
+            const transLabel = document.getElementById('label-trans');
+            if (transLabel) transLabel.innerText = uiDict[lang].trans_label;
+        }
+
+        function toggleLevel(lv) { 
+            document.getElementById(`lesson-list-${lv}`).classList.toggle('active');
+            const arrow = document.getElementById(`arrow-${lv}`);
+            if(arrow) arrow.style.transform = arrow.style.transform === 'rotate(180deg)' ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        // 🚀 核心自动化：动态生成所有等级的导航
+        function initLessonNav() {
+            const allLevels = [1, 2, 3, 4, 5, 6, '7-9'];
+            
+            allLevels.forEach(lv => {
+                const container = document.getElementById(`lesson-list-${lv}`);
+                if (!container) return;
+
+                const lvData = hsk_data.filter(w => w.level == lv);
+                if (lvData.length === 0) return;
+
+                const lessons = [...new Set(lvData.map(w => w.lesson))].sort((a,b) => {
+                    if (a === null) return 1;
+                    if (b === null) return -1;
+                    return a - b;
+                });
+
+                container.innerHTML = lessons.map(l => {
+                    const label = (l === null) ? "全部词汇 / All Words" : `Lesson ${l}`;
+                    const lessonVal = (l === null) ? 'null' : l;
+                    return `<div class="lesson-item" id="btn-l-${lv}-${lessonVal}" onclick="loadLesson('${lv}', ${lessonVal})">${label}</div>`;
+                }).join('');
+            });
+        }
+
+        function loadLesson(lv, num) {
+            currentLevel = lv;
+            currentLesson = num;
+            
+            document.querySelectorAll('.lesson-item').forEach(i => i.classList.remove('active'));
+            const btnId = `btn-l-${lv}-${num}`;
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.add('active');
+
+            const filtered = hsk_data.filter(w => w.level == lv && w.lesson === num);
+            renderWords(filtered, false);
+        }
+
+        function renderWords(list, isSearch) {
+            document.getElementById('word-grid').innerHTML = list.map(w => `
+                <div class="word-mini-card" onclick="showDetail(${w.id})">
+                    ${isSearch ? `<span class="source-tag">H${w.level}·L${w.lesson}</span>` : ''}
+                    <div class="mini-hz">${w.word}</div>
+                    <div class="mini-py">${w.pinyin}</div>
+                </div>
+            `).join('');
+        }
+
+        function showDetail(id) {
+            selectedWord = hsk_data.find(w => w.id === id);
+            refreshDetail();
+            document.getElementById('detail-panel').style.display = 'block';
+        }
+
+        function refreshDetail() {
+            document.getElementById('d-pinyin').innerText = selectedWord.pinyin;
+            document.getElementById('d-trans').innerText = selectedWord[currentLang];
+            document.getElementById('d-phrases').innerHTML = (selectedWord.phrases || []).map(p => `<span class="phrase-item">${p}</span>`).join('');
+            document.getElementById('d-examples-list').innerHTML = (selectedWord.examples || []).map(ex => `
+                <div class="example-box">
+                    <div style="font-size:10px; color:var(--retro-teal); font-weight:bold;">${ex.py}</div>
+                    <div style="font-weight:bold; margin:3px 0; font-size:14px;">${ex.hz}</div>
+                    <div style="font-size:11px; color:#888; font-style:italic;">${ex[currentLang]}</div>
+                </div>
+            `).join('');
+
+            const container = document.getElementById('writer-container');
+            container.innerHTML = "";
+            selectedWord.word.split('').forEach((char, idx) => {
+                if(char.match(/[\u4e00-\u9fa5]/)) {
+                    const div = document.createElement('div');
+                    div.className = 'char-box-wrapper'; div.id = `writer-${idx}`;
+                    container.appendChild(div);
+                    HanziWriter.create(div.id, char, { width: 80, height: 80, padding: 5, strokeColor: '#8B3A3A' }).animateCharacter();
+                    div.onclick = () => { div.innerHTML = ""; HanziWriter.create(div.id, char, { width: 80, height: 80, padding: 5, strokeColor: '#8B3A3A' }).animateCharacter(); }
+                }
+            });
+        }
+
+        function playSpeech() {
+            const msg = new SpeechSynthesisUtterance(selectedWord.word);
+            msg.lang = 'zh-CN'; msg.rate = 0.8;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function handleSearch() {
+            const q = document.getElementById('main-search').value.toLowerCase();
+            if(!q) { loadLesson(currentLevel, currentLesson); return; }
+            const filtered = hsk_data.filter(w => w.word.includes(q) || w.pinyin.toLowerCase().includes(q) || (w.ru && w.ru.toLowerCase().includes(q)) || (w.en && w.en.toLowerCase().includes(q)));
+            renderWords(filtered, true);
+        }
+
+        function addToBasket() {
+            const lang = currentLang === 'ru' ? 'ru' : 'en';
+            if(!selectedWord) return;
+            if(basket.find(b => b.id === selectedWord.id)) return alert(uiDict[lang].in_list);
+            basket.push(selectedWord);
+            document.getElementById('basket-count').innerText = basket.length;
+        }
+
+        async function generatePrintPage() {
+            const lang = currentLang === 'ru' ? 'ru' : 'en';
+            if(basket.length === 0) return alert(uiDict[lang].empty_list);
+            const stage = document.getElementById('print-stage');
+            stage.innerHTML = basket.map(b => {
+                const firstEx = b.examples ? b.examples[0] : { hz: "", py: "", ru: "", en: "" };
+                return `
+                <div class="flash-card">
+                    <div class="fc-py">${b.pinyin}</div>
+                    <div class="fc-hz">${b.word}</div>
+                    <div class="fc-tr">${b[currentLang] || ''}</div>
+                    <div class="fc-ex">
+                        <b>Ex:</b> ${firstEx.hz} <br>
+                        <i style="font-size:8px">${firstEx[currentLang] || ''}</i>
+                    </div>
+                </div>
+            `}).join('');
+            window.print();
+        }
+    </script>
+</body>
+</html>
