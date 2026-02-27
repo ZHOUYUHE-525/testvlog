@@ -1,14 +1,22 @@
 // === auth.js (CTO 佛系稳定版 - 拒绝更新闪退) ===
 
 let authClient = null;
-const AUTH_SUPABASE_URL = 'https://bwweaohahsafbecogist.supabase.co'; 
+const AUTH_SUPABASE_URL = 'https://royal-feather-3237.zhouyuhe525.workers.dev/'; 
 const AUTH_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
 
 async function initAuth() {
+    // 🟢 CTO 核心修复：把“访客检查”挪到最最前面！
+    // 只要本地存了访客证，后面所有的登录检查、联网检查全部跳过（return）
+    if (localStorage.getItem('isGuest') === 'true') {
+        console.log("🎟️ 访客通行证有效，直接跳过安检");
+        return; 
+    }
+
     if (typeof window.supabase === 'undefined') {
         setTimeout(initAuth, 100);
         return;
     }
+
     if (!authClient) {
         authClient = window.supabase.createClient(AUTH_SUPABASE_URL, AUTH_SUPABASE_KEY);
     }
@@ -18,14 +26,8 @@ async function initAuth() {
     if (isLoginPage) return; 
 
     // 🟢 核心改动：使用 getSession。它只读本地缓存，速度极快且不联网。
-    // 只要缓存里的 Token 没过期（默认1小时），它就永远不会报错，也不会踢人。
     const { data: { session } } = await authClient.auth.getSession();
 
-    if (!session) {
-        console.log("📍 无票，去登录页");
-        window.location.replace('login.html');
-        return;
-    }
 
     // 已经在页面里了，我们【不再】阻塞性地去联网核对。
     // 只有当你刷新页面或者跳转时，它才会在后台静默地、温柔地看一眼。
