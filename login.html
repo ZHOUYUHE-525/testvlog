@@ -313,37 +313,89 @@
     </section>
 
     <script>
-        const loginClient = window.supabase.createClient('https://bwweaohahsafbecogist.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw');
+        const loginClient = window.supabase.createClient('https://proxy.hanyu-vlog.com/api/supabase', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw');
         // 🟢 CTO 新增：访客进入功能
 // 🟢 CTO 终极全能版：既能进站，又能往云端记账
+// 🟢 CTO 终极隔离版：访客进入功能
 async function enterAsGuest() {
     console.log("准备以访客身份进入...");
+    const msg = document.getElementById('msg');
+    if(msg) { msg.style.color = "white"; msg.innerText = "正在为您准备访客通道..."; }
 
-    // 1. 获取网址里可能存在的优惠码
+    // 1. 核心修复：彻底清空以前任何正式用户留下的痕迹（防止污染）
+    if (typeof loginClient !== 'undefined') {
+        await loginClient.auth.signOut(); // 退出 Supabase 幽灵会话
+    }
+    localStorage.removeItem('my_session_token');
+    localStorage.removeItem('sb-bwweaohahsafbecogist-auth-token'); // 清除 Supabase 缓存
+
+    // 2. 往云端记一笔访客记录
     const params = new URLSearchParams(window.location.search);
     const refCode = params.get('ref') || 'None'; 
-
-    // 2. 往云端记一笔（使用 await 确保记完账再走，防止漏单）
     if (typeof loginClient !== 'undefined') {
         try {
             await loginClient.from('site_visits').insert({ 
-                page_name: '进入主页', 
-                promo_code: refCode,      // 记录来源（哪个老师带的）
-                user_mode: 'Visitor'      // 标记是访客
+                page_name: '进入主页', promo_code: refCode, user_mode: 'Visitor' 
             });
-        } catch (e) {
-            console.log("统计记录失败，但不影响进站");
-        }
+        } catch (e) { console.log("统计记录失败，但不影响进站"); }
     }
 
-    // 3. 发放“访客通行证”
+    // 3. 确立绝对干净的访客身份
     localStorage.setItem('isGuest', 'true'); 
-    
-    // 4. 给访客试看权限
     localStorage.setItem('my_access_tags', JSON.stringify(['trial_pack'])); 
     
-    // 5. 正式领进屋
+    // 4. 正式领进屋
     window.location.href = 'home.html';
+}
+
+// 🟢 CTO 终极隔离版：正式用户登录功能
+async function handleAuthAction() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const msg = document.getElementById('msg');
+    
+    if(!email || !password) { msg.style.color="red"; msg.innerText = "Required!"; return; }
+    msg.style.color = "white"; msg.innerText = "Connecting...";
+    
+    try {
+        if (isSignUpMode) {
+            const { error } = await loginClient.auth.signUp({ email, password });
+            if (error) throw error;
+            msg.style.color = "var(--primary)"; msg.innerText = "Success! Log in now.";
+            setTimeout(toggleMode, 1500);
+        } else {
+            // 1. 核心修复：登录的瞬间，彻底摧毁访客标记！
+            localStorage.removeItem('isGuest');
+
+            // 2. 执行登录
+            const { data, error } = await loginClient.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+
+            // 3. 登录成功后，立刻拉取该用户的最新权限（不要依赖 home.html 去拉）
+            const { data: profile } = await loginClient
+                .from('profiles')
+                .select('access_tags')
+                .eq('id', data.user.id)
+                .maybeSingle();
+
+            if (profile && profile.access_tags) {
+                localStorage.setItem('my_access_tags', JSON.stringify(profile.access_tags));
+            } else {
+                localStorage.setItem('my_access_tags', JSON.stringify(["trial_pack"])); // 兜底
+            }
+
+            // 4. 写入防多开 token
+            const newToken = Date.now() + "_" + Math.random();
+            await loginClient.from('profiles').upsert({ id: data.user.id, session_token: newToken });
+            localStorage.setItem('my_session_token', newToken);
+
+            // 5. 跳转
+            window.location.href = 'home.html?from_login=1';
+        }
+    } catch (err) { 
+        msg.style.color = "#ff4d4f"; 
+        msg.innerText = err.message; 
+    }
 }
 
 // 🟢 CTO 补充：如果是正常登录，就把访客标记删掉
@@ -427,26 +479,7 @@ document.getElementById('navBtnGuest').innerText = d.btn_guest;
         function toggleLang() { currentLang = (currentLang === 'cn' ? 'ru' : (currentLang === 'ru' ? 'en' : 'cn')); updateUI(); }
         function toggleMode() { isSignUpMode = !isSignUpMode; updateUI(); }
         function copyWeChat() { navigator.clipboard.writeText("zz1285829414").then(() => alert("微信 ID 已复制: zz1285829414")); }
-        async function handleAuthAction() {
-            const email = document.getElementById('email').value, password = document.getElementById('password').value, msg = document.getElementById('msg');
-            if(!email || !password) { msg.style.color="red"; msg.innerText = "Required!"; return; }
-            msg.style.color = "white"; msg.innerText = "Connecting...";
-            try {
-                if (isSignUpMode) {
-                    const { error } = await loginClient.auth.signUp({ email, password });
-                    if (error) throw error;
-                    msg.style.color = "var(--primary)"; msg.innerText = "Success! Log in now.";
-                    setTimeout(toggleMode, 1500);
-                } else {
-                    const { data, error } = await loginClient.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    const newToken = Date.now() + "_" + Math.random();
-                    await loginClient.from('profiles').upsert({ id: data.user.id, session_token: newToken });
-                    localStorage.setItem('my_session_token', newToken);
-                    window.location.href = 'home.html?from_login=1';
-                }
-            } catch (err) { msg.style.color = "#ff4d4f"; msg.innerText = err.message; }
-        }
+        
         document.addEventListener('DOMContentLoaded', updateUI);
         // 🟢 CTO 新增：让顶部按钮控制底部表单的“模式”
 function jumpToAuth(mode) {
