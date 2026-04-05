@@ -113,13 +113,7 @@ body.vertical-mode .word-span{padding:0px 4px;}
 .dict-btn-add{background:#fef3c7;color:#b45309;}
 .dict-btn-add:hover{background:#fde68a;}
 @media (max-width:768px){
-    video::-webkit-media-controls,
-video::-webkit-media-controls-enclosure,
-video::-webkit-media-controls-panel {
-    display: none !important;
-    opacity: 0 !important;
-    height: 0 !important;
-}
+    video::-webkit-media-controls{display:none !important;}
     /* === Header 布局 === */
     #layoutToggleBtn{display:none !important;}
     #fullscreenBtn{display:none !important;}
@@ -296,7 +290,7 @@ body.vertical-mode .sub-item .trans{font-size:16px !important;color:#666;font-st
 <div class="main-container">
     <div class="video-section">
         <div class="video-wrapper">
-            <video id="myVideo" controls playsinline webkit-playsinline controlslist="nodownload">
+            <video id="myVideo" controls playsinline webkit-playsinline><source src="" type="video/mp4"></video>
             <div class="audio-visualizer" id="audioVisualizer"><div class="wave-container"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div><div class="audio-text">Playing...</div></div>
         </div>
         <div class="tools-panel">
