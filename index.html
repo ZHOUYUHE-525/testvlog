@@ -1,768 +1,317 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <script>
-
-        // --- 核心：全局大词典 ---
+<script>
 const masterDict = {};
-
 function initMasterDict() {
-    // 1. 装入 HSK 1-9 级词库
     if (window.hsk_data) {
         window.hsk_data.forEach(item => { masterDict[item.word.trim()] = item; });
     }
-    // 2. 装入超纲词库 (如果你建了这个文件的话)
     if (window.extra_data) {
         window.extra_data.forEach(item => { masterDict[item.word.trim()] = item; });
     }
-    console.log("✅ 全局大词典初始化成功，共收录词条:", Object.keys(masterDict).length);
+    console.log("Dictionary loaded:", Object.keys(masterDict).length);
 }
-
-// 在 window.onload 中第一时间调用
 window.onload = () => {
-    initMasterDict(); // 👈 必须最先执行
-    // ... 其他加载课程的代码
+    initMasterDict();
 };
-        // 🟢 CTO 的零风险分流脚本
-        (function() {
-            const params = new URLSearchParams(window.location.search);
-            // 如果网址里没有 ?id=xxx，说明是直接输入域名进来的路人
-            if (!params.get('id')) {
-                window.location.replace('login.html');
-            }
-        })();
-    </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 1. 引入 Supabase (必须在最前) -->
-    <!-- 1. 电脑浏览器标签页图标 -->
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get('id')) {
+        window.location.replace('login.html');
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="logo.png">
-
-<!-- 2. 苹果/安卓手机“添加到桌面”后的图标 -->
 <link rel="apple-touch-icon" href="logo.png">
-
-<!-- 3. 设置移动端状态栏颜色（让它更像 App） -->
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-capable" content="yes">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- 2. 🔴 加上这行！这就是锁！ -->
-    <script src="auth.js"></script>
-    
-    <!-- 3. 引入课程数据 -->
-     <script src="hsk_data.js"></script>    <!-- 必须有这一行 -->
-<script src="extra_data.js"></script>  <!-- 必须有这一行 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script src="hsk_data.js"></script>
+<script src="extra_data.js"></script>
 <script src="grammar_data.js"></script>
 <script src="lesson_001.js"></script>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        :root { --primary: #6CAD9C; --dark-red: #612321; --brown: #A77046; --yellow: #E5CC84; --bg: #F9F7F2; --white: #FFFFFF; --highlight: #EAF6F4; --word-hover: #ffecb3; }
-        body { margin: 0; padding: 0; font-family: "PingFang SC", sans-serif; background-color: var(--bg); height: 100vh; display: flex; flex-direction: column; color: var(--dark-red); }
-        header { background: var(--white); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--yellow); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo { font-size: 20px; font-weight: 800; color: var(--dark-red); display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .main-container { display: flex; flex: 1; padding: 10px 20px; gap: 15px; overflow: hidden; max-width: 1600px; margin: 0 auto; width: 100%; box-sizing: border-box; transition: all 0.3s ease; }
-        body.focus-mode .subtitle-section { display: none; } body.focus-mode .video-section { flex: 1; max-width: 1000px; margin: 0 auto; }
-        .video-section { flex: 7; display: flex; flex-direction: column; gap: 20px; min-width: 0; transition: all 0.3s ease; }
-        .video-wrapper { background: #000; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(97, 35, 33, 0.15); border: 4px solid #fff; aspect-ratio: 16/9; position: relative; }
-        video { width: 100%; height: 100%; display: block; outline: none; }
-        .lang-switch { cursor: pointer; padding: 6px 12px; border-radius: 20px; background: #eee; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .lang-switch:hover { background: #e0f2fe; color: var(--primary); }
-        .audio-visualizer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #4A3B32 0%, #2c241f 100%); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
-        .audio-visualizer.active { display: flex; }
-        .wave-container { display: flex; gap: 6px; height: 60px; align-items: center; }
-        .wave-bar { width: 8px; background: var(--yellow); border-radius: 4px; animation: wave 1s infinite ease-in-out; }
-        .wave-bar:nth-child(odd) { background: var(--primary); } .wave-bar:nth-child(1) { height: 20px; animation-delay: 0.1s; } .wave-bar:nth-child(2) { height: 40px; animation-delay: 0.2s; } .wave-bar:nth-child(3) { height: 50px; animation-delay: 0.3s; } .wave-bar:nth-child(4) { height: 30px; animation-delay: 0.4s; } .wave-bar:nth-child(5) { height: 40px; animation-delay: 0.5s; }
-        @keyframes wave { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.5); } }
-        .tools-panel { background: var(--white); padding: 15px; border-radius: 12px; display: flex; flex-wrap: wrap; gap: 10px; border: 1px solid rgba(167, 112, 70, 0.1); justify-content: center; }
-        .control-row { width: 100%; display: flex; justify-content: space-between; gap: 10px; }
-        .control-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60px; flex: 1; border: 2px solid #eee; border-radius: 10px; background: white; color: var(--text-main); cursor: pointer; transition: all 0.2s; font-size: 12px; gap: 4px; min-width: 60px; }
-        .control-btn:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-play { background: var(--primary); border-color: var(--primary); color: white; flex: 1.5; } .btn-play:hover { background: var(--primary-dark); }
-        .control-btn.active { background: var(--highlight); border-color: var(--primary); color: var(--primary); }
-        .speed-select { height: 60px; padding: 0 10px; border: 2px solid #eee; border-radius: 10px; background: white; font-weight: bold; color: var(--brown); outline: none; cursor: pointer; flex: 0.8; text-align: center;}
-        .practice-btn { width: 100%; height: 55px; margin-top: 5px; border: none; border-radius: 12px; background: linear-gradient(90deg, #E5CC84 0%, #d4b158 100%); color: #4A3B32; font-weight: 800; font-size: 16px; letter-spacing: 1px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(229, 204, 132, 0.4); }
-        .practice-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(229, 204, 132, 0.6); } .practice-btn i { font-size: 22px; }
-        .subtitle-section { flex: 4; background: var(--white); border-radius: 12px; display: flex; flex-direction: column; height: 100%; border: 1px solid rgba(167, 112, 70, 0.1); }
-        .sub-header { padding: 20px; border-bottom: 2px solid var(--bg); display: flex; justify-content: space-between; align-items: center; }
-        .sub-title { font-weight: 800; font-size: 16px; color: var(--dark-red); max-width: 50%; }
-        .header-actions { display: flex; gap: 10px; }
-        .toggle-circle { width: 36px; height: 36px; border-radius: 50%; background: #eee; color: #999; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-        .toggle-circle.on { background: var(--primary); color: white; } .toggle-circle:hover { transform: scale(1.1); }
-        .subtitle-list { flex: 1; overflow-y: auto; padding: 15px; scroll-behavior: smooth; position: relative; }
-        .sub-item { 
-            position: relative; /* 👈 必须：作为图标定位的基准 */
-            padding: 12px 50px 12px 15px; /* 👈 右边留出 50px 专门放图标 */
-            margin-bottom: 10px; 
-            border-radius: 8px; background: #fff; border-left: 4px solid transparent; 
-            cursor: pointer; transition: 0.2s;
-            text-align: left;
-        }
-        .sub-item:hover { 
-    background-color: transparent !important; /* 👈 强制不改变背景色 */
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{--primary:#6CAD9C;--dark-red:#612321;--brown:#A77046;--yellow:#E5CC84;--bg:#F9F7F2;--white:#FFFFFF;--highlight:#EAF6F4;--word-hover:#ffecb3;}
+body{margin:0;padding:0;font-family:"PingFang SC",sans-serif;background-color:var(--bg);height:100vh;display:flex;flex-direction:column;color:var(--dark-red);}
+header{background:var(--white);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--yellow);box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+.logo{font-size:20px;font-weight:800;color:var(--dark-red);display:flex;align-items:center;gap:10px;cursor:pointer;}
+.main-container{display:flex;flex:1;padding:10px 20px;gap:15px;overflow:hidden;max-width:1600px;margin:0 auto;width:100%;box-sizing:border-box;transition:all 0.3s ease;}
+body.focus-mode .subtitle-section{display:none;}
+body.focus-mode .video-section{flex:1;max-width:1000px;margin:0 auto;}
+.video-section{flex:7;display:flex;flex-direction:column;gap:20px;min-width:0;transition:all 0.3s ease;}
+.video-wrapper{background:#000;border-radius:16px;overflow:hidden;box-shadow:0 10px 25px rgba(97,35,33,0.15);border:4px solid #fff;aspect-ratio:16/9;position:relative;}
+video{width:100%;height:100%;display:block;outline:none;}
+.lang-switch{cursor:pointer;padding:6px 12px;border-radius:20px;background:#eee;font-size:13px;font-weight:bold;display:flex;align-items:center;gap:6px;transition:all 0.2s;}
+.lang-switch:hover{background:#e0f2fe;color:var(--primary);}
+.audio-visualizer{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#4A3B32 0%,#2c241f 100%);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10;}
+.audio-visualizer.active{display:flex;}
+.wave-container{display:flex;gap:6px;height:60px;align-items:center;}
+.wave-bar{width:8px;background:var(--yellow);border-radius:4px;animation:wave 1s infinite ease-in-out;}
+.wave-bar:nth-child(odd){background:var(--primary);}
+.wave-bar:nth-child(1){height:20px;animation-delay:0.1s;}
+.wave-bar:nth-child(2){height:40px;animation-delay:0.2s;}
+.wave-bar:nth-child(3){height:50px;animation-delay:0.3s;}
+.wave-bar:nth-child(4){height:30px;animation-delay:0.4s;}
+.wave-bar:nth-child(5){height:40px;animation-delay:0.5s;}
+@keyframes wave{0%,100%{transform:scaleY(1);}50%{transform:scaleY(1.5);}}
+.tools-panel{background:var(--white);padding:15px;border-radius:12px;display:flex;flex-wrap:wrap;gap:10px;border:1px solid rgba(167,112,70,0.1);justify-content:center;}
+.control-row{width:100%;display:flex;justify-content:space-between;gap:10px;}
+.control-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60px;flex:1;border:2px solid #eee;border-radius:10px;background:white;color:var(--text-main);cursor:pointer;transition:all 0.2s;font-size:12px;gap:4px;min-width:60px;}
+.control-btn:hover{border-color:var(--primary);color:var(--primary);}
+.btn-play{background:var(--primary);border-color:var(--primary);color:white;flex:1.5;}
+.btn-play:hover{background:var(--primary-dark);}
+.control-btn.active{background:var(--highlight);border-color:var(--primary);color:var(--primary);}
+.speed-select{height:60px;padding:0 10px;border:2px solid #eee;border-radius:10px;background:white;font-weight:bold;color:var(--brown);outline:none;cursor:pointer;flex:0.8;text-align:center;}
+.practice-btn{width:100%;height:55px;margin-top:5px;border:none;border-radius:12px;background:linear-gradient(90deg,#E5CC84 0%,#d4b158 100%);color:#4A3B32;font-weight:800;font-size:16px;letter-spacing:1px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 10px rgba(229,204,132,0.4);}
+.practice-btn:hover{transform:translateY(-2px);box-shadow:0 6px 15px rgba(229,204,132,0.6);}
+.practice-btn i{font-size:22px;}
+.subtitle-section{flex:4;background:var(--white);border-radius:12px;display:flex;flex-direction:column;height:100%;border:1px solid rgba(167,112,70,0.1);}
+.sub-header{padding:20px;border-bottom:2px solid var(--bg);display:flex;justify-content:space-between;align-items:center;}
+.sub-title{font-weight:800;font-size:16px;color:var(--dark-red);max-width:50%;}
+.header-actions{display:flex;gap:10px;}
+.toggle-circle{width:36px;height:36px;border-radius:50%;background:#eee;color:#999;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;cursor:pointer;border:2px solid transparent;transition:all 0.2s;}
+.toggle-circle.on{background:var(--primary);color:white;}
+.toggle-circle:hover{transform:scale(1.1);}
+.subtitle-list{flex:1;overflow-y:auto;padding:15px;scroll-behavior:smooth;position:relative;}
+.sub-item{position:relative;padding:12px 50px 12px 15px;margin-bottom:10px;border-radius:8px;background:#fff;border-left:4px solid transparent;cursor:pointer;transition:0.2s;text-align:left;}
+.sub-item:hover{background-color:transparent !important;}
+.sub-item.active{background-color:var(--highlight);border-left-color:var(--primary);transform:scale(1.02);}
+.pinyin{font-size:14px;color:#A77046;font-family:monospace;margin-bottom:4px;display:block;}
+.chinese{font-size:20px;color:var(--dark-red);font-weight:800;line-height:1.5;margin-bottom:4px;display:block;}
+.trans{font-size:13px;color:#888;font-style:italic;}
+.hide-py .pinyin{opacity:0;}
+.hide-py .sub-item:hover .pinyin{opacity:1;}
+.hide-cn .chinese{opacity:0;}
+.hide-cn .sub-item:hover .chinese{opacity:1;}
+.hide-trans .trans{opacity:0;}
+.hide-trans .sub-item:hover .trans{opacity:1;}
+body.word-mode .sub-item{cursor:default;}
+body.word-mode .sub-item:hover{background-color:white;}
+.word-span{border-radius:6px;padding:2px 4px;margin:0 1px;transition:all 0.2s ease-in-out;cursor:default;display:inline-block;}
+body.word-mode .word-span{cursor:pointer !important;}
+.word-span:hover{background-color:rgba(198,151,10,0.3);}
+body.word-mode span.word-span:hover{background-color:#D35400 !important;color:#FFFFFF !important;border-radius:4px !important;}
+body.vertical-mode .word-span{padding:0px 4px;}
+.dict-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;background:white;padding:20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.2);border:2px solid var(--primary);z-index:1000;display:none;text-align:center;}
+.dict-modal.show{display:block;animation:popIn 0.3s;}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-40%);}to{opacity:1;transform:translate(-50%,-50%);}}
+.dict-word{font-size:32px;font-weight:bold;color:var(--dark-red);margin-bottom:5px;}
+.dict-pinyin{font-size:16px;color:var(--brown);margin-bottom:15px;font-family:"Courier New";}
+.dict-meaning{font-size:16px;color:#555;margin-bottom:20px;background:#f9f9f9;padding:10px;border-radius:8px;text-align:left;}
+.dict-btn{padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:20px;cursor:pointer;font-size:14px;}
+.dict-close{position:absolute;top:10px;right:15px;cursor:pointer;color:#999;font-size:20px;}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);z-index:999;display:none;}
+.overlay.show{display:block;}
+.dict-btn-link,.dict-btn-add{display:inline-flex;align-items:center;justify-content:center;padding:8px 0;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none;cursor:pointer;border:none;transition:all 0.2s;}
+.dict-btn-link{background:#e0f2fe;color:#0369a1;}
+.dict-btn-link:hover{background:#bae6fd;}
+.dict-btn-add{background:#fef3c7;color:#b45309;}
+.dict-btn-add:hover{background:#fde68a;}
+@media (max-width:768px){
+    #layoutToggleBtn{display:none !important;}
+    .control-btn i{font-size:20px !important;}
+    header{position:sticky !important;top:0 !important;z-index:2000 !important;background:#fff !important;padding:0 6px !important;height:40px !important;display:flex !important;align-items:center !important;}
+    .logo{font-size:16px !important;gap:1px !important;}
+    header div[style*="display:flex"]{gap:1px !important;}
+    header .control-btn{width:25px !important;height:25px !important;padding:0 !important;font-size:6px !important;flex-direction:row !important;}
+    header .control-btn span{display:none !important;}
+    .lang-switch{padding:3px 6px !important;font-size:12px !important;white-space:nowrap !important;}
+    #subSearchInput{font-size:11px !important;padding:4px 6px 4px 24px !important;}
+    #searchResultTip{display:none !important;}
+    #lvDropdownWrap{display:none !important;}
+    body{height:100vh !important;overflow:hidden !important;display:flex;flex-direction:column;}
+    .main-container{flex:1;display:flex !important;flex-direction:column !important;padding:0 !important;margin:0 !important;overflow:hidden !important;width:100vw !important;}
+    .video-section{flex:none !important;width:100%;padding:0;}
+    .video-wrapper{border-radius:0;border:none;aspect-ratio:16/9;}
+    .tools-panel{padding:0px 6px !important;border:none;background:#f9f9f9;gap:0 !important;}
+    .control-row{display:grid !important;grid-template-columns:0.8fr 1.2fr 0.8fr 0.8fr 1.4fr 1.2fr !important;gap:3px !important;width:100% !important;align-items:center;margin:0 !important;}
+    .control-btn{height:38px !important;font-size:14px !important;border-radius:6px !important;box-shadow:none !important;width:100% !important;margin:0 !important;}
+    .control-btn span{display:none !important;}
+    #loopBtn{grid-column:auto !important;grid-row:1 !important;}
+    .speed-select{grid-column:5 / 6 !important;grid-row:1 !important;height:38px !important;width:100% !important;font-size:11px !important;padding:0 2px !important;margin:0 !important;border:1px solid #ddd;border-radius:6px;background:#fff;text-align:center;}
+    .subtitle-section{flex:1 !important;display:flex !important;flex-direction:column !important;min-height:0;margin:0 !important;border:none !important;background:#fff !important;width:100% !important;max-width:100% !important;position:relative !important;top:0 !important;transform:none !important;box-shadow:none !important;}
+    .sub-header{flex:none !important;padding:0px 15px;border-bottom:1px solid #eee;background:#fff;}
+    .subtitle-list{flex:1 !important;overflow-y:auto !important;padding:10px 15px !important;height:auto !important;max-height:none !important;}
+    .sub-item{margin-bottom:20px !important;padding:5px !important;text-align:center;border-bottom:1px solid #f5f5f5;}
+    .dict-modal{width:90% !important;}
+    .practice-btn{grid-column:6 / 7 !important;grid-row:1 !important;height:38px !important;width:100% !important;margin:0 !important;font-size:10px !important;padding:0 4px !important;border-radius:6px !important;letter-spacing:0 !important;}
+    .practice-btn i{font-size:14px !important;}
 }
-
-/* 如果你的代码里有 .sub-item.active 导致了整句高亮，也可以考虑调整它 */
-.sub-item.active { 
-    background-color: var(--highlight); 
-    border-left-color: var(--primary); 
-    transform: scale(1.02); 
+body.vertical-mode .video-section{position:fixed;top:60px;left:0;width:100%;z-index:1000;background:#fff;display:flex;flex-direction:row;padding:10px 25px;gap:20px;box-shadow:0 4px 15px rgba(0,0,0,0.06);box-sizing:border-box;align-items:stretch;justify-content:center;}
+body.vertical-mode .video-wrapper{flex:1;max-width:1000px;min-width:0;border-radius:12px;}
+body.vertical-mode .tools-panel{flex:0 0 160px;background:#fdfaf5;padding:12px;border-radius:16px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;}
+body.vertical-mode .control-row{display:flex;flex-direction:column;gap:10px;flex:1;justify-content:space-between;}
+body.vertical-mode .control-btn{width:100%;flex:1;min-height:45px;max-height:65px;background:white;border:1px solid #eee;border-radius:12px;flex-direction:row;justify-content:flex-start;padding:0 15px;gap:12px;font-size:14px;color:var(--dark-red);box-shadow:0 2px 5px rgba(0,0,0,0.03);}
+body.vertical-mode .btn-play{background:var(--primary);color:white;border:none;justify-content:center;max-height:80px;}
+body.vertical-mode .practice-btn{height:60px;flex:none;margin-top:10px;font-size:15px;border-radius:12px;}
+body.vertical-mode .speed-select{width:100%;height:45px;flex:none;border-radius:10px;border:1px solid #eee;}
+@media (max-width:1150px){
+    body.vertical-mode .tools-panel{flex:0 0 70px;padding:10px 5px;}
+    body.vertical-mode .control-btn span,body.vertical-mode .practice-btn span{display:none;}
+    body.vertical-mode .control-btn{justify-content:center;padding:0;}
 }
-        /* 拼音行：不受图标干扰 */
-        .pinyin { font-size: 14px; color: #A77046; font-family: monospace; margin-bottom: 4px; display: block; }
+body.vertical-mode{height:100vh;overflow:hidden;}
+body.vertical-mode .subtitle-section{position:fixed;top:650px;left:50%;transform:translateX(-50%);width:100%;max-width:1600px;height:160px;background:white;z-index:900;display:flex !important;flex-direction:column;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.1);overflow:hidden;}
+body.vertical-mode .sub-header{display:flex !important;visibility:visible !important;padding:5px 30px !important;background:#fff;border-bottom:1px solid #eee;justify-content:space-between !important;align-items:center !important;white-space:nowrap !important;gap:20px;}
+body.vertical-mode .sub-title{max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+body.vertical-mode .subtitle-list{flex:1 !important;overflow-y:auto !important;padding:5px 1px !important;scroll-behavior:smooth;}
+body.vertical-mode .sub-item{margin-bottom:180px !important;padding:0 !important;padding-left:0% !important;padding-right:12% !important;box-sizing:border-box !important;background:transparent !important;text-align:center;display:flex;flex-direction:column;gap:1px !important;}
+body.vertical-mode .sub-item .chinese{font-size:36px !important;font-weight:800 !important;color:var(--dark-red);line-height:1.2;}
+body.vertical-mode .sub-item .pinyin{font-size:18px !important;font-weight:500;color:var(--brown);}
+body.vertical-mode .sub-item .trans{font-size:16px !important;color:#666;font-style:italic;}
+.vocab-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);display:none;z-index:3000;}
+.vocab-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:420px;max-width:90%;background:white;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.2);display:none;z-index:3001;overflow:hidden;animation:popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);}
+.v-header{background:#fdfcf9;padding:15px 20px;border-bottom:2px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+.v-header h3{margin:0;color:var(--dark-red);font-size:16px;display:flex;align-items:center;gap:8px;}
+.v-close{font-size:24px;color:#ccc;cursor:pointer;line-height:1;}
+.v-close:hover{color:var(--dark-red);}
+.v-body{padding:20px;max-height:60vh;overflow-y:auto;}
+.v-group{margin-bottom:20px;}
+.v-label{font-size:13px;font-weight:bold;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.v-label.l-hsk3{color:#8cdbb3;}
+.v-label.l-hsk4{color:#3b82f6;}
+.v-label.l-hsk5{color:#8b5cf6;}
+.v-label.l-hsk6{color:#ef4444;}
+.v-label.l-hsk79{color:#f59e0b;}
+.word-pill{display:inline-block;background:#f3f4f6;color:#555;padding:4px 12px;border-radius:20px;font-size:13px;margin:0 6px 8px 0;border:1px solid #e5e7eb;cursor:pointer;transition:all 0.2s;}
+.word-pill:hover{background:var(--yellow);color:var(--dark-red);border-color:var(--yellow);transform:translateY(-2px);box-shadow:0 4px 10px rgba(229,204,132,0.4);}
+.cn-word{cursor:pointer;border-radius:4px;padding:0 2px;transition:background-color 0.2s,color 0.2s;}
+.cn-word:hover{background-color:#E6D089;color:#333;}
+.bubble-cn:hover{background-color:transparent !important;}
+.main-container{display:flex;flex:1;padding:10px 20px;gap:15px;overflow:hidden;max-width:100%;margin:0;width:100%;box-sizing:border-box;}
+.icon-star{color:#FFD700 !important;font-size:18px;filter:drop-shadow(0 0 2px rgba(0,0,0,0.1));}
+.icon-bulb{color:#BAA0D3 !important;font-size:18px;}
+.icon-star:hover,.icon-bulb:hover{transform:scale(1.2);}
+#sentOverlay{background:rgba(0,0,0,0.2) !important;backdrop-filter:none !important;}
+.sent-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:380px;max-width:90%;background:white;border-radius:16px;box-shadow:0 30px 60px rgba(0,0,0,0.3);display:none;z-index:3005 !important;overflow:hidden;animation:popIn 0.3s;}
+.sent-modal.show{display:block;}
+.sent-header{background:#fdfcf9;padding:15px 20px;border-bottom:2px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+.sent-header h3{margin:0;color:var(--dark-red);font-size:16px;display:flex;align-items:center;gap:8px;}
+.sent-body{padding:20px;max-height:60vh;overflow-y:auto;}
+.analysis-box{background:#f0f7f5;border-left:4px solid var(--primary);padding:15px;border-radius:4px 8px 8px 4px;margin-bottom:15px;font-size:14px;color:#333;line-height:1.6;}
+.g-item-box{border:1px solid #eee;border-radius:10px;padding:15px;margin-bottom:12px;background:#fff;}
+.g-item-title{font-size:15px;font-weight:bold;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.g-item-desc{font-size:13px;color:#666;margin-bottom:12px;line-height:1.5;}
+.g-item-btn{display:block;width:100%;text-align:center;background:#fffcf5;border:1px solid var(--yellow);color:#b45309;padding:8px;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;text-decoration:none;transition:0.2s;}
+.g-item-btn:hover{background:var(--yellow);color:white;}
+.sent-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:380px;max-width:90%;background:white;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,0.4);display:none;z-index:3005 !important;overflow:hidden;animation:popIn 0.3s;}
+.sent-icon-wrap{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;}
+.icon-note{color:#8B3A3A !important;background:#FEE2E2;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:0.2s;border:1px solid #FECACA;}
+.icon-search{color:#7C3AED !important;background:#F5F3FF;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;transition:0.2s;border:1px solid #DDD6FE;}
+.icon-note:hover{background:#8B3A3A;color:white !important;transform:scale(1.1);}
+.icon-search:hover{background:#7C3AED;color:white !important;transform:scale(1.1);}
+.sub-lv-pill{padding:3px 9px;border-radius:14px;border:1.5px solid #e5e7eb;font-size:11px;font-weight:bold;cursor:pointer;background:white;color:#666;transition:0.2s;white-space:nowrap;}
+.sub-lv-pill:hover{border-color:var(--primary);color:var(--primary);}
+.active-pill{background:var(--primary) !important;color:white !important;border-color:var(--primary) !important;}
+.wl-3{color:#96d4ab;font-weight:bold;}
+.wl-4{color:#3b82f6;font-weight:bold;}
+.wl-5{color:#8b5cf6;font-weight:bold;}
+.wl-6{color:#ef4444;font-weight:bold;}
+.wl-79{color:#f59e0b;font-weight:bold;}
+.wl-ex{color:#940596;font-weight:bold;}
+.search-hit{background:#fde68a;border-radius:2px;padding:0 1px;}
+.sub-item.search-matched{border-left-color:#f59e0b !important;background:#fffbeb !important;}
 
-        /* 汉字行：图标作为文字的一部分跟在最后 */
-        .chinese { 
-            font-size: 20px; color: var(--dark-red); font-weight: 800; 
-            line-height: 1.5; margin-bottom: 4px; display: block;
-        }
-        .trans { font-size: 13px; color: #888; font-style: italic; }
-        .hide-py .pinyin { opacity: 0; } .hide-py .sub-item:hover .pinyin { opacity: 1; } .hide-cn .chinese { opacity: 0; } .hide-cn .sub-item:hover .chinese { opacity: 1; } .hide-trans .trans { opacity: 0; } .hide-trans .sub-item:hover .trans { opacity: 1; }
-        body.word-mode .sub-item { cursor: default; } body.word-mode .sub-item:hover { background-color: white; }
-        /* --- 2. 精确控制查词模式下的单词高光 --- */
-/* 确保游标变成手指 */
-/* === 精准单词高亮样式 === */
-
-/* 1. 基础状态：查词模式开启前，单词只是普通的字 */
-.word-span { 
-    border-radius: 6px; /* 圆角稍微大一点，更像记号笔画的 */
-    padding: 2px 4px;   /* 👈 关键：增加内边距，撑开背景块的大小 */
-    margin: 0 1px;      /* 让相邻的词之间有一点点呼吸空间 */
-    transition: all 0.2s ease-in-out; 
-    cursor: default; 
-    display: inline-block; /* 👈 关键：设为 inline-block 确保 padding 能正确渲染背景块 */
-} 
-
-/* 2. 查词模式开启后，变成小手 */
-body.word-mode .word-span {
-    cursor: pointer !important;
+* {
+    -webkit-tap-highlight-color: transparent;
 }
-
-
-/* 即使没有 word-mode 类，我们也给它一个基础的交互感知 */
-.word-span:hover { 
-    background-color: rgba(198, 151, 10, 0.3); /* 没开查词模式时给个淡淡的颜色 */
+body {
+    -webkit-user-select: none; 
+    user-select: none;
 }
-
-/* 4. 确保父级容器不会抢戏 */
-.sub-item:hover { 
-    background-color: transparent !important; 
-    transform: none !important; /* 去掉之前的轻微放大，避免干扰视线 */
+img, a {
+    -webkit-touch-callout: none;
 }
-
-/* 修改这一块，加了 body 层级，权重更高 */
-body.word-mode span.word-span:hover { 
-    background-color: #D35400 !important; /* 👈 这是深橙色，绝对不可能没变化 */
-    color: #FFFFFF !important;           /* 字体改白色，对比度更高 */
-    border-radius: 4px !important;
-}
-
-/* 5. 确保上下布局模式（大字模式）下的间距不被破坏 */
-body.vertical-mode .word-span {
-    padding: 0px 4px; /* 在大字模式下，上下 padding 可以小一点，防止撑破行高 */
-}
-        .dict-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 2px solid var(--primary); z-index: 1000; display: none; text-align: center; }
-        .dict-modal.show { display: block; animation: popIn 0.3s; }
-        @keyframes popIn { from {opacity:0; transform:translate(-50%, -40%);} to {opacity:1; transform:translate(-50%, -50%);} }
-        .dict-word { font-size: 32px; font-weight: bold; color: var(--dark-red); margin-bottom: 5px; } .dict-pinyin { font-size: 16px; color: var(--brown); margin-bottom: 15px; font-family: "Courier New"; } .dict-meaning { font-size: 16px; color: #555; margin-bottom: 20px; background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: left; } .dict-btn { padding: 8px 20px; background: var(--primary); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; } .dict-close { position: absolute; top: 10px; right: 15px; cursor: pointer; color: #999; font-size: 20px; } .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:999; display:none; } .overlay.show { display: block; }
-        /* 弹窗按钮样式 */
-        .dict-btn-link, .dict-btn-add {
-            display: inline-flex; align-items: center; justify-content: center;
-            padding: 8px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
-            text-decoration: none; cursor: pointer; border: none; transition: all 0.2s;
-        }
-        /* BKRS 按钮 (蓝色) */
-        .dict-btn-link { background: #e0f2fe; color: #0369a1; }
-        .dict-btn-link:hover { background: #bae6fd; }
-        
-        /* 生词本按钮 (黄色) */
-        .dict-btn-add { background: #fef3c7; color: #b45309; }
-        .dict-btn-add:hover { background: #fde68a; }
-        /* === 📱 视频页手机端：瀑布流式布局 (字幕铺满) === */
-        /* === 📱 手机版：上半部分固定，下半部分滚动 === */
-        @media (max-width: 768px) {
-            #layoutToggleBtn { display: none !important; }
-            .control-btn i { font-size: 20px !important; }
-            /* --- 1. 缩小 Header 边距和高度 --- */
-            header { 
-                position: sticky !important; /* 👈 核心：焊死在顶部 */
-                top: 0 !important; 
-                z-index: 2000 !important; 
-                background: #fff !important; 
-                padding: 0 6px !important; 
-                height: 40px !important; 
-                display: flex !important;
-                align-items: center !important;
-            }
-
-            /* --- 2. 缩小 Logo 文字，防止挤压右侧 --- */
-            .logo { 
-                font-size: 16px !important; 
-                gap: 1px !important; 
-            }
-
-            /* --- 3. 🔴 重点：缩小 Header 右侧按钮的间距 --- */
-            header div[style*="display:flex"] { 
-                gap: 1px !important; /* 把 15px 缩小到 5px */
-            }
-
-            /* --- 4. 缩小 Header 里的控制按钮尺寸 --- */
-            header .control-btn { 
-                width: 25px !important; 
-                height: 25px !important; 
-                padding: 0 !important; 
-                font-size: 6px !important;
-                flex-direction: row !important;
-            }
-            
-            /* 隐藏按钮里的文字，只留图标，腾出最大空间 */
-            header .control-btn span { display: none !important; }
-
-            /* --- 5. 缩小语言切换球的大小 --- */
-            .lang-switch { 
-                padding: 3px 6px !important; 
-                font-size: 12px !important; 
-                white-space: nowrap !important;
-            }
-            /* 1. 锁死大网页，禁止晃动 */
-            body { 
-                height: 100vh !important; 
-                overflow: hidden !important; 
-                display: flex;
-                flex-direction: column;
-            }
-
-            /* 2. 容器撑满屏幕 */
-             .main-container { 
-                flex: 1; 
-                display: flex !important; 
-                flex-direction: column !important;
-                padding: 0 !important; 
-                margin: 0 !important;
-                overflow: hidden !important; 
-                width: 100vw !important; /* 👈 核心：强制占满手机屏幕宽度 */
-            }
-
-            /* 3. 视频区：固定高度 */
-            .video-section { flex: none !important; width: 100%; padding: 0; }
-            .video-wrapper { border-radius: 0; border: none; aspect-ratio: 16/9; }
-
-            /* --- 4. 极简功能键栏：8个按钮挤成一行（清理重叠版） --- */
-            .tools-panel { 
-                padding: 0px 6px !important; 
-                border: none; 
-                background: #f9f9f9; 
-                gap: 0 !important; 
-            }
-            .control-row { 
-                display: grid !important; 
-                /* 🔴 旋钮 1：这里分成了 7 份。
-                   前 6 个图标占 1 份，最后的语速按钮占 1.8 份宽。
-                   如果觉得语速还是窄，就把 1.8 改成 2.2 */
-                grid-template-columns: 0.8fr 0.8fr 0.8fr 0.9fr 0.8fr 0.8fr 2.2fr !important; 
-                gap: 3px !important; 
-                width: 100% !important;
-                align-items: center;
-                margin: 0 !important;
-            }
-            
-            .control-btn { 
-                /* 🔴 旋钮 2：高度。
-                   统一改为 38px，这样点起来才舒服 */
-                height: 38px !important; 
-                font-size: 14px !important;
-                border-radius: 6px !important;
-                box-shadow: none !important;
-                width: 100% !important;
-                margin: 0 !important;
-            }
-            .control-btn span { display: none !important; }
-
-            /* --- 重新按 7 个位置排队 --- */
-
-            /* 循环按钮（HTML里第6个）：坐第 1 位 */
-            #loopBtn { 
-                grid-column: 1 / 2 !important; 
-                grid-row: 1 !important; 
-            }
-
-            /* 5个播放键：依次坐 2,3,4,5,6 位（会自动排列） */
-            
-            /* 语速选择框（HTML里第7个）：坐第 7 位（最右边） */
-            .speed-select { 
-                grid-column: 7 / 8 !important; 
-                grid-row: 1 !important;
-                /* 👈 高度必须同步改为 38px */
-                height: 38px !important; 
-                width: 100% !important; 
-                font-size: 11px !important; 
-                padding: 0 2px !important;
-                margin: 0 !important;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-                background: #fff;
-                text-align: center;
-            }
-
-            /* 🔴 重要：请务必删除您代码里剩下的那段 height: 26px 的重复代码 🔴 */
-            
-            /* 🔴 注意：我删掉了您代码后面那个重复的 height: 26px 的代码块，
-               因为它才是导致按钮变小的罪魁祸首 🔴 */
-
-            /* 中间那 5 个播放控制键会自动坐在 2,3,4,5,6 这几个位置 */
-            /* 中间那 5 个播放控制键（上一句、-5s等）会自动填满第 2 到第 6 个位置 */
-            
-        
-        
-            
-        
-
-            /* 5. 🔴 大面积字幕区：占据下方所有空间 */
-            .subtitle-section { 
-                flex: 1 !important; 
-                display: flex !important;
-                flex-direction: column !important;
-                min-height: 0; 
-                margin: 0 !important;
-                border: none !important;
-                background: #fff !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                position: relative !important;
-                top: 0 !important;
-                transform: none !important;
-                box-shadow: none !important;
-            }
-
-            /* 标题栏固定 */
-            .sub-header {
-                flex: none !important;
-                padding: 0px 15px;
-                border-bottom: 1px solid #eee;
-                background: #fff;
-            }
-
-            /* 字幕列表：彻底开启，能看多少看多少 */
-            .subtitle-list { 
-                flex: 1 !important;
-                overflow-y: auto !important; 
-                padding: 10px 15px !important; 
-                height: auto !important;
-                max-height: none !important; /* 👈 解除单行限制 */
-            }
-
-            /* 字幕项：间距回归正常 */
-            .sub-item {
-                margin-bottom: 20px !important; 
-                padding: 5px !important;
-                text-align: center;
-                border-bottom: 1px solid #f5f5f5;
-                
-            
-            }
-            
-            /* 查词框适配 */
-            .dict-modal { width: 90% !important; }
-        }
-        
-        /* --- 🔴 只在开启上下布局模式时生效的“补丁” --- */
-
-/* --- 🔴 弹性等高版：上下布局模式 --- */
-
-/* --- 老师专属：功能键拉高美化版 --- */
-
-body.vertical-mode .video-section {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    background: #fff; 
-    display: flex; 
-    flex-direction: row; 
-    padding: 10px 25px;
-    gap: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-    box-sizing: border-box;
-    /* 👈 关键：让右侧面板的高度强制等于左侧视频高度 */
-    align-items: stretch; 
-    justify-content: center;
-}
-
-body.vertical-mode .video-wrapper {
-    flex: 1; 
-    max-width: 1000px; /* 宽屏下允许视频更大 */
-    min-width: 0;
-    border-radius: 12px;
-}
-
-body.vertical-mode .tools-panel {
-    flex: 0 0 160px; /* 固定一个合适的宽度 */
-    background: #fdfaf5;
-    padding: 12px;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    /* 👈 关键：让内部的按钮容器占据所有高度 */
-    justify-content: space-between; 
-    box-sizing: border-box;
-}
-
-body.vertical-mode .control-row {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    /* 👈 关键：让这个容器填满 tools-panel 剩下的空间 */
-    flex: 1; 
-    justify-content: space-between; 
-}
-
-/* 🔴 核心修改：大幅增加按钮高度 */
-body.vertical-mode .control-btn {
-    width: 100%;
-    /* 👈 使用 flex: 1 让按钮自动瓜分高度，但限制一个最大值防止变成砖头 */
-    flex: 1;
-    min-height: 45px; 
-    max-height: 65px; 
-    
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 12px;
-    flex-direction: row;
-    justify-content: flex-start;
-    padding: 0 15px;
-    gap: 12px;
-    font-size: 14px;
-    color: var(--dark-red);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-}
-
-body.vertical-mode .btn-play {
-    background: var(--primary);
-    color: white;
-    border: none;
-    justify-content: center;
-    max-height: 80px; /* 播放按钮可以更高一点 */
-}
-
-/* 练习按钮也拉高 */
-body.vertical-mode .practice-btn {
-    height: 60px; /* 固定一个比较大的高度 */
-    flex: none;
-    margin-top: 10px;
-    font-size: 15px;
-    border-radius: 12px;
-}
-
-/* 速度选择框 */
-body.vertical-mode .speed-select {
-    width: 100%;
-    height: 45px;
-    flex: none;
-    border-radius: 10px;
-    border: 1px solid #eee;
-}
-
-/* 针对窄屏的保护逻辑保持不变 */
-@media (max-width: 1150px) {
-    body.vertical-mode .tools-panel { flex: 0 0 70px; padding: 10px 5px; }
-    body.vertical-mode .control-btn span, body.vertical-mode .practice-btn span { display: none; }
-    body.vertical-mode .control-btn { justify-content: center; padding: 0; }
-}
-
-/* --- 🔴 老师专用：上下模式“单行窗口”补丁 --- */
-
-/* 1. 开启上下模式时，锁死网页，禁止整页滚动 */
-body.vertical-mode { 
-    height: 100vh; 
-    overflow: hidden; 
-}
-
-/* --- 🔴 只改动这一块：调整盒子位置、宽度和强制显示开关 --- */
-body.vertical-mode .subtitle-section {
-    position: fixed;
-    top: 650px; /* 👈 往上提一点，确保不挡住标题和开关 */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 1600px;
-    height: 160px; /* 👈 盒子给够 320px 高度，保证翻译绝对能装下 */
-    background: white;
-    z-index: 900;
-    display: flex !important;
-    flex-direction: column;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-/* --- 🔴 修正：用智能对齐取代死数字 gap，实现随屏缩短 --- */
-body.vertical-mode .sub-header {
-    display: flex !important;
-    visibility: visible !important;
-    /* 左右内边距：和顶部的 Header 保持一致，这样开关就正好在右侧功能键下方 */
-    padding: 5px 30px !important; 
-    background: #fff;
-    border-bottom: 1px solid #eee;
-
-    /* 1. 👈 核心修改：大屏分居两侧，小屏自动缩短中间空隙 */
-    justify-content: space-between !important; 
-    
-    /* 2. 👈 确保垂直居中对齐 */
-    align-items: center !important;
-    
-    /* 3. 👈 防止文字被挤压成竖排 */
-    white-space: nowrap !important;
-    gap: 20px; /* 保证最挤的时候也有 20px 的缝隙 */
-}
-
-/* 保护标题，防止标题太长挤掉开关 */
-body.vertical-mode .sub-title {
-    max-width: 70%;
-    overflow: hidden;
-    text-overflow: ellipsis; /* 标题太长显示省略号 */
-    white-space: nowrap;
-}
-
-/* --- 3. 内部滚动区域（字幕在里面跑的那个空间） --- */
-body.vertical-mode .subtitle-list {
-    flex: 1 !important;
-    overflow-y: auto !important;
-    /* 【内边距】第一个10是上下，第二个1是左右。
-       如果想让第一句字幕出现时不要死贴着标题栏，把第一个10改大（如 30） */
-    padding: 5px 1px !important; 
-    scroll-behavior: smooth;
-}
-
-/* 4. 字幕项在盒子里间距拉大，确保一次只看一句 */
-/* --- 🔴 只改动这一块：压缩字幕块内部间距，让翻译露出来 --- */
-body.vertical-mode .sub-item {
-    /* 👈 重点：每一句之间空出 100px，确保滚动时盒子里只剩这一句 */
-    
-    margin-bottom: 80px !important; 
-    
-    /* 👈 重点：压缩内部，让拼音、汉字、翻译抱得更紧，不留空位 */
-    padding: 0 !important; 
-    padding-left: 0% !important; 
-    padding-right: 15% !important; 
-    box-sizing: border-box !important; 
-    background: transparent !important;
-    text-align: center;
-    display: flex;
-    flex-direction: column;  
-    gap: 1px; /* 👈 拼音汉字翻译之间的微小缝隙 */
-}
-/* --- 🔴 字幕内容醒目化补丁 --- */
-body.vertical-mode .sub-item {
-    margin-bottom: 180px !important; /* 👈 间距拉大到 150，防止大字体干扰 */
-    padding-right: 12% !important; 
-    box-sizing: border-box !important; 
-    text-align: center;
-    display: flex;
-    flex-direction: column;  
-    gap: 1px !important; /* 👈 调大到 8px，防止拼音和汉字挤在一起 */
-}
-
-/* --- 🔴 下面是新增的字体控制： --- */
-
-/* 汉字：宣传视频的主角，要最大、最黑 */
-body.vertical-mode .sub-item .chinese {
-    font-size: 36px !important; /* 👈 调大字号，建议 32px - 40px 之间 */
-    font-weight: 800 !important; /* 👈 加粗到极致 */
-    color: var(--dark-red); /* 保持你的深红色，非常醒目 */
-    line-height: 1.2;
-}
-
-/* 拼音：辅助阅读，适中大小 */
-body.vertical-mode .sub-item .pinyin {
-    font-size: 18px !important; /* 👈 调大到 18px */
-    font-weight: 500;
-    color: var(--brown);
-}
-
-/* 翻译：宣传视频也要看清意思 */
-body.vertical-mode .sub-item .trans {
-    font-size: 16px !important; /* 👈 调大到 16px */
-    color: #666; /* 灰色稍微加深一点 */
-    font-style: italic;
-}
-/* === 新增：词汇分级弹窗样式 === */
-.vocab-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); display: none; z-index: 3000; }
-.vocab-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; max-width: 90%; background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: none; z-index: 3001; overflow: hidden; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.v-header { background: #fdfcf9; padding: 15px 20px; border-bottom: 2px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
-.v-header h3 { margin: 0; color: var(--dark-red); font-size: 16px; display: flex; align-items: center; gap: 8px; }
-.v-close { font-size: 24px; color: #ccc; cursor: pointer; line-height: 1; } .v-close:hover { color: var(--dark-red); }
-.v-body { padding: 20px; max-height: 60vh; overflow-y: auto; }
-.v-group { margin-bottom: 20px; }
-/* 给 5 个级别设置不同的漂亮颜色 */
-.v-label { font-size: 13px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-.v-label.l-hsk3 { color: #10b981; } /* 绿色 */
-.v-label.l-hsk4 { color: #3b82f6; } /* 蓝色 */
-.v-label.l-hsk5 { color: #8b5cf6; } /* 紫色 */
-.v-label.l-hsk6 { color: #ef4444; } /* 红色 */
-.v-label.l-hsk79 { color: #f59e0b; } /* 橙色 */
-.word-pill { display: inline-block; background: #f3f4f6; color: #555; padding: 4px 12px; border-radius: 20px; font-size: 13px; margin: 0 6px 8px 0; border: 1px solid #e5e7eb; cursor: pointer; transition: all 0.2s; }
-.word-pill:hover { background: var(--yellow); color: var(--dark-red); border-color: var(--yellow); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(229, 204, 132, 0.4); }
-/* 1. 给每个单词添加鼠标指针和过渡动画 */
-.cn-word {
-    cursor: pointer;
-    border-radius: 4px; /* 圆角，让高光像个小标签 */
-    padding: 0 2px;     /* 左右稍微给点空隙，更好看 */
-    transition: background-color 0.2s, color 0.2s; /* 平滑过渡效果 */
-}
-
-/* 2. 鼠标悬浮在具体词语上的高光效果（参考你截图的暖黄色） */
-.cn-word:hover {
-    background-color: #E6D089; /* 截图同款暖黄高光背景 */
-    color: #333;               /* 字体颜色稍微加深，确保清晰 */
-}
-
-/* 3. ⚠️ 重要清除：如果你以前有整句高亮的代码，请在这里覆盖掉 */
-/* 确保鼠标滑过句子时，句子背景不会变色 */
-.bubble-cn:hover {
-    background-color: transparent !important; 
-}
-/* === 🌟 句子解析双图标 & 弹窗样式 === */
-        /* === 🌟 句子解析双图标：高对比度版 === */
-        .main-container { 
-            display: flex; flex: 1; 
-            padding: 10px 20px; 
-            gap: 15px; 
-            overflow: hidden; max-width: 100%; margin: 0; width: 100%; box-sizing: border-box; 
-        }
-        
-        /* 预制金星星 🌟 - 使用更亮的亮金色 */
-        .icon-star { color: #FFD700 !important; font-size: 18px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.1)); }
-        .icon-bulb { color: #BAA0D3 !important; font-size: 18px; }
-
-        .icon-star:hover, .icon-bulb:hover { transform: scale(1.2); }
-
-        /* 句子解析弹窗 (类似查词弹窗) */
-        /* 1. 让遮罩蒙版变通透，不挡住底下的句子 */
-        #sentOverlay { 
-            background: rgba(0,0,0,0.2) !important; /* 👈 调低透明度，从 0.5 降到 0.2 */
-            backdrop-filter: none !important;       /* 👈 去掉模糊效果，让背景清晰可见 */
-        }
-
-        /* 2. 优化弹窗阴影，让它在通透背景下依然有立体感 */
-        .sent-modal { 
-            position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); 
-            width: 380px; max-width: 90%; 
-            background: white; border-radius: 16px; 
-            /* 增加大阴影，弥补背景变淡后的视觉差 */
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3); 
-            display: none; z-index: 3005 !important; 
-            overflow: hidden; animation: popIn 0.3s; 
-        }
-        .sent-modal.show { display: block; }
-        .sent-header { background: #fdfcf9; padding: 15px 20px; border-bottom: 2px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
-        .sent-header h3 { margin: 0; color: var(--dark-red); font-size: 16px; display: flex; align-items: center; gap: 8px; }
-        .sent-body { padding: 20px; max-height: 60vh; overflow-y: auto; }
-        
-        /* 弹窗内的预制解析样式 */
-        .analysis-box { background: #f0f7f5; border-left: 4px solid var(--primary); padding: 15px; border-radius: 4px 8px 8px 4px; margin-bottom: 15px; font-size: 14px; color: #333; line-height: 1.6; }
-        .g-item-box { border: 1px solid #eee; border-radius: 10px; padding: 15px; margin-bottom: 12px; background: #fff; }
-        .g-item-title { font-size: 15px; font-weight: bold; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;}
-        .g-item-desc { font-size: 13px; color: #666; margin-bottom: 12px; line-height: 1.5; }
-        .g-item-btn { display: block; width: 100%; text-align: center; background: #fffcf5; border: 1px solid var(--yellow); color: #b45309; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; transition: 0.2s; }
-        .g-item-btn:hover { background: var(--yellow); color: white; }
-        .sent-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; max-width: 90%; background: white; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); display: none; z-index: 3005 !important; overflow: hidden; animation: popIn 0.3s; }
-        /* --- 3. 图标样式：统一固定在句子末尾 --- */
-        .sent-icon-wrap { 
-            position: absolute; 
-            right: 12px; top: 50%; transform: translateY(-50%); 
-            width: 32px; height: 32px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 10;
-        }
-        .icon-note { 
-            color: #8B3A3A !important; 
-            background: #FEE2E2; /* 极浅红底 */
-            width: 28px; height: 28px; border-radius: 8px; /* 方圆角更有笔记感 */
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px; transition: 0.2s;
-            border: 1px solid #FECACA;
-        }
-        
-        /* 🔍 AI 分析图标：紫色 + 浅紫底 */
-        .icon-search { 
-            color: #7C3AED !important; 
-            background: #F5F3FF; /* 极浅紫底 */
-            width: 28px; height: 28px; border-radius: 50%; /* 圆形代表探索 */
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px; transition: 0.2s;
-            border: 1px solid #DDD6FE;
-        }
-        .icon-note:hover { background: #8B3A3A; color: white !important; transform: scale(1.1); }
-        .icon-search:hover { background: #7C3AED; color: white !important; transform: scale(1.1); }
-    </style>
+</style>
 </head>
 <body>
-
-    <header>
-        <div class="logo" onclick="location.href='home.html'"><i class="fas fa-chevron-left"></i> <span data-i18n="back">返回课程大厅</span></div>
-        <div style="display:flex; gap:15px;">
-            <button class="control-btn" onclick="openVocabModal()" style="width:auto; height:40px; padding:0 15px; flex-direction:row; border-color:var(--primary); color:var(--primary); white-space:nowrap;">
-    <i class="fas fa-layer-group"></i> <span data-i18n="vocab_levels">词汇分级</span>
-</button>
-            <button class="control-btn" onclick="toggleWordMode()" id="wordModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;">
-                <i class="fas fa-book-open"></i> <span data-i18n="word_mode">查词模式: 关</span>
-            </button>
-            <button class="control-btn" onclick="toggleAudioMode()" id="audioModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;">
-                <i class="fas fa-headphones"></i> <span data-i18n="audio_mode">音频模式</span>
-            </button>
-            <button class="control-btn" onclick="toggleFullscreen()" id="fullscreenBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; background:var(--bg); border:none;"><i class="fas fa-expand"></i></button>
-            <button class="control-btn" onclick="toggleDesktopLayout()" id="layoutToggleBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; margin-right:10px;">
-    <i class="fas fa-columns"></i> <span id="layoutText">左右</span>
-    <button class="control-btn" onclick="goToPrintLibrary()" style="width:auto; height:40px; padding:0 15px; flex-direction:row; border-color:#A77046; color:#A77046; white-space:nowrap;">
-                <i class="fas fa-print"></i> <span data-i18n="btn_print">打印课文</span>
-            </button>
-</button>
-            <div class="lang-switch" onclick="toggleLang()"><i class="fas fa-globe"></i> <span id="langLabel">RU</span></div>
-        </div>
-    </header>
-
-    <div class="main-container">
-        <div class="video-section">
-            <div class="video-wrapper">
-                <video id="myVideo" controls playsinline webkit-playsinline>
-    <source src="" type="video/mp4">
-</video>
-                <div class="audio-visualizer" id="audioVisualizer"><div class="wave-container"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div><div class="audio-text">Playing...</div></div>
+<header>
+    <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+        <div class="logo" onclick="location.href='home.html'" style="flex-shrink:0;"><i class="fas fa-chevron-left"></i> <span data-i18n="back">返回课程大厅</span></div>
+        <!-- 搜索栏 -->
+        <div style="display:flex;align-items:center;gap:6px;max-width:320px;flex:1;">
+            <div style="position:relative;flex:1;">
+                <i class="fas fa-search" style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#bbb;font-size:12px;pointer-events:none;"></i>
+                <input id="subSearchInput" type="text" placeholder="Поиск слова/грамматика..."
+                    style="width:100%;padding:6px 8px 6px 28px;border:1.5px solid #eee;border-radius:20px;font-size:12px;outline:none;box-sizing:border-box;background:#f9fafb;font-family:inherit;transition:border-color 0.2s;"
+                    onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#eee'"
+                    oninput="handleSubSearch(this.value)" onkeydown="if(event.key==='Enter')jumpToSearchResult()">
             </div>
-            <div class="tools-panel">
-                <div class="control-row">
-                    <button class="control-btn" onclick="seekRelative(-1)"><i class="fas fa-step-backward"></i><span data-i18n="prev">上一句</span></button>
-                    <button class="control-btn" onclick="video.currentTime -= 5"><i class="fas fa-undo"></i><span>-5s</span></button>
-                    <button class="control-btn btn-play" onclick="togglePlay()"><i class="fas fa-play" id="playIcon"></i></button>
-                    <button class="control-btn" onclick="video.currentTime += 5"><i class="fas fa-redo"></i><span>+5s</span></button>
-                    <button class="control-btn" onclick="seekRelative(1)"><i class="fas fa-step-forward"></i><span data-i18n="next">下一句</span></button>
-                    <button class="control-btn" id="loopBtn" onclick="toggleLoop()"><i class="fas fa-sync-alt"></i><span data-i18n="loop">循环</span></button>
-                    <select class="speed-select" onchange="changeSpeed(this.value)"><option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1.0" selected>1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option></select>
-                </div>
-                <button class="practice-btn" onclick="goToPractice()"><i class="fas fa-graduation-cap"></i><span data-i18n="start_practice">开始本课练习</span></button>
-            </div>
-        </div>
-        <div class="subtitle-section" id="subContainer">
-            <div class="sub-header">
-                <div class="sub-title" id="lessonTitle">Loading...</div>
-                <div class="header-actions">
-                    <div class="toggle-circle on" onclick="toggleVisibility('py', this)">拼</div>
-                    <div class="toggle-circle on" onclick="toggleVisibility('cn', this)">汉</div>
-                    <div class="toggle-circle on" id="transToggle" onclick="toggleVisibility('trans', this)">RU</div>
-                </div>
-            </div>
-            <div class="subtitle-list" id="subtitleList"></div>
+            <button onclick="jumpToSearchResult()" style="padding:6px 10px;border:1.5px solid var(--primary);border-radius:20px;background:white;color:var(--primary);font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;flex-shrink:0;">跳转</button>
+            <div id="searchResultTip" style="font-size:11px;color:#999;white-space:nowrap;min-width:40px;flex-shrink:0;"></div>
         </div>
     </div>
-
-    <!-- 1. 关键：引入中央数据库 -->
-    <!-- 1. 引入 Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- 2. 引入云端加载器 -->
-
-    <script src="hsk_level.js"></script>
+    <div style="display:flex; gap:15px;">
+        <button class="control-btn" onclick="toggleWordMode()" id="wordModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;"><i class="fas fa-book-open"></i> <span data-i18n="word_mode">查词模式: 关</span></button>
+        <!-- 词汇分级下拉 -->
+        <div style="position:relative;" id="lvDropdownWrap">
+            <button id="lvDropdownBtn" onclick="toggleLvDropdown()" style="height:40px;padding:0 15px;border:2px solid #eee;border-radius:10px;background:white;font-weight:bold;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;color:#666;transition:0.2s;white-space:nowrap;">
+                <i class="fas fa-layer-group"></i> <span id="lvBtnLabel">词汇分级</span>
+            </button>
+            <div id="lvDropdown" style="display:none;position:absolute;top:46px;left:0;background:white;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.15);padding:8px;z-index:5000;min-width:130px;border:1px solid #eee;">
+                <div class="lv-opt" onclick="setSubLevel(0)" id="lvopt-0" data-lv="0" style="padding:7px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:bold;color:#666;display:flex;align-items:center;gap:8px;">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#ccc;display:inline-block;"></span> 关闭
+                </div>
+                <div class="lv-opt" onclick="setSubLevel(2)" id="lvopt-2" data-lv="2" style="padding:7px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:bold;color:#10b981;display:flex;align-items:center;gap:8px;">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#9be1aa;display:inline-block;"></span> HSK 3
+                </div>
+                <div class="lv-opt" onclick="setSubLevel(3)" id="lvopt-3" data-lv="3" style="padding:7px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:bold;color:#3b82f6;display:flex;align-items:center;gap:8px;">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block;"></span> HSK 4
+                </div>
+                <div class="lv-opt" onclick="setSubLevel(4)" id="lvopt-4" data-lv="4" style="padding:7px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:bold;color:#8b5cf6;display:flex;align-items:center;gap:8px;">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#8b5cf6;display:inline-block;"></span> HSK 5
+                </div>
+                <div class="lv-opt" onclick="setSubLevel(5)" id="lvopt-5" data-lv="5" style="padding:7px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:bold;color:#ef4444;display:flex;align-items:center;gap:8px;">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;"></span> HSK 6
+                </div>
+                <div class="lv-opt" onclick="setSubLevel(6)" id="lvopt-6" data-lv="6" style="padding:7px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:bold;color:#f59e0b;display:flex;align-items:center;gap:8px;">
+                    <span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> HSK 7-9
+                </div>
+            </div>
+        </div>
+        <button class="control-btn" onclick="toggleAudioMode()" id="audioModeBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row;"><i class="fas fa-headphones"></i> <span data-i18n="audio_mode">音频模式</span></button>
+        <button class="control-btn" onclick="toggleFullscreen()" id="fullscreenBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; background:var(--bg); border:none;"><i class="fas fa-expand"></i></button>
+        <button class="control-btn" onclick="toggleDesktopLayout()" id="layoutToggleBtn" style="width:auto; height:40px; padding:0 15px; flex-direction:row; margin-right:10px;"><i class="fas fa-columns"></i> <span id="layoutText">左右</span></button>
+        <button class="control-btn" onclick="goToPrintLibrary()" style="width:auto; height:40px; padding:0 15px; flex-direction:row; border-color:#A77046; color:#A77046; white-space:nowrap;"><i class="fas fa-print"></i> <span data-i18n="btn_print">打印课文</span></button>
+        <div class="lang-switch" onclick="toggleLang()"><i class="fas fa-globe"></i> <span id="langLabel">RU</span></div>
+    </div>
+</header>
+<div class="main-container">
+    <div class="video-section">
+        <div class="video-wrapper">
+            <video id="myVideo" controls playsinline webkit-playsinline><source src="" type="video/mp4"></video>
+            <div class="audio-visualizer" id="audioVisualizer"><div class="wave-container"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div><div class="audio-text">Playing...</div></div>
+        </div>
+        <div class="tools-panel">
+            <div class="control-row">
+                <button class="control-btn" onclick="seekRelative(-1)"><i class="fas fa-step-backward"></i><span data-i18n="prev">上一句</span></button>
+                <button class="control-btn btn-play" onclick="togglePlay()"><i class="fas fa-play" id="playIcon"></i></button>
+                <button class="control-btn" onclick="seekRelative(1)"><i class="fas fa-step-forward"></i><span data-i18n="next">下一句</span></button>
+                <button class="control-btn" id="loopBtn" onclick="toggleLoop()"><i class="fas fa-sync-alt"></i><span data-i18n="loop">循环</span></button>
+                <select class="speed-select" onchange="changeSpeed(this.value)"><option value="0.5">0.5x</option><option value="0.6">0.6x</option><option value="0.75">0.75x</option><option value="0.8">0.8x</option><option value="0.9">0.9x</option><option value="1.0" selected>1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option></select>
+                <button class="practice-btn" onclick="goToPractice()" style="width:auto;height:60px;margin:0;flex:1;font-size:12px;padding:0 8px;letter-spacing:0;border-radius:10px;"><i class="fas fa-graduation-cap" style="font-size:15px;"></i><span data-i18n="start_practice">练习</span></button>
+            </div>
+        </div>
+    </div>
+    <div class="subtitle-section" id="subContainer">
+        <div class="sub-header">
+            <div class="sub-title" id="lessonTitle">Loading...</div>
+            <div class="header-actions">
+                <div class="toggle-circle on" onclick="toggleVisibility('py', this)">拼</div>
+                <div class="toggle-circle on" onclick="toggleVisibility('cn', this)">汉</div>
+                <div class="toggle-circle on" id="transToggle" onclick="toggleVisibility('trans', this)">RU</div>
+            </div>
+        </div>
+        <div class="subtitle-list" id="subtitleList"></div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="hsk_level.js"></script>
     
     <script src="lesson_001.js"></script>
     <script src="lesson_002.js"></script> 
@@ -807,6 +356,7 @@ body.vertical-mode .sub-item .trans {
     <script src="lesson_041.js"></script>
     <script src="lesson_042.js"></script>
     <script src="lesson_043.js"></script>
+    <script src="lesson_044.js"></script>
     
     <script src="lesson_401.js"></script>
     <script src="lesson_402.js"></script>
@@ -826,235 +376,132 @@ body.vertical-mode .sub-item .trans {
     <script src="lesson_416.js"></script>
     <script src="lesson_417.js"></script>
     <script src="lesson_418.js"></script>
-    
-    <!-- === 补丁 1：查词弹窗 (插入在 </body> 之前) === -->
-    <div class="overlay" id="overlay" onclick="closeDict()"></div>
-    <div class="dict-modal" id="dictModal">
-        <!-- 🟢 钉在左上角的 HSK 标签 -->
-        <span id="d-level" style="display:none; position:absolute; top:15px; left:20px; font-size:11px; padding:2px 6px; border-radius:6px; font-weight:bold;"></span>
-        
-        <!-- 右上角的关闭按钮 -->
-        <div class="dict-close" onclick="closeDict()">×</div>
-        
-        <!-- 中间的汉字和拼音 -->
-        <div class="dict-word" id="d-word" style="margin-top: 10px;">加载中...</div>
-        <div class="dict-pinyin" id="d-pinyin">...</div>
-        
-        <!-- 下方的解释和按钮 -->
-        <div class="dict-meaning" id="d-mean">
-            <i class="fas fa-spinner fa-spin"></i> AI 正在思考...
-        </div>
-    </div>
-
-    <!-- === 新增：词汇分级弹窗 === -->
+    <script src="lesson_419.js"></script>
+<div class="overlay" id="overlay" onclick="closeDict()"></div>
+<div class="dict-modal" id="dictModal">
+    <span id="d-level" style="display:none; position:absolute; top:15px; left:20px; font-size:11px; padding:2px 6px; border-radius:6px; font-weight:bold;"></span>
+    <div class="dict-close" onclick="closeDict()">×</div>
+    <div class="dict-word" id="d-word" style="margin-top: 10px;">加载中...</div>
+    <div class="dict-pinyin" id="d-pinyin">...</div>
+    <div class="dict-meaning" id="d-mean"><i class="fas fa-spinner fa-spin"></i> AI loading...</div>
+</div>
 <div class="vocab-overlay" id="vOverlay" onclick="closeVocabModal()"></div>
 <div class="vocab-modal" id="vModal">
     <div class="v-header">
-        <!-- 主要是这里加了 span 和 data-i18n -->
         <h3><i class="fas fa-chart-pie"></i> <span data-i18n="vocab_title">视频词汇结构</span></h3>
         <div class="v-close" onclick="closeVocabModal()">×</div>
     </div>
-    <div class="v-body" id="vBodyContent">
-        <!-- JS 会把词汇动态塞到这里 -->
-    </div>
+    <div class="v-body" id="vBodyContent"></div>
 </div>
-<!-- === 🌟 句子解析/语法弹窗 === -->
-    <div class="vocab-overlay" id="sentOverlay" onclick="closeSentModal()"></div>
-    <div class="sent-modal" id="sentModal">
-        <div class="sent-header">
-            <h3 id="sent-modal-title"><i class="fas fa-chalkboard-teacher"></i> 句子深度解析</h3>
-            <div class="dict-close" onclick="closeSentModal()" style="position:static;">×</div>
-        </div>
-        <div class="sent-body" id="sentBodyContent">
-            <!-- 动态注入讲解内容 -->
-        </div>
+<div class="vocab-overlay" id="sentOverlay" onclick="closeSentModal()"></div>
+<div class="sent-modal" id="sentModal">
+    <div class="sent-header">
+        <h3 id="sent-modal-title"><i class="fas fa-chalkboard-teacher"></i> 句子深度解析</h3>
+        <div class="dict-close" onclick="closeSentModal()" style="position:static;">×</div>
     </div>
+    <div class="sent-body" id="sentBodyContent"></div>
+</div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get('id') || "1";
+let lesson = null;
+if (window.lessonDatabase) {
+    lesson = window.lessonDatabase[id];
+} else {
+    alert("Error: data.js not found!");
+}
+const video = document.getElementById('myVideo');
+const list = document.getElementById('subtitleList');
+const container = document.getElementById('subContainer');
+const playIcon = document.getElementById('playIcon');
+let loopEnabled = false, activeIndex = -1, isAudioMode = false, isWordMode = false;
+let currentLang = 'ru';
+let subLevelFilter = 0;
+let searchState = { query:'', matchedIndices:[], currentMatch:0, isGrammar:false }; 
+const API_KEY = "sk-..."; 
 
-    <script>
-        // === 2. 使用数据库 ===
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get('id') || "1";
-        
-        // 确保数据库已加载
-        let lesson = null;
-        if (window.lessonDatabase) {
-            lesson = window.lessonDatabase[id];
-        } else {
-            alert("Error: data.js not found!");
-        }
+function toggleWordMode() {
+    isWordMode = !isWordMode;
+    const btn = document.getElementById('wordModeBtn');
+    if (isWordMode) {
+        btn.classList.add('active');
+        btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode_on || "查词: 开"}`;
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode || "查词: 关"}`;
+    }
+    renderSubtitles();
+}
 
-        const video = document.getElementById('myVideo');
-        const list = document.getElementById('subtitleList');
-        const container = document.getElementById('subContainer');
-        const playIcon = document.getElementById('playIcon');
-        let loopEnabled = false, activeIndex = -1, isAudioMode = false, isWordMode = false;
-        let currentLang = 'ru'; 
-        // === 补丁 2：查词核心逻辑 (插入在 let currentLang = 'ru'; 下面) ===
-        
-        // 🔴🔴🔴 请在这里填入你的 API Key 🔴🔴🔴
-        const API_KEY = "sk-..."; 
-
-        function toggleWordMode() {
-            isWordMode = !isWordMode;
-            const btn = document.getElementById('wordModeBtn');
-            // 更新按钮文字
-            if (isWordMode) {
-                btn.classList.add('active');
-                btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode_on || "查词: 开"}`;
-            } else {
-                btn.classList.remove('active');
-                btn.innerHTML = `<i class="fas fa-book-open"></i> ${uiDict[currentLang].word_mode || "查词: 关"}`;
-            }
-            // 重新渲染字幕，把文字变成可点击的状态
-            renderSubtitles();
-        }
-
-        // === 🟢 终极修复版：查词弹窗 (双语显示 + 双词典) ===
-        // === 🟢 终极修复版：查词弹窗 (全局匹配 HSK 等级) ===
-        // === 🟢 终极完美修复版：查词弹窗 (保留原版精美样式 + 全局词典数据) ===
 function lookupWord(word, event) {
     event.stopPropagation(); 
     video.pause(); 
-
-    // 1. 清洗单词（去掉标点符号）
     const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()！？。，、\s]/g, "");
     if (!cleanWord) return;
-
-    // 2. 显示弹窗和遮罩
     document.getElementById('overlay').classList.add('show');
     document.getElementById('dictModal').classList.add('show');
     document.getElementById('d-word').innerText = cleanWord;
-    
-    // 3. 🚀 从全局 masterDict 获取数据
     const wordData = masterDict[cleanWord];
     const levelSpan = document.getElementById('d-level');
     const meanContainer = document.getElementById('d-mean');
-
     if (wordData) {
-        // --- A. 设置 HSK 等级标签和颜色 (保持你原有的精美配色) ---
         const level = String(wordData.level);
-        let bgColor = '#fef3c7', textColor = '#d97706'; // 默认 Extra 颜色
-
+        let bgColor = '#fef3c7', textColor = '#d97706'; 
         if (level === '1' || level === '2' || level === '3') { bgColor = '#d1fae5'; textColor = '#059669'; }
         else if (level === '4') { bgColor = '#e0f2fe'; textColor = '#0369a1'; }
         else if (level === '5') { bgColor = '#ede9fe'; textColor = '#7c3aed'; }
         else if (level === '6') { bgColor = '#fee2e2'; textColor = '#e11d48'; }
-
         levelSpan.innerText = level === 'extra' ? 'EXTRA' : `HSK ${level}`;
         levelSpan.style.background = bgColor;
         levelSpan.style.color = textColor;
         levelSpan.style.display = 'inline-block';
-
-        // --- B. 设置拼音 ---
         document.getElementById('d-pinyin').innerText = wordData.pinyin;
-
-        // --- C. 构建核心内容 (完全还原你原本的 HTML 结构) ---
         let html = '';
-
-        // 1. 俄语和英语翻译
         html += `<div style="font-weight:bold; font-size:19px; color:#333; margin-bottom:4px;">${wordData.ru}</div>`;
         if (wordData.en) {
             html += `<div style="font-size:14px; color:#666; margin-bottom:12px; border-bottom:1px solid #eee; padding-bottom:8px;">🇺🇸 ${wordData.en}</div>`;
         }
-
-        // 2. 常用词组 (蓝色菱形样式)
         if(wordData.phrases && wordData.phrases.length > 0) {
-            html += `<div style="font-size:13px; color:#555; margin-bottom:12px; background:#f3f4f6; padding:8px; border-radius:8px;">
-                <span style="color:#0369a1;">◆</span> ${wordData.phrases.join('， ')}
-            </div>`;
+            html += `<div style="font-size:13px; color:#555; margin-bottom:12px; background:#f3f4f6; padding:8px; border-radius:8px;"><span style="color:#0369a1;">◆</span> ${wordData.phrases.join('， ')}</div>`;
         }
-
-        // 3. 标准例句 (黄色卡片样式 - 只显示第一条)
         if(wordData.examples && wordData.examples.length > 0) {
-            const ex = wordData.examples[0]; // 🚀 关键修改：只取第 1 条例句
-            html += `
-            <div style="font-size:13px; color:#444; background:#fffdf0; padding:10px; border-radius:10px; border-left:4px solid #f59e0b; line-height:1.5; margin-bottom:10px;">
-                <div style="font-weight:bold; color:#222; font-size:15px;">${ex.hz}</div>
-                <div style="color:#888; font-family:monospace; font-size:12px;">${ex.py}</div>
-                <div style="margin-top:2px;">${currentLang === 'ru' ? ex.ru : (ex.en || ex.ru)}</div>
-            </div>`;
+            const ex = wordData.examples[0]; 
+            html += `<div style="font-size:13px; color:#444; background:#fffdf0; padding:10px; border-radius:10px; border-left:4px solid #f59e0b; line-height:1.5; margin-bottom:10px;"><div style="font-weight:bold; color:#222; font-size:15px;">${ex.hz}</div><div style="color:#888; font-family:monospace; font-size:12px;">${ex.py}</div><div style="margin-top:2px;">${currentLang === 'ru' ? ex.ru : (ex.en || ex.ru)}</div></div>`;
         }
-
-        // 4. 操作按钮 (BKRS / Yabla / 生词本)
-        html += `
-        <div style="margin-top:15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <a href="https://bkrs.info/slovo.php?ch=${cleanWord}" target="_blank" class="dict-btn-link">🇷🇺 BKRS</a>
-            <a href="https://chinese.yabla.com/chinese-english-pinyin-dictionary.php?define=${cleanWord}" target="_blank" class="dict-btn-link" style="background:#fce7f3; color:#be185d;">🇺🇸 Yabla</a>
-        </div>
-        <button onclick="addToNotebook('${cleanWord}')" class="dict-btn-add" style="width:100%; margin-top:10px; height:45px;">
-            ⭐ ${uiDict[currentLang].add_to_notebook}
-        </button>
-        <a href="review.html" style="text-decoration:none; display:block; margin-top:8px; text-align:center; font-size:12px; color:#16a34a; font-weight:bold;">
-            📖 ${uiDict[currentLang].view_notebook} →
-        </a>`;
-
+        html += `<div style="margin-top:15px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><a href="https://bkrs.info/slovo.php?ch=${cleanWord}" target="_blank" class="dict-btn-link">🇷🇺 BKRS</a><a href="https://chinese.yabla.com/chinese-english-pinyin-dictionary.php?define=${cleanWord}" target="_blank" class="dict-btn-link" style="background:#fce7f3; color:#be185d;">🇺🇸 Yabla</a></div><button onclick="addToNotebook('${cleanWord}')" class="dict-btn-add" style="width:100%; margin-top:10px; height:45px;">⭐ ${uiDict[currentLang].add_to_notebook}</button><a href="review.html" style="text-decoration:none; display:block; margin-top:8px; text-align:center; font-size:12px; color:#16a34a; font-weight:bold;">📖 ${uiDict[currentLang].view_notebook} →</a>`;
         meanContainer.innerHTML = html;
-
     } else {
-        // --- D. 未收录处理 ---
         levelSpan.style.display = 'none';
         document.getElementById('d-pinyin').innerText = "---";
-        meanContainer.innerHTML = `
-            <div style="color:#999; padding:20px; text-align:center;">
-                <i class="fas fa-question-circle" style="font-size:30px; display:block; margin-bottom:10px;"></i>
-                词库未收录项，建议点击下方链接查询
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <a href="https://bkrs.info/slovo.php?ch=${cleanWord}" target="_blank" class="dict-btn-link">🇷🇺 BKRS</a>
-                <a href="https://chinese.yabla.com/chinese-english-dictionary.php?define=${cleanWord}" target="_blank" class="dict-btn-link" style="background:#fce7f3; color:#be185d;">🇺🇸 Yabla</a>
-            </div>`;
+        meanContainer.innerHTML = `<div style="color:#999; padding:20px; text-align:center;"><i class="fas fa-question-circle" style="font-size:30px; display:block; margin-bottom:10px;"></i>Not found</div><div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"><a href="https://bkrs.info/slovo.php?ch=${cleanWord}" target="_blank" class="dict-btn-link">🇷🇺 BKRS</a><a href="https://chinese.yabla.com/chinese-english-dictionary.php?define=${cleanWord}" target="_blank" class="dict-btn-link" style="background:#fce7f3; color:#be185d;">🇺🇸 Yabla</a></div>`;
     }
 }
 
-        // === 🟢 修复版：加入生词本 (同时初始化复习进度) ===
-        function addToNotebook(word) {
-            // 1. 读取旧列表
-            let vocabList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
-            
-            // 2. 查重
-            if (vocabList.includes(word)) {
-                alert(`"${word}" 已经在你的生词本里啦！`);
-                return;
-            }
-            
-            // 3. 保存到列表
-            vocabList.push(word);
-            localStorage.setItem('my_vocab_list', JSON.stringify(vocabList));
-
-            // 4. 🟢 关键：同时初始化“元数据” (让复习页能立即识别)
-            let vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
-            const now = Date.now();
-            // 如果 Meta 里没有这个词，就初始化它
-            if (!vocabMeta[word]) {
-                vocabMeta[word] = { 
-                    created: now,      // 创建时间
-                    nextReview: now,   // 下次复习时间 (立即)
-                    level: 0,          // 记忆等级 0
-                    note: ""           // 笔记
-                };
-                localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
-            }
-            
-            // 5. 反馈
-            alert(`✅ 已将 "${word}" 加入生词本！\n(当前共 ${vocabList.length} 个词)`);
-        }
-
-        function closeDict() {
-            document.getElementById('overlay').classList.remove('show');
-            document.getElementById('dictModal').classList.remove('show');
-        }
-        // === 新增：词汇分级弹窗控制逻辑 ===
-function openVocabModal() {
-    // 兼容性保护：如果旧文件还没加上 vocab_levels，则提示
-    if (!lesson || !lesson.vocab_levels) {
-        alert(currentLang === 'ru' ? "Словарь в разработке..." : (currentLang === 'en' ? "Vocab levels updating..." : "本课词汇分级正在努力更新中，敬请期待！"));
+function addToNotebook(word) {
+    let vocabList = JSON.parse(localStorage.getItem('my_vocab_list') || '[]');
+    if (vocabList.includes(word)) {
+        alert(`"${word}" is already in your notebook!`);
         return;
     }
-    
-    // 渲染数据
+    vocabList.push(word);
+    localStorage.setItem('my_vocab_list', JSON.stringify(vocabList));
+    let vocabMeta = JSON.parse(localStorage.getItem('my_vocab_meta') || '{}');
+    const now = Date.now();
+    if (!vocabMeta[word]) {
+        vocabMeta[word] = { created: now, nextReview: now, level: 0, note: "" };
+        localStorage.setItem('my_vocab_meta', JSON.stringify(vocabMeta));
+    }
+    alert(`✅ Added "${word}"!`);
+}
+
+function closeDict() {
+    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('dictModal').classList.remove('show');
+}
+
+function openVocabModal() {
+    if (!lesson || !lesson.vocab_levels) return;
     renderVocabLevels();
-    
-    // 显示弹窗
     document.getElementById('vOverlay').style.display = 'block';
     document.getElementById('vModal').style.display = 'block';
 }
@@ -1065,364 +512,381 @@ function closeVocabModal() {
 }
 
 function goToPrintLibrary() {
-            // 弹出确认框
-            if (confirm(uiDict[currentLang].print_confirm)) {
-                // 如果确认，带着当前视频的 ID 跳转到复习页
-                window.location.href = 'review.html?read_id=' + id;
-            }
-        }
+    if (confirm(uiDict[currentLang].print_confirm)) {
+        window.location.href = 'review.html?read_id=' + id;
+    }
+}
 
 function renderVocabLevels() {
     const container = document.getElementById('vBodyContent');
     const data = lesson.vocab_levels;
     if (!data) return;
-
     let html = '';
-
-    // 定义一个映射表：数据里的 key 对应 显示的标题和图标
     const categories = [
         { key: 'hsk3', label: uiDict[currentLang].vocab_hsk3, icon: 'fa-leaf', css: 'l-hsk3' },
         { key: 'hsk4', label: uiDict[currentLang].vocab_hsk4, icon: 'fa-check-circle', css: 'l-hsk4' },
         { key: 'hsk5', label: uiDict[currentLang].vocab_hsk5, icon: 'fa-arrow-up', css: 'l-hsk5' },
-        { key: 'hsk56', label: uiDict[currentLang].vocab_hsk56, icon: 'fa-star', css: 'l-hsk5' }, // 兼容您截图里的 hsk56
+        { key: 'hsk56', label: uiDict[currentLang].vocab_hsk56, icon: 'fa-star', css: 'l-hsk5' },
         { key: 'hsk6', label: uiDict[currentLang].vocab_hsk6, icon: 'fa-gem', css: 'l-hsk6' },
-        { key: 'extra', label: uiDict[currentLang].vocab_hsk79, icon: 'fa-fire', css: 'l-hsk79' }, // 对应您的 extra
+        { key: 'extra', label: uiDict[currentLang].vocab_hsk79, icon: 'fa-fire', css: 'l-hsk79' },
         { key: 'hsk79', label: uiDict[currentLang].vocab_hsk79, icon: 'fa-fire', css: 'l-hsk79' }
     ];
-
     categories.forEach(cat => {
-        // 只要数据里有这个分类，且里面有词，就显示
         if (data[cat.key] && data[cat.key].length > 0) {
-            html += `
-            <div class="v-group">
-                <div class="v-label ${cat.css}"><i class="fas ${cat.icon}"></i> ${cat.label}</div>
-                <div>${data[cat.key].map(w => `<span class="word-pill" onclick="lookupWord('${w}', event)">${w}</span>`).join('')}</div>
-            </div>`;
+            html += `<div class="v-group"><div class="v-label ${cat.css}"><i class="fas ${cat.icon}"></i> ${cat.label}</div><div>${data[cat.key].map(w => `<span class="word-pill" onclick="lookupWord('${w}', event)">${w}</span>`).join('')}</div></div>`;
         }
     });
-
-    container.innerHTML = html || '<div style="text-align:center;color:#999;padding:20px;">暂无词汇分级数据</div>';
+    container.innerHTML = html || '<div style="text-align:center;color:#999;padding:20px;">No data</div>';
 }
 
-        const uiDict = {
-            ru: { back: "Назад", word_mode: "Словарь", word_mode_on: "Словарь", audio_mode: "Аудио", prev: "Пред.", next: "След.", loop: "Повтор", start_practice: "Начать упражнения", trans_label: "RU",
-                // 新增词条
-                vocab_levels: "Уровни слов", vocab_title: "Словарный запас", 
-                vocab_hsk3: "HSK 3", vocab_hsk4: "HSK 4", 
-                vocab_hsk5: "HSK 5", vocab_hsk6: "HSK 6", vocab_hsk79: "Сленг / HSK 7-9" , btn_print: "Печать", print_confirm: "Перейти в библиотеку скриптов для печати этого урока?", add_to_notebook: "Добавить в словарь",    // 加入生词本
-        view_notebook: "Мои слова", tip_grammar: "Комментарий", // 俄语：注释
-                tip_ai: "AI Анализ",
-                ai_loading: "AI анализирует контекст...", // 俄语加载提示
-                more_info: "Подробнее", context_title: "АНАЛИЗ КОНТЕКСТА",
-                points_title: "Грамматика и лексика" },
-                
-                
-            en: { back: "Back", word_mode: "Dictionary", word_mode_on: "Dictionary", audio_mode: "Audio Mode", prev: "Prev", next: "Next", loop: "Loop", start_practice: "Start Practice", trans_label: "EN" ,
-                // 新增词条
-                vocab_levels: "Vocab Levels", vocab_title: "Vocabulary Structure", 
-                vocab_hsk3: "HSK 3", vocab_hsk4: "HSK 4", 
-                vocab_hsk5: "HSK 5", vocab_hsk6: "HSK 6", vocab_hsk79: "Slang / HSK 7-9", btn_print: "Print", print_confirm: "Go to Script Library to print this lesson?", add_to_notebook: "Add to Notebook", view_notebook: "My Notebook", tip_grammar: "Commentary", // 英语：注释
-                tip_ai: "AI Analysis",
-                ai_loading: "AI is analyzing context...",
-                more_info: "Learn More", context_title: "CONTEXT ANALYSIS",
-                points_title: "Grammar & Vocabulary"},
-           
-                cn: { back: "返回", word_mode: "词典", word_mode_on: "词典", audio_mode: "音频模式", prev: "上一句", next: "下一句", loop: "循环", start_practice: "开始本课练习", trans_label: "译" , 
-                // 新增词条
-                vocab_levels: "词汇分级", vocab_title: "视频词汇结构", 
-                vocab_hsk3: "HSK 3 基础词", vocab_hsk4: "HSK 4 进阶词", 
-                vocab_hsk5: "HSK 5 高级词", vocab_hsk6: "HSK 6 核心词", vocab_hsk79: "7-9级 / 地道流行语等",  btn_print: "打印课文", print_confirm: "是否转到【精读剧本馆】打印本课课文及笔记？", add_to_notebook: "加入生词本",
-        view_notebook: "我的生词本", tip_grammar: "Commentary", // 英语：注释
-                tip_ai: "AI Analysis",
-                ai_loading: "AI is analyzing context...",
-                more_info: "Learn More", context_title: "语境分析",
-                points_title: "相关语法点" }
-        };
+const uiDict = {
+    ru: { back: "Назад", word_mode: "Словарь", word_mode_on: "Словарь", audio_mode: "Аудио", prev: "Пред.", next: "След.", loop: "Повтор", start_practice: "Начать упражнения", trans_label: "RU", vocab_levels: "Уровни слов", vocab_title: "Словарный запас", vocab_hsk3: "HSK 3", vocab_hsk4: "HSK 4", vocab_hsk5: "HSK 5", vocab_hsk6: "HSK 6", vocab_hsk79: "Сленг / HSK 7-9" , btn_print: "Печать", print_confirm: "Перейти в библиотеку скриптов для печати этого урока?", add_to_notebook: "Добавить в словарь", view_notebook: "Мои слова", tip_grammar: "Комментарий", tip_ai: "AI Анализ", ai_loading: "AI анализирует контекст...", more_info: "Подробнее", context_title: "АНАЛИЗ КОНТЕКСТА", points_title: "Грамматика и лексика" },
+    en: { back: "Back", word_mode: "Dictionary", word_mode_on: "Dictionary", audio_mode: "Audio Mode", prev: "Prev", next: "Next", loop: "Loop", start_practice: "Start Practice", trans_label: "EN" , vocab_levels: "Vocab Levels", vocab_title: "Vocabulary Structure", vocab_hsk3: "HSK 3", vocab_hsk4: "HSK 4", vocab_hsk5: "HSK 5", vocab_hsk6: "HSK 6", vocab_hsk79: "Slang / HSK 7-9", btn_print: "Print", print_confirm: "Go to Script Library to print this lesson?", add_to_notebook: "Add to Notebook", view_notebook: "My Notebook", tip_grammar: "Commentary", tip_ai: "AI Analysis", ai_loading: "AI is analyzing context...", more_info: "Learn More", context_title: "CONTEXT ANALYSIS", points_title: "Grammar & Vocabulary"},
+    cn: { back: "返回", word_mode: "词典", word_mode_on: "词典", audio_mode: "音频模式", prev: "上一句", next: "下一句", loop: "循环", start_practice: "开始本课练习", trans_label: "译" , vocab_levels: "词汇分级", vocab_title: "视频词汇结构", vocab_hsk3: "HSK 3 基础词", vocab_hsk4: "HSK 4 进阶词", vocab_hsk5: "HSK 5 高级词", vocab_hsk6: "HSK 6 核心词", vocab_hsk79: "7-9级 / 地道流行语等", btn_print: "打印课文", print_confirm: "是否转到【精读剧本馆】打印本课课文及笔记？", add_to_notebook: "加入生词本", view_notebook: "我的生词本", tip_grammar: "Commentary", tip_ai: "AI Analysis", ai_loading: "AI is analyzing context...", more_info: "Learn More", context_title: "语境分析", points_title: "相关语法点" }
+};
 
-        if(lesson) {
-            document.getElementById('lessonTitle').innerText = lesson.title;
-            video.src = lesson.video;
-            window.currentSubtitles = lesson.subs; 
-            updateLanguage();
-
-            // 🟢 新增：断点续播 (读取本地进度)
-            const savedTimePercent = localStorage.getItem('progress_' + id);
-            if (savedTimePercent && parseInt(savedTimePercent) > 0 && parseInt(savedTimePercent) < 100) {
-                // 等视频元数据加载完再跳转，防止黑屏
-                video.addEventListener('loadedmetadata', () => {
-                    const jumpTime = video.duration * (parseInt(savedTimePercent) / 100);
-                    if(jumpTime > 0) {
-                        video.currentTime = jumpTime;
-                        console.log(`已恢复进度到: ${parseInt(savedTimePercent)}%`);
-                    }
-                }, { once: true }); // 只执行一次
+if(lesson) {
+    document.getElementById('lessonTitle').innerText = lesson.title;
+    video.src = lesson.video;
+    window.currentSubtitles = lesson.subs; 
+    updateLanguage();
+    const savedTimePercent = localStorage.getItem('progress_' + id);
+    if (savedTimePercent && parseInt(savedTimePercent) > 0 && parseInt(savedTimePercent) < 100) {
+        video.addEventListener('loadedmetadata', () => {
+            const jumpTime = video.duration * (parseInt(savedTimePercent) / 100);
+            if(jumpTime > 0) {
+                video.currentTime = jumpTime;
             }
-        }
+        }, { once: true });
+    }
+}
 
-        function toggleLang() {
-            if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
-            updateLanguage();
-        }
-        function toggleDesktopLayout() {
-    const container = document.body; // 我们直接给 body 加 class，这样全局都能控制
+function toggleLang() {
+    if (currentLang === 'ru') currentLang = 'en'; else if (currentLang === 'en') currentLang = 'cn'; else currentLang = 'ru';
+    updateLanguage();
+}
+
+function toggleDesktopLayout() {
+    const container = document.body; 
     const btnText = document.getElementById('layoutText');
     const btnIcon = document.querySelector('#layoutToggleBtn i');
-
     if (container.classList.contains('vertical-mode')) {
-        // 恢复左右布局
         container.classList.remove('vertical-mode');
         btnText.innerText = "左右";
         btnIcon.className = "fas fa-columns";
         localStorage.setItem('pref_layout', 'side');
     } else {
-        // 进入上下布局
         container.classList.add('vertical-mode');
         btnText.innerText = "上下";
         btnIcon.className = "fas fa-grip-lines";
         localStorage.setItem('pref_layout', 'vertical');
     }
-    // 强制刷新一下高亮位置
     activeIndex = -1;
 }
 
-// 页面加载时恢复用户喜欢的布局
 window.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('pref_layout') === 'vertical') {
         toggleDesktopLayout();
     }
 });
 
-        function updateLanguage() {
-            let label = 'RU';
-            if (currentLang === 'en') label = 'EN';
-            if (currentLang === 'cn') label = 'CN';
-            document.getElementById('langLabel').innerText = label;
-            document.getElementById('transToggle').innerText = uiDict[currentLang].trans_label;
+function updateLanguage() {
+    let label = 'RU';
+    if (currentLang === 'en') label = 'EN';
+    if (currentLang === 'cn') label = 'CN';
+    document.getElementById('langLabel').innerText = label;
+    document.getElementById('transToggle').innerText = uiDict[currentLang].trans_label;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
+    });
+    renderSubtitles();
+}
 
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
-            });
-            renderSubtitles();
+// 词汇等级着色辅助
+function getWordLevelClass(word) {
+    if (subLevelFilter === 0) return '';
+    if (!/[\u4e00-\u9fa5]/.test(word)) return '';
+    const entry = masterDict[word];
+    if (!entry) return 'wl-ex';   // 未收录 → 绿色
+    const lvStr = String(entry.level);
+    if (lvStr === 'extra') return 'wl-ex';
+    const lv = parseInt(lvStr);
+    if (isNaN(lv) || lv <= subLevelFilter) return ''; // 在 filter 以内，不标色
+    // 超出 filter 的词，按实际等级着色
+    if (lv <= 3) return 'wl-3';   // HSK 1-3 → 绿色（理论上不会出现，因为 filter≥2）
+    if (lv === 4) return 'wl-4';  // HSK 4 → 蓝色
+    if (lv === 5) return 'wl-5';  // HSK 5 → 紫色
+    if (lv === 6) return 'wl-6';  // HSK 6 → 红色
+    return 'wl-79';               // HSK 7-9 → 橙色
+}
+
+function renderSubtitles() {
+    list.innerHTML = '';
+    window.currentSubtitles.forEach((sub, index) => {
+        const div = document.createElement('div');
+        div.className = 'sub-item';
+        div.id = 'sub-' + index;
+
+        // 分词数组
+        let words = [];
+        if (sub.cn.includes('/')) {
+            words = sub.cn.split('/').filter(w => w.trim() !== '');
+        } else if (window.Intl && Intl.Segmenter) {
+            const seg = new Intl.Segmenter('zh-CN', { granularity: 'word' });
+            words = Array.from(seg.segment(sub.cn)).map(s => s.segment).filter(s => s.trim());
+        } else {
+            words = [sub.cn.replace(/\//g, '')];
         }
 
-        function renderSubtitles() {
-            list.innerHTML = '';
-            window.currentSubtitles.forEach((sub, index) => {
-                const div = document.createElement('div');
-                div.className = 'sub-item';
-                div.id = 'sub-' + index;
+        let chineseContent = '';
+        const sq = searchState.query;
+        const isTextSearch = sq && !searchState.isGrammar;
 
-                let chineseContent = '';
-
-                // --- 1. 分词逻辑 (保持不动) ---
+        if (isWordMode || subLevelFilter > 0) {
+            words.forEach(word => {
+                const cleanWord = word.replace(/\//g, '');
+                if (!cleanWord) return;
+                const lvCls = getWordLevelClass(cleanWord);
+                // 搜索高亮
+                let display = cleanWord;
+                if (isTextSearch && cleanWord.includes(sq)) {
+                    display = cleanWord.split(sq).join('<mark class="search-hit">' + sq + '</mark>');
+                }
                 if (isWordMode) {
-                    if (sub.cn.includes('/')) {
-                        const words = sub.cn.split('/').filter(w => w.trim() !== "");
-                        words.forEach(word => {
-                            chineseContent += `<span class="word-span" onclick="lookupWord('${word}', event)">${word}</span>`;
-                        });
-                    } else if (window.Intl && Intl.Segmenter) {
-                        const segmenter = new Intl.Segmenter('zh-CN', { granularity: 'word' });
-                        const segments = segmenter.segment(sub.cn);
-                        for (const segment of segments) {
-                            chineseContent += `<span class="word-span" onclick="lookupWord('${segment.segment}', event)">${segment.segment}</span>`;
-                        }
-                    }
+                    chineseContent += `<span class="word-span ${lvCls}" onclick="lookupWord('${cleanWord}', event)">${display}</span>`;
                 } else {
-                    chineseContent = sub.cn.replace(/\//g, '');
+                    chineseContent += `<span class="${lvCls}">${display}</span>`;
                 }
-
-                // --- 2. 生成图标 (🌟 或 💡) ---
-                let iconHtml = '';
-                const hasPremade = (sub.analysis && (sub.analysis.ru || sub.analysis.en)) || (sub.grammar_tags && sub.grammar_tags.length > 0);
-
-                if (hasPremade) {
-                    // 📝 预制版
-                    iconHtml = `<div class="sent-icon-wrap" onclick="openSentenceModal(${index}, 'premade', event)" title="${uiDict[currentLang].tip_grammar}">
-                                    <div class="icon-note"><i class="fas fa-pencil-alt"></i></div>
-                                </div>`;
-                } else {
-                    // 🔍 AI 版
-                    iconHtml = `<div class="sent-icon-wrap" onclick="openSentenceModal(${index}, 'ai', event)" title="${uiDict[currentLang].tip_ai}">
-                                    <div class="icon-search"><i class="fas fa-search"></i></div>
-                                </div>`;
-                }
-
-                // --- 3. 核心拼接：[汉字内容] + [图标内容] ---
-                let transText = currentLang === 'ru' ? sub.ru : (sub.en || sub.ru);
-                div.innerHTML = `
-                    <div class="pinyin">${sub.py}</div>
-                    <div class="chinese">${chineseContent}${iconHtml}</div>
-                    <div class="trans">${transText}</div>
-                `;
-                
-                div.onclick = (e) => { 
-                    if (!isWordMode && !e.target.closest('.sent-icon-wrap')) { 
-                        video.currentTime = sub.start; 
-                        video.play(); 
-                    } 
-                };
-                list.appendChild(div);
             });
+        } else {
+            let plain = sub.cn.replace(/\//g, '');
+            if (isTextSearch && plain.includes(sq)) {
+                plain = plain.split(sq).join('<mark class="search-hit">' + sq + '</mark>');
+            }
+            chineseContent = plain;
         }
 
-        // ... (省略 AI 查词和播放逻辑，保持不变) ...
-        // 为了确保能运行，我把基础播放逻辑补全：
-        
-        // === 修改后的播放逻辑 (自动保存进度) ===
-        video.ontimeupdate = () => {
-            const time = video.currentTime;
-            const duration = video.duration;
-            const subs = window.currentSubtitles;
-
-            // 1. 计算并保存进度 (新功能)
-            if (duration > 0) {
-                const percent = Math.floor((time / duration) * 100);
-                
-                // 只有进度变了才保存，减少性能消耗
-                // Key 的格式是: 'progress_课程ID'
-                const oldPercent = localStorage.getItem('progress_' + id);
-                if (percent > (oldPercent || 0)) {
-                    localStorage.setItem('progress_' + id, percent);
-                    
-                    // 如果超过 90%，标记为“已完成”
-                    if (percent >= 90) {
-                        localStorage.setItem('done_' + id, 'true');
-                    }
-                }
-            }
-
-            // 2. 循环逻辑 (保持不变)
-            if (loopEnabled && activeIndex !== -1 && time >= subs[activeIndex].end) {
-                video.currentTime = subs[activeIndex].start; video.play();
-            }
-
-            // 3. 高亮逻辑 (保持不变)
-            const currentIndex = subs.findIndex(s => time >= s.start && time < s.end);
-            if (currentIndex !== -1 && currentIndex !== activeIndex) {
-                if (activeIndex !== -1) document.getElementById('sub-' + activeIndex)?.classList.remove('active');
-                const activeItem = document.getElementById('sub-' + currentIndex);
-                if (activeItem) { 
-            activeItem.classList.add('active'); 
-            
-            // 无论哪种模式，都让当前字幕滚动到容器（小窗口）的正中间
-            activeItem.scrollIntoView({ behavior: "smooth", block: "center" }); 
+        // 有预制 → 铅笔; 无预制 → 搜索（一句一图标）
+        const hasPremade = (sub.analysis && (sub.analysis.ru || sub.analysis.en)) || (sub.grammar_tags && sub.grammar_tags.length > 0);
+        let iconHtml = '';
+        if (hasPremade) {
+            iconHtml = `<div class="sent-icon-wrap" onclick="openSentenceModal(${index},'premade',event)" title="${uiDict[currentLang].tip_grammar}"><div class="icon-note"><i class="fas fa-pencil-alt"></i></div></div>`;
+        } else {
+            iconHtml = `<div class="sent-icon-wrap" onclick="openSentenceModal(${index},'ai',event)" title="${uiDict[currentLang].tip_ai}"><div class="icon-search"><i class="fas fa-search"></i></div></div>`;
         }
-                activeIndex = currentIndex;
+
+        // 搜索匹配高亮整行
+        if (searchState.matchedIndices.includes(index)) div.classList.add('search-matched');
+
+        let transText = currentLang === 'ru' ? sub.ru : (sub.en || sub.ru);
+        div.innerHTML = `<div class="pinyin">${sub.py || ''}</div><div class="chinese">${chineseContent}${iconHtml}</div><div class="trans">${transText || ''}</div>`;
+        div.onclick = (e) => {
+            if (!isWordMode && !e.target.closest('.sent-icon-wrap')) {
+                video.currentTime = sub.start;
+                video.play();
             }
         };
+        list.appendChild(div);
+    });
+}
 
-        function seekRelative(offset) {
-            let target = activeIndex + offset;
-            if (target < 0) target = 0; if (target >= window.currentSubtitles.length) target = window.currentSubtitles.length - 1;
-            if (window.currentSubtitles[target]) { video.currentTime = window.currentSubtitles[target].start; video.play(); }
+video.ontimeupdate = () => {
+    const time = video.currentTime;
+    const duration = video.duration;
+    const subs = window.currentSubtitles;
+    if (duration > 0) {
+        const percent = Math.floor((time / duration) * 100);
+        const oldPercent = localStorage.getItem('progress_' + id);
+        if (percent > (oldPercent || 0)) {
+            localStorage.setItem('progress_' + id, percent);
+            if (percent >= 90) {
+                localStorage.setItem('done_' + id, 'true');
+            }
         }
-        function togglePlay() { if (video.paused) { video.play(); playIcon.className = 'fas fa-pause'; } else { video.pause(); playIcon.className = 'fas fa-play'; } }
-        function changeSpeed(rate) { video.playbackRate = rate; }
-        function toggleLoop() { loopEnabled = !loopEnabled; document.getElementById('loopBtn').classList.toggle('active'); }
-        function toggleAudioMode() { isAudioMode = !isAudioMode; document.getElementById('audioVisualizer').classList.toggle('active'); document.getElementById('audioModeBtn').classList.toggle('active'); }
-        function toggleFullscreen() { document.body.classList.toggle('focus-mode'); }
-        function toggleVisibility(type, btn) { const cls = 'hide-' + type; if (container.classList.contains(cls)) { container.classList.remove(cls); btn.classList.add('on'); } else { container.classList.add(cls); btn.classList.remove('on'); } }
-        function goToPractice() { location.href = 'practice.html?id=' + id; }
-        
-        video.onplay = () => playIcon.className = 'fas fa-pause';
-        video.onpause = () => playIcon.className = 'fas fa-play';
+    }
+    if (loopEnabled && activeIndex !== -1 && time >= subs[activeIndex].end) {
+        video.currentTime = subs[activeIndex].start; video.play();
+    }
+    const currentIndex = subs.findIndex(s => time >= s.start && time < s.end);
+    if (currentIndex !== -1 && currentIndex !== activeIndex) {
+        if (activeIndex !== -1) document.getElementById('sub-' + activeIndex)?.classList.remove('active');
+        const activeItem = document.getElementById('sub-' + currentIndex);
+        if (activeItem) { 
+            activeItem.classList.add('active'); 
+            activeItem.scrollIntoView({ behavior: "smooth", block: "center" }); 
+        }
+        activeIndex = currentIndex;
+    }
+};
 
-        // === 🌟 句子解析 & DeepSeek AI 逻辑 ===
-        const _p1 = "sk-231efa";
+function seekRelative(offset) {
+    let target = activeIndex + offset;
+    if (target < 0) target = 0; if (target >= window.currentSubtitles.length) target = window.currentSubtitles.length - 1;
+    if (window.currentSubtitles[target]) { video.currentTime = window.currentSubtitles[target].start; video.play(); }
+}
+function togglePlay() { if (video.paused) { video.play(); playIcon.className = 'fas fa-pause'; } else { video.pause(); playIcon.className = 'fas fa-play'; } }
+function changeSpeed(rate) { video.playbackRate = rate; }
+function toggleLoop() { loopEnabled = !loopEnabled; document.getElementById('loopBtn').classList.toggle('active'); }
+function toggleAudioMode() { isAudioMode = !isAudioMode; document.getElementById('audioVisualizer').classList.toggle('active'); document.getElementById('audioModeBtn').classList.toggle('active'); }
+function toggleFullscreen() { document.body.classList.toggle('focus-mode'); }
+function toggleVisibility(type, btn) { const cls = 'hide-' + type; if (container.classList.contains(cls)) { container.classList.remove(cls); btn.classList.add('on'); } else { container.classList.add(cls); btn.classList.remove('on'); } }
+function goToPractice() { location.href = 'practice.html?id=' + id; }
+video.onplay = () => playIcon.className = 'fas fa-pause';
+video.onpause = () => playIcon.className = 'fas fa-play';
+
+const _p1 = "sk-231efa";
 const _p2 = "73c03e4835ba5";
 const _p3 = "aabdc15a204c5";
 const DS_API_KEY = _p1 + _p2 + _p3;
 
-        function closeSentModal() {
-            document.getElementById('sentOverlay').style.display = 'none';
-            document.getElementById('sentModal').classList.remove('show');
+
+// 词汇分级下拉
+function toggleLvDropdown() {
+    const dd = document.getElementById('lvDropdown');
+    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('lvDropdownWrap')?.contains(e.target)) {
+        const dd = document.getElementById('lvDropdown');
+        if (dd) dd.style.display = 'none';
+    }
+});
+
+const lvColors = { 0:'#666', 2:'#10b981', 3:'#3b82f6', 4:'#8b5cf6', 5:'#ef4444', 6:'#f59e0b' };
+const lvLabels = { 0:'词汇分级', 2:'HSK 3', 3:'HSK 4', 4:'HSK 5', 5:'HSK 6', 6:'HSK 7-9' };
+
+function setSubLevel(lv) {
+    subLevelFilter = lv;
+    // 更新下拉按钮颜色和文字
+    const btn = document.getElementById('lvDropdownBtn');
+    const label = document.getElementById('lvBtnLabel');
+    if (btn && label) {
+        const col = lvColors[lv] || '#666';
+        btn.style.borderColor = lv === 0 ? '#eee' : col;
+        btn.style.color = lv === 0 ? '#666' : col;
+        label.textContent = lvLabels[lv] || '词汇分级';
+    }
+    // 高亮选中项
+    document.querySelectorAll('.lv-opt').forEach(opt => {
+        opt.style.background = '';
+    });
+    const activeOpt = document.getElementById('lvopt-' + lv);
+    if (activeOpt) activeOpt.style.background = '#f0f7f5';
+    // 关闭下拉
+    const dd = document.getElementById('lvDropdown');
+    if (dd) dd.style.display = 'none';
+    renderSubtitles();
+}
+
+// 搜索
+function handleSubSearch(q) {
+    q = q.trim();
+    searchState.query = q;
+    searchState.matchedIndices = [];
+    searchState.currentMatch = 0;
+    searchState.isGrammar = false;
+    const tip = document.getElementById('searchResultTip');
+    if (!q) { tip.textContent = ''; renderSubtitles(); return; }
+    const subs = window.currentSubtitles;
+    const gDB = (typeof GRAMMAR_DB !== 'undefined') ? GRAMMAR_DB : window.GRAMMAR_DB;
+    // 语法搜索
+    let grammarMatches = [];
+    if (gDB) {
+        grammarMatches = gDB.filter(g =>
+            (g.id && g.id.toLowerCase().includes(q.toLowerCase())) ||
+            (g.title && g.title.cn && g.title.cn.includes(q)) ||
+            (g.keywords && Array.isArray(g.keywords) && g.keywords.some(k => k.includes(q)))
+        );
+    }
+    if (grammarMatches.length > 0) {
+        searchState.isGrammar = true;
+        const ids = new Set(grammarMatches.map(g => g.id));
+        subs.forEach((sub, i) => {
+            const tags = sub.grammar_tags || [];
+            if (tags.some(t => ids.has(typeof t === 'string' ? t : t.tagId))) searchState.matchedIndices.push(i);
+        });
+        tip.textContent = searchState.matchedIndices.length > 0 ? `语法 ${searchState.matchedIndices.length} 句` : '无匹配';
+    } else {
+        subs.forEach((sub, i) => {
+            if (sub.cn.replace(/\//g, '').includes(q)) searchState.matchedIndices.push(i);
+        });
+        tip.textContent = searchState.matchedIndices.length > 0 ? `共 ${searchState.matchedIndices.length} 处` : '无匹配';
+    }
+    renderSubtitles();
+}
+
+function jumpToSearchResult() {
+    if (!searchState.matchedIndices.length) return;
+    const idx = searchState.matchedIndices[searchState.currentMatch % searchState.matchedIndices.length];
+    searchState.currentMatch++;
+    document.getElementById('sub-' + idx)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('searchResultTip').textContent =
+        `${(searchState.currentMatch-1) % searchState.matchedIndices.length + 1} / ${searchState.matchedIndices.length}`;
+}
+
+function closeSentModal() {
+    document.getElementById('sentOverlay').style.display = 'none';
+    document.getElementById('sentModal').classList.remove('show');
+}
+
+async function openSentenceModal(index, type, event) {
+    if(event) event.stopPropagation();
+    video.pause();
+    const sub = window.currentSubtitles[index];
+    const container = document.getElementById('sentBodyContent');
+    const lang = uiDict[currentLang];
+    document.getElementById('sentOverlay').style.display = 'block';
+    document.getElementById('sentModal').classList.add('show');
+    const modalTitle = type === 'premade' ? lang.tip_grammar : lang.tip_ai;
+    const titleIcon = type === 'premade' ? '<i class="fas fa-pencil-alt" style="color:#8B3A3A"></i> ' : '<i class="fas fa-search" style="color:#7C3AED"></i> ';
+    document.getElementById('sent-modal-title').innerHTML = titleIcon + modalTitle;
+    if (type === 'premade') {
+        let html = '';
+        if (sub.analysis) {
+            const text = currentLang === 'ru' ? (sub.analysis.ru || sub.analysis.cn) : (sub.analysis.en || sub.analysis.cn);
+            const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+            html += `<div class="analysis-box" style="border-left-color:var(--primary)"><div style="font-size:11px; color:var(--primary); font-weight:bold; margin-bottom:8px; text-transform:uppercase;">${lang.context_title}</div>${formattedText}</div>`;
         }
-
-        async function openSentenceModal(index, type, event) {
-            if(event) event.stopPropagation();
-            video.pause();
-            
-            const sub = window.currentSubtitles[index];
-            const container = document.getElementById('sentBodyContent');
-            const lang = uiDict[currentLang]; // 简写
-            
-            document.getElementById('sentOverlay').style.display = 'block';
-            document.getElementById('sentModal').classList.add('show');
-            
-            // 1. 设置弹窗顶部的【注释】或【AI分析】标题
-            const modalTitle = type === 'premade' ? lang.tip_grammar : lang.tip_ai;
-            // 🌟 设置弹窗标题图标
-            const titleIcon = type === 'premade' ? '<i class="fas fa-pencil-alt" style="color:#8B3A3A"></i> ' : '<i class="fas fa-search" style="color:#7C3AED"></i> ';
-            document.getElementById('sent-modal-title').innerHTML = titleIcon + modalTitle;
-
-            if (type === 'premade') {
-                let html = '';
-                
-                // 2. 渲染【语境分析】区域
-                if (sub.analysis) {
-                    const text = currentLang === 'ru' ? (sub.analysis.ru || sub.analysis.cn) : (sub.analysis.en || sub.analysis.cn);
-                    const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-                    
-                    html += `<div class="analysis-box" style="border-left-color:var(--primary)">
-                                <div style="font-size:11px; color:var(--primary); font-weight:bold; margin-bottom:8px; text-transform:uppercase;">${lang.context_title}</div>
-                                ${formattedText}
-                             </div>`;
+        if (sub.grammar_tags && sub.grammar_tags.length > 0) {
+            html += `<div style="font-size:12px; color:#999; margin:20px 0 10px 0; font-weight:bold; border-top:1px solid #eee; padding-top:15px;">${lang.points_title}</div>`;
+            const gDB = typeof GRAMMAR_DB !== 'undefined' ? GRAMMAR_DB : window.GRAMMAR_DB;
+            sub.grammar_tags.forEach(tagId => {
+                const gData = gDB.find(item => item.id === tagId);
+                if (gData) {
+                    const gTitle = gData.title[currentLang] || gData.title.cn;
+                    const gShort = currentLang === 'ru' ? (gData.short_desc.ru || gData.short_desc.cn) : (gData.short_desc.en || gData.short_desc.cn);
+                    html += `<div class="g-item-box"><div class="g-item-title"><span>${gTitle}</span><span style="font-size:10px; background:#f3f4f6; color:#666; padding:2px 6px; border-radius:4px;">${gData.level}</span></div><div class="g-item-desc">${gShort}</div><button class="g-item-btn" onclick="window.open('hsk_dashboard.html?tab=grammar&point=${encodeURIComponent(gData.title.cn)}', '_blank')">📖 ${lang.more_info}</button></div>`;
                 }
-
-                // 3. 渲染【相关知识点】区域
-                if (sub.grammar_tags && sub.grammar_tags.length > 0) {
-                    html += `<div style="font-size:12px; color:#999; margin:20px 0 10px 0; font-weight:bold; border-top:1px solid #eee; padding-top:15px;">${lang.points_title}</div>`;
-                    
-                    const gDB = typeof GRAMMAR_DB !== 'undefined' ? GRAMMAR_DB : window.GRAMMAR_DB;
-                    
-                    sub.grammar_tags.forEach(tagId => {
-                        const gData = gDB.find(item => item.id === tagId);
-                        if (gData) {
-                            const gTitle = gData.title[currentLang] || gData.title.cn;
-                            const gShort = currentLang === 'ru' ? (gData.short_desc.ru || gData.short_desc.cn) : (gData.short_desc.en || gData.short_desc.cn);
-                            
-                            html += `
-                                <div class="g-item-box">
-                                    <div class="g-item-title">
-                                        <span>${gTitle}</span>
-                                        <span style="font-size:10px; background:#f3f4f6; color:#666; padding:2px 6px; border-radius:4px;">${gData.level}</span>
-                                    </div>
-                                    <div class="g-item-desc">${gShort}</div>
-                                    <button class="g-item-btn" onclick="window.open('hsk_dashboard.html?tab=grammar&point=${encodeURIComponent(gData.title.cn)}', '_blank')">
-                                        📖 ${lang.more_info}
-                                    </button>
-                                </div>`;
-                        }
-                    });
-                }
-                container.innerHTML = html || "Content loading...";
-
-            } else {
-                // 4. 实时 AI 模式：修复俄语加载提示
-                container.innerHTML = `<div style="text-align:center; padding:30px; color:#A855F7;"><i class="fas fa-spinner fa-spin fa-2x"></i><div style="margin-top:15px; font-weight:bold;">${lang.ai_loading}</div></div>`;
-                
-                const cleanCn = sub.cn.replace(/\//g, '');
-                const targetLang = currentLang === 'ru' ? '俄语' : (currentLang === 'en' ? '英语' : '中文');
-                const fullScript = window.currentSubtitles.map(s => s.cn.replace(/\//g, '')).join(" ");
-                
-                const prompt = `Context: ${fullScript}\nSentence: ${cleanCn}\nExplain this to a student in ${targetLang}. Focus on nuance, tone, and one tricky colloquial part. Be concise. No markdown code blocks.`;
-
-                try {
-                    const response = await fetch("https://api.deepseek.com/chat/completions", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json", "Authorization": `Bearer sk-231efa73c03e4835ba5aabdc15a204c5` },
-                        body: JSON.stringify({ model: "deepseek-chat", messages: [{"role": "user", "content": prompt}], temperature: 0.4 })
-                    });
-                    const data = await response.json();
-                    const aiAnswer = data.choices[0].message.content;
-                    const formattedAiAnswer = aiAnswer.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-                    container.innerHTML = `<div class="analysis-box" style="border-left-color:#A855F7; background:#faf5ff;"><b>💡 ${lang.tip_ai}：</b><br><br>${formattedAiAnswer}</div>`;
-                } catch (error) { container.innerHTML = "Error connecting to AI."; }
-            }
+            });
         }
-    </script>
+        // 改动6: 底部始终加 AI 解析入口
+        html += `<div style="margin-top:15px;padding-top:12px;border-top:1px solid #eee;">
+            <button onclick="openSentenceModal(${index},'ai',event)" style="width:100%;padding:10px;border:1.5px solid #DDD6FE;border-radius:10px;background:#F5F3FF;color:#7C3AED;font-weight:bold;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='#7C3AED';this.style.color='white'" onmouseout="this.style.background='#F5F3FF';this.style.color='#7C3AED'">
+                <i class="fas fa-search"></i> ${uiDict[currentLang].tip_ai}
+            </button>
+        </div>`;
+        container.innerHTML = html || "Content loading...";
+    } else {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#A855F7;"><i class="fas fa-spinner fa-spin fa-2x"></i><div style="margin-top:15px; font-weight:bold;">${lang.ai_loading}</div></div>`;
+        const cleanCn = sub.cn.replace(/\//g, '');
+        const targetLang = currentLang === 'ru' ? '俄语' : (currentLang === 'en' ? '英语' : '中文');
+        const fullScript = window.currentSubtitles.map(s => s.cn.replace(/\//g, '')).join(" ");
+        const prompt = `Context: ${fullScript}\nSentence: ${cleanCn}\nExplain this to a student in ${targetLang}. Focus on nuance, tone, and one tricky colloquial part. Be concise. No markdown code blocks.`;
+        try {
+            const response = await fetch("https://api.deepseek.com/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer sk-231efa73c03e4835ba5aabdc15a204c5` },
+                body: JSON.stringify({ model: "deepseek-chat", messages:[{"role": "user", "content": prompt}], temperature: 0.4 })
+            });
+            const data = await response.json();
+            const aiAnswer = data.choices[0].message.content;
+            const formattedAiAnswer = aiAnswer.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+            container.innerHTML = `<div class="analysis-box" style="border-left-color:#A855F7; background:#faf5ff;"><b>💡 ${lang.tip_ai}：</b><br><br>${formattedAiAnswer}</div>`;
+        } catch (error) { container.innerHTML = "Error connecting to AI."; }
+    }
+}
+</script>
 <!-- 🎬 终极专业版：自动演示导演控制台 🎬 -->
 <!-- ========================================== -->
 <style>
