@@ -140,7 +140,7 @@ body.vertical-mode .word-span{padding:0px 4px;}
     /* 语言切换 */
     .lang-switch{padding:4px 6px !important;font-size:10px !important;white-space:nowrap !important;height:25px !important;border-radius:8px !important;}
     .lang-switch i{font-size:12px !important;}
-    body{height:100vh !important;overflow:hidden !important;display:flex;flex-direction:column;}
+    body{position:fixed !important;width:100vw !important;height:100% !important;overflow:hidden !important;display:flex;flex-direction:column;}
     .main-container{flex:1;display:flex !important;flex-direction:column !important;padding:0 !important;margin:0 !important;overflow:hidden !important;width:100vw !important;gap:4px !important;}
     .video-section{flex:none !important;width:100%;padding:0;gap:4px !important;}
     .video-wrapper{border-radius:0;border:none;aspect-ratio:16/9;}
@@ -672,7 +672,12 @@ video.ontimeupdate = () => {
         const activeItem = document.getElementById('sub-' + currentIndex);
         if (activeItem) { 
             activeItem.classList.add('active'); 
-            activeItem.scrollIntoView({ behavior: "smooth", block: "center" }); 
+            // 采用精准的相对位置滚动，只滚字幕盒子，绝不触碰外层网页
+const subList = document.getElementById('subtitleList');
+subList.scrollTo({
+    top: activeItem.offsetTop - (subList.clientHeight / 2) + (activeItem.clientHeight / 2),
+    behavior: "smooth"
+});
         }
         activeIndex = currentIndex;
     }
