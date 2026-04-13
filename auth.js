@@ -1,7 +1,7 @@
 // === auth.js (CTO 佛系稳定版 - 拒绝更新闪退) ===
 
 let authClient = null;
-const AUTH_SUPABASE_URL = 'https://proxy.hanyu-vlog.com/api/supabase';
+const AUTH_SUPABASE_URL = 'https://royal-feather-3237.zhouyuhe525.workers.dev/'; 
 const AUTH_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
 
 async function initAuth() {
@@ -27,6 +27,7 @@ async function initAuth() {
 
     // 🟢 核心改动：使用 getSession。它只读本地缓存，速度极快且不联网。
     const { data: { session } } = await authClient.auth.getSession();
+if (!session) return;   // ← 加这一行 
 
 
     // 已经在页面里了，我们【不再】阻塞性地去联网核对。
