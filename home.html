@@ -11,6 +11,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@300;400;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
 
     <script src="lesson_001.js"></script>
@@ -55,6 +58,7 @@
     <script src="lesson_041.js"></script>
     <script src="lesson_042.js"></script>
     <script src="lesson_043.js"></script>
+    <script src="lesson_044.js"></script>
 
    
     
@@ -76,18 +80,27 @@
     <script src="lesson_416.js"></script>
     <script src="lesson_417.js"></script>
     <script src="lesson_418.js"></script>
+    <script src="lesson_419.js"></script>
+    <script src="lesson_420.js"></script>
 
     <style>
         :root {
-            --primary: #6CAD9C; --primary-light: #e0f2fe;
-            --red: #8B3A3A; --bg: #F9F7F2; --white: #FFFFFF;
-            --yellow: #E5CC84; --yellow-light: #fffbeb;
-            --text: #4A3B32; --gray: #9ca3af;
+            --primary: #7A6B4E;
+            --primary-light: #F0ECE4;
+            --red: #7A5A48;
+            --bg: #F5F3EE;
+            --white: #FFFFFF;
+            --yellow: #C4A24E;
+            --yellow-light: #FAF6EC;
+            --text: #2D2D28;
+            --gray: #A8998A;
+            --border: #E0DCD4;
+            --accent: #A89468;
         }
 
         body {
             margin: 0;
-            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-family: "Nunito", "Noto Sans SC", "PingFang SC", sans-serif;
             background: var(--bg);
             color: var(--text);
             height: 100vh;
@@ -96,49 +109,48 @@
         }
 
         /* ============================================================
-           侧边栏 — 新样式（仅CSS/HTML，JS逻辑完全来自旧版）
+           侧边栏
         ============================================================ */
         .sidebar {
             width: 280px;
-            background: var(--white);
-            border-right: 1px solid rgba(139,58,58,0.08);
+            background: #FAFAF6;
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             position: relative;
             z-index: 100;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.04);
+            box-shadow: 2px 0 12px rgba(0,0,0,0.03);
             overflow-y: auto;
             flex-shrink: 0;
             transition: margin 0.3s ease;
         }
         .sidebar.collapsed { margin-left: -280px; }
 
-        /* 电脑端折叠按钮 */
         .sidebar-toggle {
             position: absolute; right: -38px; top: 20px;
             width: 38px; height: 38px;
-            background: var(--white); border: 1px solid #e5e7eb; border-left: none;
+            background: #FAFAF6; border: 1px solid var(--border); border-left: none;
             border-radius: 0 8px 8px 0;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; color: var(--primary); font-size: 14px;
-            box-shadow: 2px 0 6px rgba(0,0,0,0.06);
+            box-shadow: 2px 0 6px rgba(0,0,0,0.04);
         }
 
-        /* Logo 头部 */
         .sidebar-header {
             padding: 20px 18px 16px;
-            border-bottom: 2px solid var(--yellow);
+            border-bottom: 2px solid var(--border);
             flex-shrink: 0;
         }
         .logo {
-            font-size: 20px; font-weight: 800; color: var(--red);
+            font-size: 20px; font-weight: 800; color: var(--primary);
             display: flex; align-items: center; gap: 10px; cursor: pointer;
+            font-family: "LXGW WenKai", "Noto Sans SC", serif;
         }
 
         /* ── 学习包区域 ── */
         .course-center {
-            background: #fffdf9;
-            border: 1px solid var(--yellow);
+            background: #FAF9F6;
+            border: 1px solid var(--border);
             border-radius: 14px;
             padding: 12px;
             margin: 14px 12px 10px;
@@ -148,45 +160,44 @@
             margin-bottom: 10px;
         }
         .section-title {
-            font-size: 12px; font-weight: 800; color: var(--red);
+            font-size: 12px; font-weight: 800; color: var(--primary);
             display: flex; align-items: center; gap: 5px;
         }
         .reset-all {
-            font-size: 11px; color: var(--primary);
+            font-size: 11px; color: var(--accent);
             cursor: pointer; font-weight: bold; text-decoration: underline;
         }
-        /* 3 列 × 2 行 网格 */
         .course-grid {
-    display: flex;
-    gap: 7px;
-}
-.course-col {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    gap: 7px;
-}
+            display: flex;
+            gap: 7px;
+        }
+        .course-col {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 7px;
+        }
         .grid-item {
             background: white;
-            border: 1px solid #eee;
-            border-radius: 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             padding: 9px 4px 8px;
             display: flex; flex-direction: column; align-items: center;
             gap: 5px; cursor: pointer; transition: all 0.2s; text-align: center;
         }
         .grid-item:hover, .grid-item.active {
-            border-color: var(--primary); background: #f0fdfa; color: var(--primary);
+            border-color: var(--accent); background: var(--primary-light); color: var(--primary);
         }
-        .grid-item i { font-size: 15px; }
+        .grid-item i { font-size: 15px; color: var(--accent); }
         .grid-item span { font-size: 10px; font-weight: 700; white-space: nowrap; line-height: 1.3; }
 
-        /* ── HSK 资源库 按钮 ── */
+        /* ── HSK 按钮 ── */
         .hsk-hub-btn {
-            background: #fffbeb;
-            border: 1px solid #fcd34d;
-            color: #b45309;
+            background: var(--yellow-light);
+            border: 1px solid var(--yellow);
+            color: #8A6D20;
             padding: 11px 14px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: bold; font-size: 14px;
             display: flex; align-items: center; justify-content: center; gap: 9px;
             cursor: pointer;
@@ -195,29 +206,29 @@
             box-shadow: 0 1px 4px rgba(0,0,0,0.03);
         }
         .hsk-hub-btn:hover {
-            background: #fef3c7;
+            background: #F5EDD0;
             transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(180,83,9,0.1);
+            box-shadow: 0 4px 10px rgba(138,109,32,0.1);
         }
         .hsk-hub-btn i { font-size: 16px; }
 
         /* ── 菜单项通用 ── */
         .menu-item {
             display: flex; align-items: center; gap: 11px;
-            padding: 10px 14px; border-radius: 8px; cursor: pointer;
-            color: var(--text); font-size: 13.5px;
+            padding: 10px 14px; border-radius: 10px; cursor: pointer;
+            color: #6B6258; font-size: 13.5px;
             margin: 0 6px 2px; transition: all 0.2s;
         }
-        .menu-item:hover, .menu-item.active { background: var(--bg); color: var(--red); }
+        .menu-item:hover, .menu-item.active { background: var(--primary-light); color: var(--primary); }
 
         /* ── 学习记录折叠 ── */
         .records-toggle {
             display: flex; align-items: center; justify-content: space-between;
             padding: 10px 14px; margin: 4px 6px 0;
-            border-top: 1px solid #f0f0f0; cursor: pointer;
-            border-radius: 8px; transition: all 0.2s;
+            border-top: 1px solid var(--border); cursor: pointer;
+            border-radius: 10px; transition: all 0.2s;
         }
-        .records-toggle:hover { background: var(--bg); }
+        .records-toggle:hover { background: var(--primary-light); }
         .records-toggle-left { display: flex; align-items: center; gap: 11px; font-size: 13.5px; font-weight: 700; color: var(--text); }
         #data-chevron { color: #ccc; font-size: 11px; transition: transform 0.2s; }
 
@@ -226,19 +237,19 @@
         .sub-menu-item {
             display: flex; align-items: center; gap: 11px;
             padding: 9px 14px 9px 40px;
-            font-size: 12.5px; color: #888; cursor: pointer;
-            border-radius: 8px; margin: 0 6px 1px; transition: all 0.2s;
+            font-size: 12.5px; color: #A8998A; cursor: pointer;
+            border-radius: 10px; margin: 0 6px 1px; transition: all 0.2s;
         }
-        .sub-menu-item:hover { background: var(--bg); color: var(--primary); }
-        .sub-menu-item.review-item { color: #5a9688; background: #f0f9f7; }
+        .sub-menu-item:hover { background: var(--primary-light); color: var(--primary); }
+        .sub-menu-item.review-item { color: var(--primary); background: var(--primary-light); }
 
         /* ── 统计卡片 ── */
         .stats-box {
             margin: 8px 12px;
-            padding: 12px 14px;
-            background: #f1f8f6;
-            border-radius: 12px;
-            border: 1px solid #d1e7e0;
+            padding: 14px;
+            background: var(--primary-light);
+            border-radius: 14px;
+            border: 1px solid var(--border);
         }
         .stats-title {
             font-size: 11px; font-weight: bold; color: var(--primary);
@@ -247,127 +258,128 @@
         }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .stat-item { text-align: center; }
-        .stat-num { font-size: 17px; font-weight: 800; color: var(--primary); }
-        .stat-label { font-size: 10px; color: #888; margin-top: 2px; }
+        .stat-num { font-size: 17px; font-weight: 800; color: var(--primary); font-family: "Nunito", sans-serif; }
+        .stat-label { font-size: 10px; color: #A8998A; margin-top: 2px; }
 
         /* ── 月历热力图 ── */
         .calendar-section { padding: 0 12px; margin-bottom: 16px; }
         .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .cal-title { font-size: 11px; font-weight: bold; color: #999; }
+        .cal-title { font-size: 11px; font-weight: bold; color: #A8998A; }
         .cal-month-label { font-size: 11px; color: var(--primary); font-weight: 800; background: var(--primary-light); padding: 2px 8px; border-radius: 10px; }
         .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px; text-align: center; }
-        .cal-weekday { font-size: 9px; color: #bbb; font-weight: bold; }
+        .cal-weekday { font-size: 9px; color: #ccc; font-weight: bold; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .cal-day { aspect-ratio: 1; border-radius: 5px; background-color: #f3f4f6; position: relative; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #ccc; }
-        .cal-day:hover { transform: scale(1.15); border: 1px solid var(--primary); z-index: 10; color: var(--text); }
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background-color: #EDEAE4; position: relative; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #ccc; }
+        .cal-day:hover { transform: scale(1.15); border: 1px solid var(--accent); z-index: 10; color: var(--text); }
         .cal-day:hover::after { content: attr(data-date); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; pointer-events: none; }
-        .lvl-0 { background-color: #f3f4f6; }
-        .lvl-1 { background-color: #d1fae5; color: #065f46; font-weight: bold; }
-        .lvl-2 { background-color: #6CAD9C; color: white; font-weight: bold; }
-        .lvl-3 { background-color: #3b7566; color: white; font-weight: bold; }
+        .lvl-0 { background-color: #EDEAE4; }
+        .lvl-1 { background-color: #E8DFC8; color: #7A6B4E; font-weight: bold; }
+        .lvl-2 { background-color: #C4B38A; color: white; font-weight: bold; }
+        .lvl-3 { background-color: #7A6B4E; color: white; font-weight: bold; }
         .cal-legend { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
         .legend-dot { width: 7px; height: 7px; border-radius: 2px; }
 
         /* ── 분리선 ── */
-        .sidebar-divider { height: 1px; background: #f0f0f0; margin: 8px 12px; }
+        .sidebar-divider { height: 1px; background: var(--border); margin: 8px 12px; }
 
-        /* ── 가격/공지 버튼 ── */
+        /* ── 价格按钮 ── */
         .price-menu-item {
             display: flex; align-items: center; gap: 11px;
-            padding: 10px 14px; border-radius: 8px; cursor: pointer;
-            font-size: 13.5px; font-weight: 700; color: var(--text);
+            padding: 10px 14px; border-radius: 10px; cursor: pointer;
+            font-size: 13.5px; font-weight: 700; color: #8A6D20;
             margin: 4px 6px 2px;
             border: 1px solid var(--yellow);
+            background: var(--yellow-light);
             transition: all 0.2s;
         }
-        .price-menu-item:hover { background: var(--yellow-light); }
+        .price-menu-item:hover { background: #F5EDD0; }
 
         /* ── 账户区域 ── */
         .menu-section { padding: 0 6px; margin-bottom: 16px; }
-        .menu-title { font-size: 11px; color: #aaa; margin: 10px 8px 6px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .menu-title { font-size: 11px; color: #A8998A; margin: 10px 8px 6px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
         .logout-btn {
             width: calc(100% - 24px); margin: 0 12px 16px;
             padding: 11px; border: 1px solid var(--red); background: white;
-            color: var(--red); border-radius: 10px; font-weight: bold;
+            color: var(--red); border-radius: 12px; font-weight: bold;
             font-size: 13px; cursor: pointer; transition: all 0.2s;
+            font-family: inherit;
         }
         .logout-btn:hover { background: var(--red); color: white; }
 
         /* ============================================================
-           메인 콘텐츠
+           主内容区
         ============================================================ */
         .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
         header { padding: 20px 40px; background: var(--bg); display: flex; flex-direction: column; gap: 15px; }
         .welcome-row { display: flex; justify-content: space-between; align-items: center; }
-        .page-title { font-size: 26px; font-weight: 800; color: var(--red); }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text); font-family: "LXGW WenKai", "Noto Sans SC", serif; }
         .top-tools { display: flex; align-items: center; gap: 15px; }
         .search-box { position: relative; width: 250px; }
-        .search-input { width: 100%; padding: 8px 15px 8px 35px; border-radius: 20px; border: 1px solid #ddd; outline: none; transition: border 0.2s; }
-        .search-input:focus { border-color: var(--primary); }
-        .search-icon { position: absolute; left: 12px; top: 9px; color: #999; font-size: 14px; }
-        .lang-switch { cursor: pointer; padding: 6px 12px; border-radius: 15px; background: #eee; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
-        .lang-switch:hover { background: #e0f2fe; color: var(--primary); }
+        .search-input { width: 100%; padding: 9px 15px 9px 38px; border-radius: 24px; border: 1.5px solid var(--border); outline: none; transition: 0.2s; background: #FAFAF6; font-family: inherit; font-size: 13px; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168,148,104,0.12); }
+        .search-icon { position: absolute; left: 14px; top: 10px; color: #A8998A; font-size: 13px; }
+        .lang-switch { cursor: pointer; padding: 6px 14px; border-radius: 20px; background: var(--primary-light); font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 5px; transition: all 0.2s; color: var(--primary); border: 1px solid var(--border); }
+        .lang-switch:hover { background: #E8E3D8; }
 
         .filter-row { display: flex; flex-direction: column; gap: 15px; align-items: flex-start; margin-top: 10px; }
         .filter-group { display: flex; gap: 18px; align-items: center; flex-wrap: nowrap !important; width: 100%; overflow-x: auto; padding-bottom: 5px; -ms-overflow-style: none; scrollbar-width: none; }
         .filter-group::-webkit-scrollbar { display: none; }
-        .filter-label { font-size: 12px; color: #ccc; font-weight: bold; white-space: nowrap; padding-right: 5px; border-right: 1px solid #eee; flex-shrink: 0; }
-        .filter-btn { padding: 4px 2px; border: none; background: transparent !important; color: #888; cursor: pointer; font-size: 15px; transition: all 0.2s; flex-shrink: 0; white-space: nowrap; position: relative; }
+        .filter-label { font-size: 12px; color: #A8998A; font-weight: bold; white-space: nowrap; padding-right: 5px; border-right: 1px solid var(--border); flex-shrink: 0; }
+        .filter-btn { padding: 4px 2px; border: none; background: transparent !important; color: #A8998A; cursor: pointer; font-size: 15px; transition: all 0.2s; flex-shrink: 0; white-space: nowrap; position: relative; font-family: inherit; }
         .filter-btn:hover { color: var(--primary); }
         .filter-btn.active { color: var(--primary); font-weight: 800; }
-        .filter-btn.active::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 16px; height: 3px; background: var(--primary); border-radius: 2px; }
-        .sort-select { padding: 6px 12px; border-radius: 6px; border: 1px solid #ddd; outline: none; color: #555; cursor: pointer; }
+        .filter-btn.active::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 16px; height: 3px; background: var(--accent); border-radius: 2px; }
+        .sort-select { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; color: #6B6258; cursor: pointer; font-family: inherit; background: #FAFAF6; }
 
         .content-scroll { flex: 1; overflow-y: auto; padding: 0 40px 40px 40px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
 
-        /* 카드 */
-        .card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid rgba(139,58,58,0.08); display: flex; flex-direction: column; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
-        .card-cover { height: 170px; background-color: #ddd; background-size: cover; background-position: center; position: relative; }
-        .duration-tag { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+        /* 视频卡片 */
+        .card { background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid var(--border); display: flex; flex-direction: column; transition: all 0.25s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.07); border-color: var(--accent); }
+        .card-cover { height: 170px; background-color: #EDEAE4; background-size: cover; background-position: center; position: relative; }
+        .duration-tag { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
         .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; line-height: 1.4; color: var(--text); display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; line-height: 1.4; color: var(--text); display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-family: "LXGW WenKai", "Noto Sans SC", sans-serif; }
         .status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; font-weight: bold; height: 20px; }
         .status-text.done { color: var(--primary); }
-        .status-text.watching { color: #f59e0b; }
-        .card-desc { font-size: 13px; color: #888; margin-bottom: 15px; display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 36px; }
-        .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px; color: #999; }
+        .status-text.watching { color: var(--yellow); }
+        .card-desc { font-size: 13px; color: #A8998A; margin-bottom: 15px; display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 36px; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px; color: #A8998A; }
 
-        /* 개인 프로필 모달 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .profile-card { background: white; width: 320px; border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* 个人中心弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45,45,40,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .profile-card { background: white; width: 320px; border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #999; }
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #A8998A; }
         .modal-close:hover { color: var(--red); }
         .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .avatar-circle { width: 60px; height: 60px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); border: 2px solid var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .avatar-circle { width: 60px; height: 60px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); border: 2px solid var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
         .user-email { font-weight: 800; color: var(--text); font-size: 16px; margin-bottom: 4px; }
-        .user-role { font-size: 12px; color: #888; background: #f3f4f6; padding: 2px 8px; border-radius: 10px; display: inline-block; }
-        .vip-card { background: linear-gradient(135deg, #333 0%, #555 100%); color: #fcd34d; padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .user-role { font-size: 12px; color: #A8998A; background: var(--primary-light); padding: 2px 8px; border-radius: 10px; display: inline-block; }
+        .vip-card { background: linear-gradient(135deg, #3D3830 0%, #5A5040 100%); color: #C4A24E; padding: 15px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .vip-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
         .vip-row:last-child { margin-bottom: 0; font-size: 12px; opacity: 0.8; }
-        .vip-status.active { font-weight: bold; color: #4ade80; }
+        .vip-status.active { font-weight: bold; color: #C4A24E; }
         .action-list { margin-bottom: 20px; }
-        .action-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; color: #555; font-size: 14px; transition: all 0.2s; }
+        .action-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; color: #6B6258; font-size: 14px; transition: all 0.2s; }
         .action-item:hover { padding-left: 5px; color: var(--primary); }
         .act-left { display: flex; align-items: center; gap: 10px; }
 
         /* ============================================================
-           📱 手机端适配
+           📱 手机端
         ============================================================ */
-        /* 手机端悬浮按钮默认隐藏 */
         .mobile-fab { display: none; }
 
         @media (max-width: 768px) {
-            body { flex-direction: column; overflow-x: hidden; background: #f8f8f8; }
+            body { flex-direction: column; overflow-x: hidden; background: var(--bg); }
             .main-content { width: 100vw; padding: 0; }
 
             .sidebar {
                 position: fixed; top: 0; left: -300px;
                 width: 280px; height: 100vh; z-index: 2500;
                 display: flex !important; transition: left 0.3s ease;
-                box-shadow: 10px 0 20px rgba(0,0,0,0.2);
+                box-shadow: 10px 0 20px rgba(0,0,0,0.15);
             }
             .sidebar.mobile-open { left: 0 !important; }
             .sidebar-toggle { display: none; }
@@ -379,54 +391,57 @@
                 background: var(--primary); color: white;
                 border-radius: 50%;
                 align-items: center; justify-content: center;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+                box-shadow: 0 4px 14px rgba(122,107,78,0.3);
                 z-index: 3000; font-size: 18px; cursor: pointer;
             }
 
-            header { padding: 10px 15px; flex-direction: column; gap: 10px; background: white; position: sticky; top: 0; z-index: 2000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-            .welcome-row { width: 100%; }
-            .page-title { font-size: 20px; }
-            .top-tools { width: 100%; }
-            .search-box { width: 100%; flex: 1; }
-            .search-input { width: 100%; box-sizing: border-box; background: #f5f5f5; border: none; padding: 8px 10px 8px 35px; height: 36px; }
-            .sort-select { display: none; }
+            header { padding: 8px 12px; flex-direction: column; gap: 5px; background: #FAFAF6; position: sticky; top: 0; z-index: 2000; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+            .welcome-row { width: 100%; flex-wrap: wrap; gap: 6px; }
+            .page-title { font-size: 18px; }
+            .top-tools { width: 100%; gap: 6px; display: flex; align-items: center; }
+            .search-box { flex: 0 1 auto; min-width: 0; width: 38%; }
+            .search-input { width: 100%; box-sizing: border-box; background: var(--primary-light); border: none; padding: 5px 8px 5px 28px; height: 30px; font-size: 12px; border-radius: 16px; }
+            .search-icon { left: 9px; top: 7px; font-size: 11px; }
+            .sort-select { display: block; padding: 4px 5px; font-size: 10px; border-radius: 6px; flex-shrink: 0; height: 30px; }
+            .lang-switch { flex-shrink: 0; padding: 4px 9px; font-size: 11px; }
 
-            .filter-row { width: 100%; padding: 5px 15px; background: white; margin-top: 0; border-bottom: 1px solid #f0f0f0; gap: 6px; }
-            .filter-group { gap: 8px; overflow-x: auto !important; white-space: nowrap !important; flex-wrap: nowrap !important; padding-bottom: 0; }
+            .filter-row { width: 100%; padding: 4px 12px; background: #FAFAF6; margin-top: 0; border-bottom: 1px solid var(--border); gap: 4px; }
+            .filter-group { gap: 5px; overflow-x: auto !important; white-space: nowrap !important; flex-wrap: nowrap !important; padding-bottom: 0; }
             .filter-label { display: none; }
-            .filter-btn { flex-shrink: 0; padding: 6px 14px; font-size: 13px; background: #f5f5f5 !important; border: none; color: #666; border-radius: 16px; }
-            .filter-btn.active { background: var(--primary-light) !important; color: var(--primary); font-weight: bold; border: 1px solid var(--primary); }
+            .filter-btn { flex-shrink: 0; padding: 4px 10px; font-size: 11px; background: var(--primary-light) !important; border: none; color: #6B6258; border-radius: 12px; }
+            .filter-btn.active { background: #E8E3D8 !important; color: var(--primary); font-weight: bold; border: 1px solid var(--accent); }
             .filter-btn.active::after { display: none; }
 
             .content-scroll { padding: 10px; padding-bottom: 80px; }
             .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .card { border-radius: 8px; box-shadow: none; border: 1px solid #f0f0f0; }
+            .card { border-radius: 12px; box-shadow: none; border: 1px solid var(--border); }
             .card-cover { height: 100px; }
             .card-body { padding: 10px; }
             .card-title { font-size: 13px; }
             .card-desc { display: none; }
             .profile-card { width: 85%; }
         }
-        /* ── 口语俱乐部 按钮专属样式 ── */
-.club-hub-btn {
-    background: #f0fdfa; /* 浅绿色背景 */
-    border: 1px solid var(--primary);
-    color: #3b7566;
-    padding: 11px 14px;
-    border-radius: 10px;
-    font-weight: bold; font-size: 14px;
-    display: flex; align-items: center; justify-content: center; gap: 9px;
-    cursor: pointer;
-    margin: 0 12px 12px;
-    transition: all 0.2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-}
-.club-hub-btn:hover {
-    background: #e6fffa;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(108,173,156,0.2);
-}
-.club-hub-btn i { font-size: 16px; }
+
+        /* ── 口语俱乐部按钮 ── */
+        .club-hub-btn {
+            background: var(--primary-light);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-weight: bold; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            cursor: pointer;
+            margin: 0 12px 12px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .club-hub-btn:hover {
+            background: #E8E3D8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(122,107,78,0.1);
+        }
+        .club-hub-btn i { font-size: 16px; }
     </style>
 </head>
 <body>
@@ -437,17 +452,15 @@
 </div>
 
 <!-- ====================================================
-     侧边栏（新样式 + 旧功能入口完全保留）
+     侧边栏
 ==================================================== -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
 
-    <!-- Logo -->
     <div class="sidebar-header">
         <div class="logo"><i class="fas fa-book-reader"></i> 汉语 Vlog</div>
     </div>
 
-    <!-- 学习包 网格（新版：3列×2行） -->
     <div class="course-center">
         <div class="section-header">
             <div class="section-title">
@@ -457,7 +470,6 @@
             <div class="reset-all" onclick="resetFilters()" data-i18n="menu_all">全部课程</div>
         </div>
         <div class="course-grid">
-    <!-- 左列：HSK -->
     <div class="course-col">
         <div class="grid-item" onclick="filterByBatch('hsk12_pack', this)">
             <i class="fas fa-seedling"></i>
@@ -472,7 +484,6 @@
             <span data-i18n="batch_hsk56">HSK 5-6+</span>
         </div>
     </div>
-    <!-- 右列：其他视频 -->
     <div class="course-col">
         <div class="grid-item" onclick="filterByBatch('tv_drama', this)">
             <i class="fas fa-tv"></i>
@@ -490,21 +501,17 @@
 </div>
     </div>
 
-    <!-- HSK 资源库 按钮 -->
     <div class="hsk-hub-btn" onclick="location.href='hsk_dashboard.html'">
         <i class="fas fa-university"></i>
         <span data-i18n="menu_hsk_lib">HSK 资源库</span>
     </div>
-    <!-- 新增：口语俱乐部按钮 -->
-<div class="club-hub-btn" onclick="location.href='club_list.html'">
-    <i class="fas fa-microphone-alt"></i>
-    <span data-i18n="menu_oral_club">口语俱乐部</span>
-</div>
+    <div class="club-hub-btn" onclick="location.href='club_list.html'">
+        <i class="fas fa-microphone-alt"></i>
+        <span data-i18n="menu_oral_club">口语俱乐部</span>
+    </div>
 
-    <!-- 分隔线 -->
     <div class="sidebar-divider"></div>
 
-    <!-- 学习记录（折叠） -->
     <div class="records-toggle" onclick="toggleStudyData()">
         <div class="records-toggle-left">
             <i class="fas fa-folder-open" style="width:16px;color:var(--text);"></i>
@@ -514,23 +521,19 @@
     </div>
 
     <div id="study-data-content">
-        <!-- 子菜单：收藏 -->
         <div class="sub-menu-item" onclick="filterByMenu('fav', this)">
             <i class="fas fa-bookmark" style="width:16px;text-align:center;"></i>
             <span data-i18n="menu_fav">我的收藏</span>
         </div>
-        <!-- 子菜单：已完成 -->
         <div class="sub-menu-item" onclick="filterByMenu('done', this)">
             <i class="fas fa-check-circle" style="width:16px;text-align:center;"></i>
             <span data-i18n="menu_done">已完成</span>
         </div>
-        <!-- 子菜单：艾宾浩斯复习 -->
         <div class="sub-menu-item review-item" onclick="location.href='review.html'">
             <i class="fas fa-brain" style="width:16px;text-align:center;"></i>
             <span data-i18n="menu_review">艾宾浩斯复习</span>
         </div>
 
-        <!-- 统计数据 -->
         <div class="stats-box">
             <div class="stats-title">
                 <span data-i18n="my_data">我的学习数据</span>
@@ -544,7 +547,6 @@
             </div>
         </div>
 
-        <!-- 月历热力图 -->
         <div class="calendar-section">
             <div class="cal-header">
                 <div class="cal-title"><span data-i18n="heatmap">学习打卡</span></div>
@@ -560,49 +562,39 @@
                 <span style="font-size:10px;color:#ccc">Less</span>
                 <div style="display:flex;gap:3px;">
                     <div class="legend-dot lvl-0"></div>
-                    <div class="legend-dot lvl-1" style="background:#d1fae5"></div>
-                    <div class="legend-dot lvl-2" style="background:#6CAD9C"></div>
-                    <div class="legend-dot lvl-3" style="background:#3b7566"></div>
+                    <div class="legend-dot lvl-1" style="background:#E8DFC8"></div>
+                    <div class="legend-dot lvl-2" style="background:#C4B38A"></div>
+                    <div class="legend-dot lvl-3" style="background:#7A6B4E"></div>
                 </div>
                 <span style="font-size:10px;color:#ccc">More</span>
             </div>
         </div>
     </div>
 
-    <!-- 分隔线 -->
     <div class="sidebar-divider"></div>
 
-    <!-- 学习工具 -->
     <div class="menu-item" onclick="location.href='tools.html'">
         <i class="fas fa-toolbox" style="width:16px;"></i>
         <span data-i18n="menu_tools">学习工具</span>
     </div>
-
-    <!-- 图书馆 -->
     <div class="menu-item" onclick="location.href='library.html'">
         <i class="fas fa-book" style="width:16px;"></i>
         <span data-i18n="menu_library">图书馆 (E-Books)</span>
     </div>
 
-    <!-- 分隔线 -->
     <div class="sidebar-divider"></div>
 
-    <!-- 价格列表（带边框） -->
     <div class="price-menu-item" onclick="location.href='price.html'">
-        <i class="fas fa-tags" style="width:16px;color:#b45309;"></i>
+        <i class="fas fa-tags" style="width:16px;color:#8A6D20;"></i>
         <span data-i18n="menu_pricing">价格列表</span>
     </div>
-
-    <!-- 使用须知 -->
     <div class="menu-item" onclick="location.href='rules.html'">
         <i class="fas fa-info-circle" style="width:16px;"></i>
         <span data-i18n="menu_rules">使用须知</span>
     </div>
 
-    <!-- 分隔线 -->
     <div class="sidebar-divider"></div>
 
-    <!-- 账户区域 -->
     <div class="menu-section">
         <div class="menu-title" data-i18n="menu_account">账户</div>
         <div class="menu-item" onclick="openProfile()">
@@ -616,13 +608,14 @@
 </div>
 
 <!-- ====================================================
-     右侧主内容（旧版完全保留）
+     右侧主内容
 ==================================================== -->
 <div class="main-content">
     <header>
         <div class="welcome-row">
-            <div class="page-title" data-i18n="video_lib">视频内容展示</div>
+            
             <div class="top-tools">
+                <div class="page-title" data-i18n="video_lib">视频</div>
                 <div class="search-box">
                     <i class="fas fa-search search-icon"></i>
                     <input class="search-input" id="searchBox" placeholder="Search..." oninput="searchVideo(this.value)">
@@ -634,7 +627,8 @@
                 <div class="lang-switch" onclick="toggleLang()">
                     <i class="fas fa-globe"></i> <span id="langLabel">RU</span>
                 </div>
-            </div>
+                
+            </div>           
         </div>
         <div class="filter-row">
             <div class="filter-group">
@@ -669,7 +663,7 @@
 </div>
 
 <!-- ====================================================
-     个人中心弹窗（旧版完全保留）
+     个人中心弹窗
 ==================================================== -->
 <div id="profileModal" class="modal-overlay" style="display:none;">
     <div class="profile-card">
@@ -688,20 +682,20 @@
             </div>
             <div class="vip-row">
                 <span data-i18n="p_expire_label">到期时间</span>
-                <span id="p-expire">2025-12-31</span>
+                <span id="p-expire">Вечно</span>
             </div>
         </div>
         <div class="action-list">
             <div class="action-item" onclick="syncData()">
-                <div class="act-left"><i class="fas fa-cloud-upload-alt" style="color:#3b82f6;"></i> <span data-i18n="p_sync">同步进度到云端</span></div>
+                <div class="act-left"><i class="fas fa-cloud-upload-alt" style="color:#7A6B4E;"></i> <span data-i18n="p_sync">同步进度到云端</span></div>
                 <i class="fas fa-chevron-right"></i>
             </div>
             <div class="action-item" onclick="downloadData()">
-                <div class="act-left"><i class="fas fa-cloud-download-alt" style="color:#10b981;"></i> <span data-i18n="p_download">从云端恢复进度</span></div>
+                <div class="act-left"><i class="fas fa-cloud-download-alt" style="color:#A89468;"></i> <span data-i18n="p_download">从云端恢复进度</span></div>
                 <i class="fas fa-chevron-right"></i>
             </div>
             <div class="action-item" onclick="alert('请联系老师重置密码')">
-                <div class="act-left"><i class="fas fa-lock" style="color:#f59e0b;"></i> <span data-i18n="p_password">修改密码</span></div>
+                <div class="act-left"><i class="fas fa-lock" style="color:#C4A24E;"></i> <span data-i18n="p_password">修改密码</span></div>
                 <i class="fas fa-chevron-right"></i>
             </div>
         </div>
@@ -713,11 +707,10 @@
 
 <script>
     // ================================================================
-    // ⚠️  以下 JS 全部来自旧版 home，一字不改，保证云端/互踢/上锁正常
+    // ⚠️  以下 JS 全部来自旧版 home，一字不改
     // ================================================================
 
-    // 1. 云端配置
-    const SUPABASE_URL = 'https://proxy.hanyu-vlog.com/api/supabase';
+    const SUPABASE_URL = 'https://royal-feather-3237.zhouyuhe525.workers.dev/';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
 
     let supabaseClient = null;
@@ -730,18 +723,12 @@
         console.error("❌ Supabase 库未加载，请检查 CDN");
     }
 
-    // 2. 全局变量
     let allVideos = [];
     let currentFilters = { hsk: 'all', topic: 'all', menu: 'all', search: '', batch: 'all' };
     let currentLang = 'ru';
 
-    // 3. DOMContentLoaded
-    // ✅ 新版（先确权，再渲染）
-// 🟢 CTO 终极版：分离渲染与网络请求 (不再使用 async 阻塞)
 document.addEventListener('DOMContentLoaded', () => {
     console.log("读取本地课程数据...");
-
-    // 1. 如果明确是访客，锁定基础权限；如果是初次没有任何数据，暂时给基础包等网络加载
     if (localStorage.getItem('isGuest') === 'true') {
         localStorage.setItem('my_access_tags', JSON.stringify(["trial_pack"]));
     } else if (!localStorage.getItem('my_access_tags')) {
@@ -755,23 +742,17 @@ document.addEventListener('DOMContentLoaded', () => {
             item.searchStr = (item.title + item.desc + item.author + (item.topic || '')).toLowerCase();
             return item;
         });
-
-        // 2. 核心修复：立刻用本地的缓存权限【秒渲染】画面！不再让用户干等云端返回！
         updateLanguage();
         calculateStats();
         renderMonthCalendar();
-
-        // 3. 后台静默去云端对账（⚠️ 去掉 await，让它在后台悄悄跑，即使报错也不影响当前页面）
         if (localStorage.getItem('isGuest') !== 'true' && typeof updateUserAccess === 'function') {
             updateUserAccess(); 
         }
-
     } else {
         alert("❌ 错误：找不到本地课程数据！请检查 lesson_001.js");
     }
 });
 
-    // 4. 统计数据
     function calculateStats() {
         const now = new Date();
         const todayKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
@@ -799,7 +780,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-vocab').innerText = totalVocab;
     }
 
-    // 5. 个人中心
     function openProfile() {
         const isGuest = localStorage.getItem('isGuest') === 'true';
         const modal = document.getElementById('profileModal');
@@ -828,7 +808,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === this) closeProfile();
     });
 
-    // 6. 云端同步（旧版完整逻辑）
     window.syncData = async function() {
         if (!supabaseClient) return alert("❌ 服务器连接失败，请刷新重试");
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -865,7 +844,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 7. 云端下载（智能合并，旧版完整逻辑）
     window.downloadData = async function(isSilent = false) {
         if (!supabaseClient) return;
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -924,14 +902,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 8. 语言字典
     const uiDict = {
         ru: {
             my_data:"Мои данные", days:"Дней", hours:"Часов", videos:"Видео", vocab:"Слов",
             heatmap:"Активность", today:"Сегодня",
             menu_records:"Записи", menu_all:"Все видео", menu_fav:"Избранное", menu_done:"Завершено",
             menu_review:"Тетрадь и Печатать", menu_account:"Аккаунт", menu_profile:"Профиль", menu_logout:"Выйти",
-            video_lib:"Библиотека", filter_level:"Уровень:", filter_topic:"Тема:",
+            video_lib:"Видео   ", filter_level:"Уровень:", filter_topic:"Тема:",
             status_done:"Завершено", status_watch:"Просмотр", status_new:"Новое", review:"Повторить",
             topic_all:"Все", topic_job:"Работа", topic_life:"Жизнь", topic_food:"Еда", topic_culture:"Культура",
             topic_thoughts:"Мысли", topic_shopping:"Покупки", topic_fashion:"Мода", topic_travel:"Путешествия",
@@ -940,11 +917,11 @@ document.addEventListener('DOMContentLoaded', () => {
             p_role:"Студент", p_status_label:"Статус", p_active:"Активен", p_expire_label:"Истекает",
             p_sync:"Синхронизация (Upload)", p_download:"Восстановить (Download)", p_password:"Сменить пароль",
             side_packages:"Курсы",
-            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（22/102）", batch_hsk56:"HSK 5-6+（21/105）",
-            batch_drama:"Сериалы", batch_talk_show:"Стендап（18/50）", batch_vlog:"小红书",
+            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（23/102）", batch_hsk56:"HSK 5-6+（21/105）",
+            batch_drama:"Сериалы", batch_talk_show:"Стендап（20/50）", batch_vlog:"小红书",
             status_lock:"Закрыто", msg_lock:"Этот курс доступен в полной версии. Свяжитесь с учителем!",
-            menu_rules:"ВНИМАНИЕ и СОВЕТЫ", menu_tools:"Инструменты (Tools)", menu_pricing:"Прайс-лист",
-            menu_hsk_lib:"HSK Ресурсы", menu_library:"Электронная книга(PDF)",
+            menu_rules:"СОВЕТЫ", menu_tools:"Инструменты (Tools)", menu_pricing:"Прайс-лист",
+            menu_hsk_lib:"Материалы HSK", menu_library:"Электронная книга",
             p_guest_user:"Гость", p_no_sync:"Нет (данные не синхронизируются)", p_sync_guest:"Зарегистрируйтесь для синхронизации",
             menu_oral_club: "Разговорный клуб",
         },
@@ -953,7 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
             heatmap:"Heatmap", today:"Today",
             menu_records:"Records", menu_all:"All Courses", menu_fav:"Favorites", menu_done:"Completed",
             menu_review:"Notebook + Print", menu_account:"Account", menu_profile:"Profile", menu_logout:"Logout",
-            video_lib:"Video Library", filter_level:"Level:", filter_topic:"Topic:",
+            video_lib:"Videos   ", filter_level:"Level:", filter_topic:"Topic:",
             status_done:"Done", status_watch:"Watched", status_new:"New", review:"Review",
             topic_all:"All", topic_job:"Work", topic_life:"Life", topic_food:"Food", topic_culture:"Culture",
             topic_thoughts:"Thoughts", topic_shopping:"Shopping", topic_fashion:"Fashion", topic_travel:"Travel",
@@ -962,11 +939,11 @@ document.addEventListener('DOMContentLoaded', () => {
             p_role:"Student", p_status_label:"Membership", p_active:"Active", p_expire_label:"Expires",
             p_sync:"Sync to Cloud", p_download:"Restore from Cloud", p_password:"Change Password",
             side_packages:"Packages",
-            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（22/102）", batch_hsk56:"HSK 5-6+（21/105）",
-            batch_drama:"TV Series", batch_talk_show:"Stand-up（18/50）", batch_vlog:"XiaoHongShu",
+            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（23/102）", batch_hsk56:"HSK 5-6+（21/105）",
+            batch_drama:"TV Series", batch_talk_show:"Stand-up（20/50）", batch_vlog:"XiaoHongShu",
             status_lock:"Locked", msg_lock:"This course is locked. Please contact the teacher!",
-            menu_rules:"Rules & Tips", menu_tools:"Learning Tools", menu_pricing:"Price List",
-            menu_hsk_lib:"HSK Resources", menu_library:"E-Book Library",
+            menu_rules:"Tips", menu_tools:"Learning Tools", menu_pricing:"Price List",
+            menu_hsk_lib:"HSK Learning Hub", menu_library:"Library",
             p_guest_user:"Guest User", p_no_sync:"None (No auto-sync)", p_sync_guest:"Register to sync data",
             menu_oral_club: "Oral Club",
         },
@@ -975,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
             heatmap:"学习热力图", today:"今天",
             menu_records:"学习记录", menu_all:"全部课程", menu_fav:"我的收藏", menu_done:"已完成",
             menu_review:"生词本 + 打印", menu_account:"账户", menu_profile:"个人中心", menu_logout:"退出登录",
-            video_lib:"视频内容展示", filter_level:"难度:", filter_topic:"主题:",
+            video_lib:"视频   ", filter_level:"难度:", filter_topic:"主题:",
             status_done:"已完成", status_watch:"已看", status_new:"未开始", review:"需复习",
             topic_all:"所有", topic_job:"职场", topic_life:"生活", topic_food:"美食", topic_culture:"文化",
             topic_thoughts:"感想", topic_shopping:"购物", topic_fashion:"穿搭", topic_travel:"旅行",
@@ -984,17 +961,16 @@ document.addEventListener('DOMContentLoaded', () => {
             p_role:"学生", p_status_label:"会员状态", p_active:"生效中", p_expire_label:"到期时间",
             p_sync:"同步进度到云端", p_download:"从云端恢复进度", p_password:"修改密码",
             side_packages:"学习包",
-            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（22/102）", batch_hsk56:"HSK 5-6+（21/105）",
-            batch_drama:"电视剧", batch_talk_show:"脱口秀（18/50）", batch_vlog:"小红书",
+            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（23/102）", batch_hsk56:"HSK 5-6+（21/105）",
+            batch_drama:"电视剧", batch_talk_show:"脱口秀（20/50）", batch_vlog:"小红书",
             status_lock:"需解锁", msg_lock:"🔒 该课程需要解锁，请联系老师购买！",
             menu_rules:"使用须知", menu_tools:"学习工具", menu_pricing:"价格列表",
-            menu_hsk_lib:"HSK 资源库", menu_library:"电子书资源",
+            menu_hsk_lib:"HSK 学习库", menu_library:"电子书资源",
             p_guest_user:"访客", p_no_sync:"无 (数据不自动同步)", p_sync_guest:"注册账号同步数据",
             menu_oral_club: "口语俱乐部",
         }
     };
 
-    // 9. 语言切换
     function toggleLang() {
         if (currentLang === 'ru') currentLang = 'en';
         else if (currentLang === 'en') currentLang = 'cn';
@@ -1021,12 +997,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderVideos(getFilteredVideos());
     }
 
-    // 10. 视频渲染（旧版完整逻辑，含权限锁定）
-    // ============================================================
-// 10. 视频渲染（修复版：含包标签 + 锁定逻辑）
-// 用这段完整替换原来的 renderVideos 函数
-// ============================================================
-
 function renderVideos(videos) {
     const grid = document.getElementById('videoGrid');
     grid.innerHTML = '';
@@ -1035,7 +1005,6 @@ function renderVideos(videos) {
         return;
     }
 
-    // ── 权限读取（默认只有 trial_pack）──
     let userAccess = [];
     try {
         userAccess = JSON.parse(localStorage.getItem('my_access_tags') || '["trial_pack"]');
@@ -1043,7 +1012,6 @@ function renderVideos(videos) {
         userAccess = ["trial_pack"];
     }
 
-    // ── 包的显示配置 ──
     const batchConfig = {
         'trial_pack':  { label: '🎁 免费试学',  color: '#16a34a', bg: '#dcfce7' },
         'hsk34_pack':  { label: '📗 HSK 3-4 包', color: '#1d4ed8', bg: '#dbeafe' },
@@ -1051,10 +1019,8 @@ function renderVideos(videos) {
         'tv_drama':    { label: '📺 电视剧包',   color: '#b45309', bg: '#fef3c7' },
         'talk_show':   { label: '🎤 脱口秀包',   color: '#be185d', bg: '#fce7f3' },
         'vlog_pack':   { label: '📱 小红书包',   color: '#c2410c', bg: '#ffedd5' },
-        
     };
 
-    // ── 试用包排前面 ──
     const sortedVideos = [...videos].sort((a, b) => {
         if (a.batch === 'trial_pack' && b.batch !== 'trial_pack') return -1;
         if (a.batch !== 'trial_pack' && b.batch === 'trial_pack') return 1;
@@ -1062,7 +1028,6 @@ function renderVideos(videos) {
     });
 
     sortedVideos.forEach(v => {
-        // ── 锁定判断（batch 缺失时视为 trial_pack 未锁定）──
         const batch = v.batch || 'trial_pack';
         const isLocked = batch !== 'trial_pack' && !userAccess.includes(batch);
 
@@ -1070,7 +1035,6 @@ function renderVideos(videos) {
             ? `showPriceGuide('${batch}')`
             : `location.href='index.html?id=${v.id}'`;
 
-        // ── 包标签 HTML ──
         const batchInfo = batchConfig[batch];
         const batchBadgeHtml = batchInfo
             ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;
@@ -1079,7 +1043,6 @@ function renderVideos(videos) {
                </span>`
             : '';
 
-        // ── 进度状态 ──
         const progress = parseInt(localStorage.getItem('progress_' + v.id) || 0);
         const isDone   = localStorage.getItem('done_' + v.id) === 'true';
 
@@ -1096,8 +1059,7 @@ function renderVideos(videos) {
             statusHtml = `<span class="status-text" style="color:#999">未开始</span>`;
         }
 
-        // ── 封面 ──
-        let coverStyle = v.cover ? `background-image: url('${v.cover}');` : `background-color:#ddd;`;
+        let coverStyle = v.cover ? `background-image: url('${v.cover}');` : `background-color:#EDEAE4;`;
         if (isLocked) coverStyle += 'filter:grayscale(100%);opacity:0.7;';
 
         const html = `
@@ -1113,25 +1075,20 @@ function renderVideos(videos) {
                 }
             </div>
             <div class="card-body">
-                <!-- 行1：HSK等级 + 作者 -->
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                    <span style="font-size:11px;background:#f3f4f6;color:#666;
-                                 padding:2px 6px;border-radius:4px;font-weight:bold;">
+                    <span style="font-size:11px;background:var(--primary-light);color:var(--primary);
+                                 padding:2px 6px;border-radius:6px;font-weight:bold;">
                         ${v.hsk || 'HSK'}
                     </span>
-                    <span style="font-size:11px;color:#999;">
+                    <span style="font-size:11px;color:#A8998A;">
                         <i class="fas fa-user"></i> ${v.author || 'Vlogger'}
                     </span>
                 </div>
-                <!-- 行2：包标签 -->
                 <div style="margin-bottom:6px;">
                     ${batchBadgeHtml}
                 </div>
-                <!-- 行3：标题 -->
                 <div class="card-title" style="${isLocked ? 'color:#aaa' : ''}">${v.title}</div>
-                <!-- 行4：状态 -->
                 <div class="status-row">${statusHtml}</div>
-                <!-- 行5：描述 -->
                 <div class="card-desc">${v.desc || ''}</div>
             </div>
         </div>`;
@@ -1139,7 +1096,6 @@ function renderVideos(videos) {
     });
 }
 
-    // 11. 筛选逻辑
     function applyFilter(type, value, btn) {
         const group = btn.parentElement;
         group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1221,7 +1177,6 @@ function renderVideos(videos) {
         renderVideos(allVideos);
     }
 
-    // 12. 侧边栏开关
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         if (window.innerWidth <= 768) {
@@ -1233,7 +1188,6 @@ function renderVideos(videos) {
         }
     }
 
-    // 13. 月历热力图
     function renderMonthCalendar() {
         const container = document.getElementById('calendarGrid');
         const monthLabel = document.getElementById('currentMonthStr');
@@ -1265,13 +1219,10 @@ function renderVideos(videos) {
         }
     }
 
-    // 14. 强制退出（旧版逻辑）
-    // 🟢 CTO 终极版：统一使用全局的安全退出机制
 function forceLogout() {
     if (typeof globalLogout === 'function') {
         globalLogout();
     } else {
-        // 如果 auth.js 没加载出来的兜底手段
         if(confirm("确定要退出登录吗？")) {
             localStorage.clear();
             sessionStorage.clear();
@@ -1280,43 +1231,24 @@ function forceLogout() {
     }
 }
 
-    // 15. 云端权限更新（旧版完整逻辑）
-    // 🟢 CTO 终极版：温柔的云端权限同步（即使断网也绝不误伤）
 async function updateUserAccess() {
     if (!supabaseClient) return;
-    
     try {
-        // 核心修复1：只查本地 session 缓存，不发 getUser 网络请求，避开代理节点的不稳定
         const { data: { session } } = await supabaseClient.auth.getSession();
-        
-        if (!session) {
-            console.log("无本地会话，保持当前状态");
-            return;
-        }
-
-        // 核心修复2：拿着确定的身份，去数据库查真实的权限
+        if (!session) { console.log("无本地会话，保持当前状态"); return; }
         const { data, error } = await supabaseClient
-            .from('profiles')
-            .select('access_tags')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
+            .from('profiles').select('access_tags').eq('id', session.user.id).maybeSingle();
         if (error) throw error;
-
         if (data && data.access_tags) {
-            // 对账成功：云端有确切的权限数据，更新本地并重新静默刷新页面解锁
             localStorage.setItem('my_access_tags', JSON.stringify(data.access_tags));
             console.log("✅ 云端权限对账成功:", data.access_tags);
             renderVideos(getFilteredVideos());
         }
     } catch (e) {
-        // ⚠️ 终极防御墙：无论是因为代理节点 502、断网还是超时
-        // 只要报错，【绝对不】覆写已有权限，【绝对不】把人踢成访客！
-        console.warn("☁️ 云端同步遇阻，已切换为本地离线权限模式，不影响学习:", e.message);
+        console.warn("☁️ 云端同步遇阻，已切换为本地离线权限模式:", e.message);
     }
 }
 
-    // 16. 锁定引导
     function showPriceGuide(batchName) {
         const msg = currentLang === 'ru'
             ? "Этот курс заблокирован. Перейти к ценам?"
@@ -1324,7 +1256,6 @@ async function updateUserAccess() {
         if (confirm(msg)) window.location.href = 'price.html';
     }
 
-    // 17. 学习记录折叠
     function toggleStudyData() {
         const content = document.getElementById('study-data-content');
         const icon = document.getElementById('data-chevron');
@@ -1337,7 +1268,6 @@ async function updateUserAccess() {
         }
     }
 
-    // 18. 数据埋点（旧版）
     window.addEventListener('DOMContentLoaded', () => {
         if (typeof supabaseClient !== 'undefined' && supabaseClient !== null) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1346,6 +1276,95 @@ async function updateUserAccess() {
                 .then(({ error }) => { if (error) console.error("埋点记录失败:", error); });
         }
     });
+</script>
+
+<!-- 录屏控制台 -->
+<style>
+    #scroll-director-panel {
+        position: fixed; bottom: 20px; right: 20px; width: 340px;
+        background: rgba(15, 15, 15, 0.95); color: #fff; padding: 20px;
+        border-radius: 12px; border: 1px solid #7A6B4E; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        z-index: 99999; font-family: sans-serif; backdrop-filter: blur(8px);
+        display: none; 
+    }
+    #scroll-director-panel h3 { margin: 0 0 15px 0; color: #A89468; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 10px;}
+    .s-dir-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
+    .s-dir-row input { width: 60px; background: #333; border: 1px solid #666; color: white; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold;}
+    .s-dir-btn { width: 100%; background: var(--primary); color: #fff; font-weight: bold; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 14px; transition: 0.2s;}
+    .s-dir-btn:hover { background: #6B5C42; transform: translateY(-2px); }
+    .s-dir-btn-stop { background: var(--red); margin-top: 10px; }
+    .s-dir-btn-stop:hover { background: #5A4A38; }
+</style>
+
+<div id="scroll-director-panel">
+    <h3>🎥 首页曲线变速录屏 (Ease-In)</h3>
+    <div class="s-dir-row" title="一开始能看清字的速度">
+        <span>1️⃣ 起始慢速 (如: 3):</span> 
+        <input type="number" id="dir-start-speed" value="3.5" step="0.1">
+    </div>
+    <div class="s-dir-row" title="最后狂飙的速度">
+        <span>2️⃣ 最高极速 (如: 30.0):</span> 
+        <input type="number" id="dir-max-speed" value="30.0" step="0.5">
+    </div>
+    <div class="s-dir-row" title="从慢到快需要几秒钟？">
+        <span>3️⃣ 渐变加速耗时 (毫秒):</span> 
+        <input type="number" id="dir-ramp-time" value="5000" step="500">
+    </div>
+    <button class="s-dir-btn" onclick="startCinematicScroll()">🎬 3秒后开始神级运镜</button>
+    <button class="s-dir-btn s-dir-btn-stop" onclick="stopCinematicScroll()">⏹ 紧急停止</button>
+    <button onclick="document.getElementById('scroll-director-panel').style.display='none'" style="width:100%; background:transparent; border:none; color:#888; margin-top:10px; cursor:pointer; font-size:12px; text-decoration:underline;">隐藏</button>
+</div>
+
+<script>
+    let titleClicksHome = 0;
+    document.querySelector('.page-title').addEventListener('click', () => {
+        titleClicksHome++;
+        if (titleClicksHome >= 5) {
+            document.getElementById('scroll-director-panel').style.display = 'block';
+            titleClicksHome = 0;
+        }
+        setTimeout(() => titleClicksHome = 0, 2000); 
+    });
+
+    let scrollAnimationId = null;
+    let isScrolling = false;
+    let startTime = null;
+
+    async function startCinematicScroll() {
+        const startSpeed = parseFloat(document.getElementById('dir-start-speed').value) || 0.5;
+        const maxSpeed = parseFloat(document.getElementById('dir-max-speed').value) || 5.0;
+        const rampTime = parseFloat(document.getElementById('dir-ramp-time').value) || 3000;
+        const scrollContainer = document.querySelector('.content-scroll');
+        const panel = document.getElementById('scroll-director-panel');
+        if (!scrollContainer) return;
+        scrollContainer.scrollTop = 0;
+        panel.style.display = 'none';
+        isScrolling = true;
+        console.log("🎬 准备录屏...3秒后开拍");
+        await new Promise(res => setTimeout(res, 3000));
+        startTime = performance.now();
+        function smoothScrollStep(currentTime) {
+            if (!isScrolling) return;
+            let elapsed = currentTime - startTime;
+            let timeProgress = Math.min(elapsed / rampTime, 1);
+            let easeProgress = timeProgress * timeProgress;
+            let currentSpeed = startSpeed + (maxSpeed - startSpeed) * easeProgress;
+            scrollContainer.scrollTop += currentSpeed;
+            if (Math.ceil(scrollContainer.scrollTop + scrollContainer.clientHeight) >= scrollContainer.scrollHeight) {
+                console.log("✅ 到底了，咔！");
+                isScrolling = false;
+                panel.style.display = 'block'; 
+                return;
+            }
+            scrollAnimationId = requestAnimationFrame(smoothScrollStep);
+        }
+        scrollAnimationId = requestAnimationFrame(smoothScrollStep);
+    }
+
+    function stopCinematicScroll() {
+        isScrolling = false;
+        if (scrollAnimationId) cancelAnimationFrame(scrollAnimationId);
+    }
 </script>
 </body>
 </html>
