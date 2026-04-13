@@ -1,123 +1,1370 @@
-// === HSK 考试大纲 (2026实施版) 本地词库 ===
-// 数据来源：用户提供的官方 PDF 截图
-// HSK 1级 (300词) | HSK 2级 (200词) | HSK 3-4级 (精选)
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉语 Vlog 课堂 | 学习中心</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
-window.HSK_DB = {
-    // =======================
-    // 🟩 HSK 一级 (共300词)
-    // =======================
-    "爱": "1", "吧": "1", "八": "1", "爸爸": "1", "百": "1", "白天": "1", "半": "1", "包子": "1",
-    "杯子": "1", "本": "1", "边": "1", "病": "1", "不": "1", "不客气": "1", "不要": "1", "菜": "1",
-    "茶": "1", "唱": "1", "超市": "1", "车": "1", "吃": "1", "穿": "1", "出租车": "1", "大": "1",
-    "打电话": "1", "大家": "1", "到": "1", "大学": "1", "大学生": "1", "的": "1", "第": "1", "店": "1",
-    "点": "1", "电话": "1", "电脑": "1", "电视": "1", "电影": "1", "电影院": "1", "弟弟": "1", "东西": "1",
-    "都": "1", "读": "1", "对": "1", "对不起": "1", "多": "1", "多少": "1", "读书": "1", "二": "1",
-    "儿子": "1", "饭": "1", "饭店": "1", "房间": "1", "非常": "1", "飞机": "1", "分": "1", "分钟": "1",
-    "高兴": "1", "个": "1", "歌": "1", "哥哥": "1", "给": "1", "公司": "1", "工作": "1", "狗": "1",
-    "贵": "1", "国": "1", "还": "1", "孩子": "1", "汉语": "1", "汉字": "1", "号": "1", "好": "1",
-    "好吃": "1", "好看": "1", "好听": "1", "好玩儿": "1", "和": "1", "喝": "1", "很": "1", "后": "1",
-    "回": "1", "会": "1", "火车": "1", "几": "1", "家": "1", "见": "1", "件": "1", "叫": "1",
-    "饺子": "1", "家人": "1", "鸡蛋": "1", "姐姐": "1", "今年": "1", "今天": "1", "九": "1", "觉得": "1",
-    "开": "1", "开车": "1", "看": "1", "看病": "1", "看见": "1", "课": "1", "可以": "1", "口": "1",
-    "块": "1", "来": "1", "老师": "1", "了": "1", "冷": "1", "里": "1", "两": "1", "零": "1",
-    "六": "1", "吗": "1", "卖": "1", "买": "1", "妈妈": "1", "忙": "1", "猫": "1", "没关系": "1",
-    "妹妹": "1", "没事": "1", "没有": "1", "没": "1", "们": "1", "面包": "1", "面条儿": "1", "米饭": "1",
-    "明年": "1", "明天": "1", "名字": "1", "那": "1", "哪": "1", "那边": "1", "那个": "1", "哪个": "1",
-    "那里": "1", "哪里": "1", "男": "1", "男朋友": "1", "那儿": "1", "哪儿": "1", "那些": "1", "哪些": "1",
-    "呢": "1", "能": "1", "你": "1", "你好": "1", "年": "1", "你们": "1", "您": "1", "牛奶": "1",
-    "女": "1", "女儿": "1", "女朋友": "1", "女士": "1", "朋友": "1", "便宜": "1", "漂亮": "1", "苹果": "1",
-    "七": "1", "前": "1", "钱": "1", "千": "1", "起床": "1", "请": "1", "请问": "1", "去": "1",
-    "去年": "1", "热": "1", "人": "1", "认识": "1", "日": "1", "三": "1", "上": "1", "上班": "1",
-    "商店": "1", "上课": "1", "上午": "1", "上学": "1", "少": "1", "谁": "1", "生病": "1", "什么": "1",
-    "十": "1", "事": "1", "是": "1", "时候": "1", "时间": "1", "手机": "1", "书": "1", "书店": "1",
-    "睡": "1", "水": "1", "水果": "1", "睡觉": "1", "说": "1", "说话": "1", "四": "1", "岁": "1",
-    "他": "1", "它": "1", "她": "1", "太": "1", "他们": "1", "它们": "1", "她们": "1", "天": "1",
-    "天气": "1", "听": "1", "听见": "1", "同学": "1", "外": "1", "外边": "1", "玩": "1", "晚": "1",
-    "晚饭": "1", "晚上": "1", "喂": "1", "问": "1", "问题": "1", "我": "1", "我们": "1", "五": "1",
-    "午饭": "1", "下": "1", "下雨": "1", "下班": "1", "下课": "1", "想": "1", "先生": "1", "现在": "1",
-    "小": "1", "小朋友": "1", "小时": "1", "小学": "1", "小学生": "1", "下午": "1", "写": "1", "些": "1",
-    "谢谢": "1", "喜欢": "1", "新": "1", "星期": "1", "星期日": "1", "星期天": "1", "休息": "1", "学": "1",
-    "雪": "1", "学生": "1", "学习": "1", "学校": "1", "要": "1", "也": "1", "一": "1", "一半": "1",
-    "一点儿": "1", "衣服": "1", "医生": "1", "一下": "1", "一些": "1", "医院": "1", "椅子": "1", "有": "1",
-    "有的": "1", "有些": "1", "有点儿": "1", "雨": "1", "元": "1", "月": "1", "再": "1", "在": "1",
-    "再见": "1", "早": "1", "早饭": "1", "早上": "1", "怎么": "1", "怎么样": "1", "找": "1", "这": "1",
-    "这边": "1", "这个": "1", "这里": "1", "这儿": "1", "这些": "1", "只": "1", "知道": "1", "中国": "1",
-    "中文": "1", "中午": "1", "中学": "1", "中学生": "1", "住": "1", "桌子": "1", "字": "1", "坐": "1",
-    "做": "1", "做饭": "1", "昨天": "1",
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@300;400;700&family=Noto+Sans+SC:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="auth.js"></script>
 
-    // =======================
-    // 🟨 HSK 二级 (共200词)
-    // =======================
-    "啊": "2", "爱好": "2", "白色": "2", "班": "2", "帮": "2", "帮忙": "2", "包": "2", "本子": "2",
-    "比": "2", "笔": "2", "别": "2", "不好意思": "2", "不错": "2", "长": "2", "车站": "2", "出": "2",
-    "床": "2", "出国": "2", "出来": "2", "出门": "2", "出去": "2", "词": "2", "次": "2", "从": "2",
-    "从小": "2", "错": "2", "打": "2", "打车": "2", "打开": "2", "但": "2", "但是": "2", "得": "2",
-    "地": "2", "等": "2", "地铁": "2", "动": "2", "懂": "2", "饭馆": "2", "飞": "2", "高": "2",
-    "告诉": "2", "高中": "2", "跟": "2", "个子": "2", "公交车": "2", "过": "2", "过来": "2", "过年": "2",
-    "过去": "2", "还是": "2", "黑色": "2", "红茶": "2", "红色": "2", "后面": "2", "画": "2", "花": "2",
-    "坏": "2", "回来": "2", "回去": "2", "间": "2", "教": "2", "教室": "2", "机场": "2", "记得": "2",
-    "介绍": "2", "进": "2", "近": "2", "经常": "2", "进来": "2", "进去": "2", "机票": "2", "就": "2",
-    "酒店": "2", "咖啡": "2", "开始": "2", "开学": "2", "考": "2", "考试": "2", "可能": "2", "快": "2",
-    "快乐": "2", "快要": "2", "裤子": "2", "篮球": "2", "累": "2", "离": "2", "里面": "2", "楼": "2",
-    "路": "2", "绿茶": "2", "绿色": "2", "路上": "2", "旅游": "2", "慢": "2", "每": "2", "没意思": "2",
-    "门": "2", "门口": "2", "门票": "2", "面": "2", "名": "2", "拿": "2", "奶茶": "2", "奶奶": "2",
-    "那么": "2", "男孩儿": "2", "那样": "2", "鸟": "2", "女孩儿": "2", "旁边": "2", "跑": "2", "跑步": "2",
-    "票": "2", "前面": "2", "起来": "2", "晴": "2", "球": "2", "妻子": "2", "让": "2", "肉": "2",
-    "商场": "2", "上来": "2", "上面": "2", "上去": "2", "上网": "2", "生日": "2", "身体": "2", "时": "2",
-    "事情": "2", "手": "2", "手表": "2", "书包": "2", "舒服": "2", "送": "2", "虽然": "2", "所以": "2",
-    "疼": "2", "题": "2", "踢": "2", "条": "2", "跳舞": "2", "头": "2", "外国": "2", "外面": "2",
-    "完": "2", "万": "2", "忘": "2", "往": "2", "网上": "2", "位": "2", "为什么": "2", "洗": "2",
-    "下来": "2", "下面": "2", "笑": "2", "小孩儿": "2", "小时候": "2", "下去": "2", "姓": "2", "姓名": "2",
-    "洗手间": "2", "希望": "2", "眼睛": "2", "颜色": "2", "药": "2", "药店": "2", "爷爷": "2", "一会儿": "2",
-    "已经": "2", "阴": "2", "因为": "2", "一起": "2", "意思": "2", "游": "2", "右": "2", "有意思": "2",
-    "右边": "2", "有时": "2", "游泳": "2", "鱼": "2", "远": "2", "运动": "2", "站": "2", "丈夫": "2",
-    "着": "2", "这么": "2", "正": "2", "这样": "2", "周": "2", "准备": "2", "自己": "2", "走": "2",
-    "走路": "2", "最": "2", "左": "2", "左边": "2", "足球": "2",
+    <script src="lesson_001.js"></script>
+    <script src="lesson_002.js"></script>
+    <script src="lesson_003.js"></script>
+    <script src="lesson_004.js"></script>
+    <script src="lesson_005.js"></script>
+    <script src="lesson_006.js"></script>
+    <script src="lesson_007.js"></script>
+    <script src="lesson_008.js"></script>
+    <script src="lesson_009.js"></script>
+    <script src="lesson_010.js"></script>
+    <script src="lesson_011.js"></script>
+    <script src="lesson_012.js"></script>
+    <script src="lesson_013.js"></script>
+    <script src="lesson_014.js"></script>
+    <script src="lesson_015.js"></script>
+    <script src="lesson_016.js"></script>
+    <script src="lesson_017.js"></script>
+    <script src="lesson_018.js"></script>
+    <script src="lesson_019.js"></script>
+    <script src="lesson_020.js"></script>
+    <script src="lesson_021.js"></script>
+    <script src="lesson_022.js"></script>
+    <script src="lesson_023.js"></script>
+    <script src="lesson_024.js"></script>
+    <script src="lesson_025.js"></script>
+    <script src="lesson_026.js"></script>
+    <script src="lesson_027.js"></script>
+    <script src="lesson_028.js"></script>
+    <script src="lesson_029.js"></script>
+    <script src="lesson_030.js"></script>
+    <script src="lesson_031.js"></script>
+    <script src="lesson_032.js"></script>
+    <script src="lesson_033.js"></script>
+    <script src="lesson_034.js"></script>
+    <script src="lesson_035.js"></script>
+    <script src="lesson_036.js"></script>
+    <script src="lesson_038.js"></script>
+    <script src="lesson_039.js"></script>
+    <script src="lesson_040.js"></script>
+    <script src="lesson_041.js"></script>
+    <script src="lesson_042.js"></script>
+    <script src="lesson_043.js"></script>
+    <script src="lesson_044.js"></script>
 
-    // 🟧 HSK 三级 (共500词 - 完整版)
-    // =======================
-    "矮": "3", "爱人": "3", "安静": "3", "安全": "3", "阿姨": "3", "把": "3", "搬": "3", "办法": "3",
-    "办公室": "3", "半": "3", "帮忙": "3", "包": "3", "饱": "3", "北方": "3", "被": "3", "鼻子": "3",
-    "比较": "3", "比赛": "3", "笔记本": "3", "必须": "3", "变化": "3", "别人": "3", "冰箱": "3",
-    "不但": "3", "而且": "3", "菜单": "3", "参加": "3", "草": "3", "草地": "3", "层": "3", "查": "3",
-    "差": "3", "差不多": "3", "长": "3", "常见": "3", "常用": "3", "常常": "3", "场": "3", "唱": "3",
-    "朝": "3", "炒": "3", "车": "3", "车票": "3", "车站": "3", "衬衫": "3", "成绩": "3", "城市": "3",
-    "迟到": "3", "出现": "3", "除了": "3", "船": "3", "春": "3", "春天": "3", "词典": "3", "聪明": "3",
-    "打扫": "3", "打算": "3", "带": "3", "担心": "3", "蛋糕": "3", "当然": "3", "灯": "3", "地": "3",
-    "地方": "3", "地铁": "3", "地图": "3", "电梯": "3", "电子邮件": "3", "东": "3", "冬": "3",
-    "动物": "3", "短": "3", "段": "3", "锻炼": "3", "多么": "3", "饿": "3", "耳朵": "3", "发": "3",
-    "发烧": "3", "发现": "3", "方便": "3", "放": "3", "放心": "3", "分": "3", "复习": "3", "附近": "3",
-    "干净": "3", "感冒": "3", "感兴趣": "3", "刚才": "3", "根据": "3", "跟": "3", "更": "3",
-    "公斤": "3", "公园": "3", "故事": "3", "刮风": "3", "关": "3", "关系": "3", "关心": "3",
-    "关于": "3", "国家": "3", "过": "3", "过去": "3", "还是": "3", "害怕": "3", "航班": "3",
-    "黑板": "3", "后来": "3", "护照": "3", "花": "3", "花费": "3", "画": "3", "坏": "3", "环境": "3",
-    "换": "3", "黄": "3", "黄河": "3", "会议": "3", "或者": "3", "几乎": "3", "机会": "3", "极": "3",
-    "记得": "3", "季节": "3", "检查": "3", "简单": "3", "见面": "3", "健康": "3", "讲": "3",
-    "教": "3", "角": "3", "脚": "3", "接": "3", "街道": "3", "节目": "3", "节日": "3", "结婚": "3",
-    "结束": "3", "解决": "3", "借": "3", "经常": "3", "经过": "3", "经理": "3", "久": "3", "旧": "3",
-    "句子": "3", "决定": "3", "可爱": "3", "渴": "3", "刻": "3", "客人": "3", "空调": "3", "口": "3",
-    "哭": "3", "裤子": "3", "筷子": "3", "蓝": "3", "老": "3", "离开": "3", "礼物": "3", "历史": "3",
-    "脸": "3", "练习": "3", "辆": "3", "聊天": "3", "了解": "3", "邻居": "3", "留学": "3", "楼": "3",
-    "绿": "3", "马": "3", "马上": "3", "满意": "3", "帽子": "3", "米": "3", "面包": "3", "面条": "3",
-    "明白": "3", "拿": "3", "奶奶": "3", "南": "3", "难": "3", "难过": "3", "年级": "3", "年轻": "3",
-    "鸟": "3", "努力": "3", "爬山": "3", "盘子": "3", "胖": "3", "皮鞋": "3", "啤酒": "3", "普通话": "3",
-    "其实": "3", "其他": "3", "奇怪": "3", "骑": "3", "起飞": "3", "起来": "3", "清楚": "3", "请假": "3",
-    "秋": "3", "裙子": "3", "然后": "3", "热情": "3", "认为": "3", "认真": "3", "容易": "3", "如果": "3",
-    "伞": "3", "上网": "3", "生气": "3", "声音": "3", "世界": "3", "试": "3", "瘦": "3", "叔叔": "3",
-    "舒服": "3", "树": "3", "数学": "3", "刷牙": "3", "双": "3", "水平": "3", "司机": "3", "太阳": "3",
-    "特别": "3", "疼": "3", "提高": "3", "体育": "3", "甜": "3", "条": "3", "同事": "3", "同意": "3",
-    "头发": "3", "突然": "3", "图书馆": "3", "腿": "3", "完成": "3", "碗": "3", "万": "3", "忘记": "3",
-    "为": "3", "为了": "3", "位": "3", "文化": "3", "西": "3", "习惯": "3", "洗手间": "3", "洗澡": "3",
-    "夏": "3", "先": "3", "相信": "3", "香蕉": "3", "向": "3", "像": "3", "小心": "3", "校长": "3",
-    "新闻": "3", "新鲜": "3", "信用卡": "3", "行李箱": "3", "熊猫": "3", "需要": "3", "选择": "3",
-    "要求": "3", "爷爷": "3", "一直": "3", "一定": "3", "一共": "3", "一会儿": "3", "一样": "3",
-    "一般": "3", "一边": "3", "以前": "3", "音乐": "3", "银行": "3", "饮料": "3", "应该": "3",
-    "影响": "3", "用": "3", "游戏": "3", "有名": "3", "又": "3", "遇到": "3", "元": "3", "愿意": "3",
-    "月亮": "3", "越": "3", "站": "3", "张": "3", "长": "3", "着急": "3", "照顾": "3", "照片": "3",
-    "照相机": "3", "只": "3", "只有": "3", "才": "3", "中间": "3", "中文": "3", "终于": "3", "种": "3",
-    "重要": "3", "周末": "3", "主要": "3", "注意": "3", "自己": "3", "总是": "3", "嘴": "3", "最近": "3",
-    "作业": "3", "作用": "3", "做客": "3", "早": "3", "站": "3", "找": "3", "照片": "3", "真": "3",
-    "正在": "3", "只": "3", "中间": "3", "钟": "3", "种": "3", "重": "3", "重要": "3", "主": "3",
-    "主要": "3", "住": "3", "祝": "3", "注意": "3", "专门": "3", "专业": "3", "准备": "3", "桌子": "3",
-    "字": "3", "字典": "3", "自己": "3", "自行车": "3", "总是": "3", "走": "3", "最": "3", "最近": "3",
-    "作业": "3", "作用": "3"
+   
+    
+    <script src="lesson_401.js"></script>
+    <script src="lesson_402.js"></script>
+    <script src="lesson_403.js"></script>
+    <script src="lesson_404.js"></script>
+    <script src="lesson_405.js"></script>
+    <script src="lesson_406.js"></script>
+    <script src="lesson_407.js"></script>
+    <script src="lesson_408.js"></script>
+    <script src="lesson_409.js"></script>
+    <script src="lesson_410.js"></script>
+    <script src="lesson_411.js"></script>
+    <script src="lesson_412.js"></script>
+    <script src="lesson_413.js"></script>
+    <script src="lesson_414.js"></script>
+    <script src="lesson_415.js"></script>
+    <script src="lesson_416.js"></script>
+    <script src="lesson_417.js"></script>
+    <script src="lesson_418.js"></script>
+    <script src="lesson_419.js"></script>
+    <script src="lesson_420.js"></script>
+
+    <style>
+        :root {
+            --primary: #7A6B4E;
+            --primary-light: #F0ECE4;
+            --red: #7A5A48;
+            --bg: #F5F3EE;
+            --white: #FFFFFF;
+            --yellow: #C4A24E;
+            --yellow-light: #FAF6EC;
+            --text: #2D2D28;
+            --gray: #A8998A;
+            --border: #E0DCD4;
+            --accent: #A89468;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Nunito", "Noto Sans SC", "PingFang SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+           侧边栏
+        ============================================================ */
+        .sidebar {
+            width: 280px;
+            background: #FAFAF6;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 100;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.03);
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: margin 0.3s ease;
+        }
+        .sidebar.collapsed { margin-left: -280px; }
+
+        .sidebar-toggle {
+            position: absolute; right: -38px; top: 20px;
+            width: 38px; height: 38px;
+            background: #FAFAF6; border: 1px solid var(--border); border-left: none;
+            border-radius: 0 8px 8px 0;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--primary); font-size: 14px;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.04);
+        }
+
+        .sidebar-header {
+            padding: 20px 18px 16px;
+            border-bottom: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+        .logo {
+            font-size: 20px; font-weight: 800; color: var(--primary);
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+            font-family: "LXGW WenKai", "Noto Sans SC", serif;
+        }
+
+        /* ── 学习包区域 ── */
+        .course-center {
+            background: #FAF9F6;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px;
+            margin: 14px 12px 10px;
+        }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+        }
+        .section-title {
+            font-size: 12px; font-weight: 800; color: var(--primary);
+            display: flex; align-items: center; gap: 5px;
+        }
+        .reset-all {
+            font-size: 11px; color: var(--accent);
+            cursor: pointer; font-weight: bold; text-decoration: underline;
+        }
+        .course-grid {
+            display: flex;
+            gap: 7px;
+        }
+        .course-col {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 7px;
+        }
+        .grid-item {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 4px 8px;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 5px; cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .grid-item:hover, .grid-item.active {
+            border-color: var(--accent); background: var(--primary-light); color: var(--primary);
+        }
+        .grid-item i { font-size: 15px; color: var(--accent); }
+        .grid-item span { font-size: 10px; font-weight: 700; white-space: nowrap; line-height: 1.3; }
+
+        /* ── HSK 按钮 ── */
+        .hsk-hub-btn {
+            background: var(--yellow-light);
+            border: 1px solid var(--yellow);
+            color: #8A6D20;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-weight: bold; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            cursor: pointer;
+            margin: 0 12px 12px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .hsk-hub-btn:hover {
+            background: #F5EDD0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(138,109,32,0.1);
+        }
+        .hsk-hub-btn i { font-size: 16px; }
+
+        /* ── 菜单项通用 ── */
+        .menu-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 14px; border-radius: 10px; cursor: pointer;
+            color: #6B6258; font-size: 13.5px;
+            margin: 0 6px 2px; transition: all 0.2s;
+        }
+        .menu-item:hover, .menu-item.active { background: var(--primary-light); color: var(--primary); }
+
+        /* ── 学习记录折叠 ── */
+        .records-toggle {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; margin: 4px 6px 0;
+            border-top: 1px solid var(--border); cursor: pointer;
+            border-radius: 10px; transition: all 0.2s;
+        }
+        .records-toggle:hover { background: var(--primary-light); }
+        .records-toggle-left { display: flex; align-items: center; gap: 11px; font-size: 13.5px; font-weight: 700; color: var(--text); }
+        #data-chevron { color: #ccc; font-size: 11px; transition: transform 0.2s; }
+
+        /* ── 学习记录内容 ── */
+        #study-data-content { display: none; }
+        .sub-menu-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 9px 14px 9px 40px;
+            font-size: 12.5px; color: #A8998A; cursor: pointer;
+            border-radius: 10px; margin: 0 6px 1px; transition: all 0.2s;
+        }
+        .sub-menu-item:hover { background: var(--primary-light); color: var(--primary); }
+        .sub-menu-item.review-item { color: var(--primary); background: var(--primary-light); }
+
+        /* ── 统计卡片 ── */
+        .stats-box {
+            margin: 8px 12px;
+            padding: 14px;
+            background: var(--primary-light);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+        .stats-title {
+            font-size: 11px; font-weight: bold; color: var(--primary);
+            margin-bottom: 10px;
+            display: flex; justify-content: space-between;
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-item { text-align: center; }
+        .stat-num { font-size: 17px; font-weight: 800; color: var(--primary); font-family: "Nunito", sans-serif; }
+        .stat-label { font-size: 10px; color: #A8998A; margin-top: 2px; }
+
+        /* ── 月历热力图 ── */
+        .calendar-section { padding: 0 12px; margin-bottom: 16px; }
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .cal-title { font-size: 11px; font-weight: bold; color: #A8998A; }
+        .cal-month-label { font-size: 11px; color: var(--primary); font-weight: 800; background: var(--primary-light); padding: 2px 8px; border-radius: 10px; }
+        .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px; text-align: center; }
+        .cal-weekday { font-size: 9px; color: #ccc; font-weight: bold; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .cal-day { aspect-ratio: 1; border-radius: 6px; background-color: #EDEAE4; position: relative; cursor: pointer; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #ccc; }
+        .cal-day:hover { transform: scale(1.15); border: 1px solid var(--accent); z-index: 10; color: var(--text); }
+        .cal-day:hover::after { content: attr(data-date); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; pointer-events: none; }
+        .lvl-0 { background-color: #EDEAE4; }
+        .lvl-1 { background-color: #E8DFC8; color: #7A6B4E; font-weight: bold; }
+        .lvl-2 { background-color: #C4B38A; color: white; font-weight: bold; }
+        .lvl-3 { background-color: #7A6B4E; color: white; font-weight: bold; }
+        .cal-legend { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+        .legend-dot { width: 7px; height: 7px; border-radius: 2px; }
+
+        /* ── 분리선 ── */
+        .sidebar-divider { height: 1px; background: var(--border); margin: 8px 12px; }
+
+        /* ── 价格按钮 ── */
+        .price-menu-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 14px; border-radius: 10px; cursor: pointer;
+            font-size: 13.5px; font-weight: 700; color: #8A6D20;
+            margin: 4px 6px 2px;
+            border: 1px solid var(--yellow);
+            background: var(--yellow-light);
+            transition: all 0.2s;
+        }
+        .price-menu-item:hover { background: #F5EDD0; }
+
+        /* ── 账户区域 ── */
+        .menu-section { padding: 0 6px; margin-bottom: 16px; }
+        .menu-title { font-size: 11px; color: #A8998A; margin: 10px 8px 6px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .logout-btn {
+            width: calc(100% - 24px); margin: 0 12px 16px;
+            padding: 11px; border: 1px solid var(--red); background: white;
+            color: var(--red); border-radius: 12px; font-weight: bold;
+            font-size: 13px; cursor: pointer; transition: all 0.2s;
+            font-family: inherit;
+        }
+        .logout-btn:hover { background: var(--red); color: white; }
+
+        /* ============================================================
+           主内容区
+        ============================================================ */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+        header { padding: 20px 40px; background: var(--bg); display: flex; flex-direction: column; gap: 15px; }
+        .welcome-row { display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 800; color: var(--text); font-family: "LXGW WenKai", "Noto Sans SC", serif; }
+        .top-tools { display: flex; align-items: center; gap: 15px; }
+        .search-box { position: relative; width: 250px; }
+        .search-input { width: 100%; padding: 9px 15px 9px 38px; border-radius: 24px; border: 1.5px solid var(--border); outline: none; transition: 0.2s; background: #FAFAF6; font-family: inherit; font-size: 13px; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168,148,104,0.12); }
+        .search-icon { position: absolute; left: 14px; top: 10px; color: #A8998A; font-size: 13px; }
+        .lang-switch { cursor: pointer; padding: 6px 14px; border-radius: 20px; background: var(--primary-light); font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 5px; transition: all 0.2s; color: var(--primary); border: 1px solid var(--border); }
+        .lang-switch:hover { background: #E8E3D8; }
+
+        .filter-row { display: flex; flex-direction: column; gap: 15px; align-items: flex-start; margin-top: 10px; }
+        .filter-group { display: flex; gap: 18px; align-items: center; flex-wrap: nowrap !important; width: 100%; overflow-x: auto; padding-bottom: 5px; -ms-overflow-style: none; scrollbar-width: none; }
+        .filter-group::-webkit-scrollbar { display: none; }
+        .filter-label { font-size: 12px; color: #A8998A; font-weight: bold; white-space: nowrap; padding-right: 5px; border-right: 1px solid var(--border); flex-shrink: 0; }
+        .filter-btn { padding: 4px 2px; border: none; background: transparent !important; color: #A8998A; cursor: pointer; font-size: 15px; transition: all 0.2s; flex-shrink: 0; white-space: nowrap; position: relative; font-family: inherit; }
+        .filter-btn:hover { color: var(--primary); }
+        .filter-btn.active { color: var(--primary); font-weight: 800; }
+        .filter-btn.active::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); width: 16px; height: 3px; background: var(--accent); border-radius: 2px; }
+        .sort-select { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); outline: none; color: #6B6258; cursor: pointer; font-family: inherit; background: #FAFAF6; }
+
+        .content-scroll { flex: 1; overflow-y: auto; padding: 0 40px 40px 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+
+        /* 视频卡片 */
+        .card { background: var(--white); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid var(--border); display: flex; flex-direction: column; transition: all 0.25s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.07); border-color: var(--accent); }
+        .card-cover { height: 170px; background-color: #EDEAE4; background-size: cover; background-position: center; position: relative; }
+        .duration-tag { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+        .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; line-height: 1.4; color: var(--text); display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-family: "LXGW WenKai", "Noto Sans SC", sans-serif; }
+        .status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; font-weight: bold; height: 20px; }
+        .status-text.done { color: var(--primary); }
+        .status-text.watching { color: var(--yellow); }
+        .card-desc { font-size: 13px; color: #A8998A; margin-bottom: 15px; display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 36px; }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 40px; color: #A8998A; }
+
+        /* 个人中心弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45,45,40,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .profile-card { background: white; width: 320px; border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #A8998A; }
+        .modal-close:hover { color: var(--red); }
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .avatar-circle { width: 60px; height: 60px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); border: 2px solid var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .user-email { font-weight: 800; color: var(--text); font-size: 16px; margin-bottom: 4px; }
+        .user-role { font-size: 12px; color: #A8998A; background: var(--primary-light); padding: 2px 8px; border-radius: 10px; display: inline-block; }
+        .vip-card { background: linear-gradient(135deg, #3D3830 0%, #5A5040 100%); color: #C4A24E; padding: 15px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .vip-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+        .vip-row:last-child { margin-bottom: 0; font-size: 12px; opacity: 0.8; }
+        .vip-status.active { font-weight: bold; color: #C4A24E; }
+        .action-list { margin-bottom: 20px; }
+        .action-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; color: #6B6258; font-size: 14px; transition: all 0.2s; }
+        .action-item:hover { padding-left: 5px; color: var(--primary); }
+        .act-left { display: flex; align-items: center; gap: 10px; }
+
+        /* ============================================================
+           📱 手机端
+        ============================================================ */
+        .mobile-fab { display: none; }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow-x: hidden; background: var(--bg); }
+            .main-content { width: 100vw; padding: 0; }
+
+            .sidebar {
+                position: fixed; top: 0; left: -300px;
+                width: 280px; height: 100vh; z-index: 2500;
+                display: flex !important; transition: left 0.3s ease;
+                box-shadow: 10px 0 20px rgba(0,0,0,0.15);
+            }
+            .sidebar.mobile-open { left: 0 !important; }
+            .sidebar-toggle { display: none; }
+
+            .mobile-fab {
+                display: flex;
+                position: fixed; bottom: 28px; right: 18px;
+                width: 44px; height: 44px;
+                background: var(--primary); color: white;
+                border-radius: 50%;
+                align-items: center; justify-content: center;
+                box-shadow: 0 4px 14px rgba(122,107,78,0.3);
+                z-index: 3000; font-size: 18px; cursor: pointer;
+            }
+
+            header { padding: 8px 12px; flex-direction: column; gap: 5px; background: #FAFAF6; position: sticky; top: 0; z-index: 2000; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+            .welcome-row { width: 100%; flex-wrap: wrap; gap: 6px; }
+            .page-title { font-size: 18px; }
+            .top-tools { width: 100%; gap: 6px; display: flex; align-items: center; }
+            .search-box { flex: 0 1 auto; min-width: 0; width: 38%; }
+            .search-input { width: 100%; box-sizing: border-box; background: var(--primary-light); border: none; padding: 5px 8px 5px 28px; height: 30px; font-size: 12px; border-radius: 16px; }
+            .search-icon { left: 9px; top: 7px; font-size: 11px; }
+            .sort-select { display: block; padding: 4px 5px; font-size: 10px; border-radius: 6px; flex-shrink: 0; height: 30px; }
+            .lang-switch { flex-shrink: 0; padding: 4px 9px; font-size: 11px; }
+
+            .filter-row { width: 100%; padding: 4px 12px; background: #FAFAF6; margin-top: 0; border-bottom: 1px solid var(--border); gap: 4px; }
+            .filter-group { gap: 5px; overflow-x: auto !important; white-space: nowrap !important; flex-wrap: nowrap !important; padding-bottom: 0; }
+            .filter-label { display: none; }
+            .filter-btn { flex-shrink: 0; padding: 4px 10px; font-size: 11px; background: var(--primary-light) !important; border: none; color: #6B6258; border-radius: 12px; }
+            .filter-btn.active { background: #E8E3D8 !important; color: var(--primary); font-weight: bold; border: 1px solid var(--accent); }
+            .filter-btn.active::after { display: none; }
+
+            .content-scroll { padding: 10px; padding-bottom: 80px; }
+            .grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .card { border-radius: 12px; box-shadow: none; border: 1px solid var(--border); }
+            .card-cover { height: 100px; }
+            .card-body { padding: 10px; }
+            .card-title { font-size: 13px; }
+            .card-desc { display: none; }
+            .profile-card { width: 85%; }
+        }
+
+        /* ── 口语俱乐部按钮 ── */
+        .club-hub-btn {
+            background: var(--primary-light);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-weight: bold; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; gap: 9px;
+            cursor: pointer;
+            margin: 0 12px 12px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .club-hub-btn:hover {
+            background: #E8E3D8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(122,107,78,0.1);
+        }
+        .club-hub-btn i { font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<!-- 手机端悬浮菜单按钮 -->
+<div class="mobile-fab" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+</div>
+
+<!-- ====================================================
+     侧边栏
+==================================================== -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+
+    <div class="sidebar-header">
+        <div class="logo"><i class="fas fa-book-reader"></i> 汉语 Vlog</div>
+    </div>
+
+    <div class="course-center">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-layer-group"></i>
+                <span data-i18n="side_packages">学习包</span>
+            </div>
+            <div class="reset-all" onclick="resetFilters()" data-i18n="menu_all">全部课程</div>
+        </div>
+        <div class="course-grid">
+    <div class="course-col">
+        <div class="grid-item" onclick="filterByBatch('hsk12_pack', this)">
+            <i class="fas fa-seedling"></i>
+            <span data-i18n="batch_hsk12">HSK 1-2</span>
+        </div>
+        <div class="grid-item" onclick="filterByBatch('hsk34_pack', this)">
+            <i class="fas fa-mountain"></i>
+            <span data-i18n="batch_hsk34">HSK 3-4</span>
+        </div>
+        <div class="grid-item" onclick="filterByBatch('hsk56_pack', this)">
+            <i class="fas fa-crown"></i>
+            <span data-i18n="batch_hsk56">HSK 5-6+</span>
+        </div>
+    </div>
+    <div class="course-col">
+        <div class="grid-item" onclick="filterByBatch('tv_drama', this)">
+            <i class="fas fa-tv"></i>
+            <span data-i18n="batch_drama">电视剧</span>
+        </div>
+        <div class="grid-item" onclick="filterByBatch('talk_show', this)">
+            <i class="fas fa-microphone-alt"></i>
+            <span data-i18n="batch_talk_show">脱口秀</span>
+        </div>
+        <div class="grid-item" onclick="filterByBatch('vlog_pack', this)">
+            <i class="fab fa-red-river"></i>
+            <span data-i18n="batch_vlog">小红书</span>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <div class="hsk-hub-btn" onclick="location.href='hsk_dashboard.html'">
+        <i class="fas fa-university"></i>
+        <span data-i18n="menu_hsk_lib">HSK 资源库</span>
+    </div>
+    <div class="club-hub-btn" onclick="location.href='club_list.html'">
+        <i class="fas fa-microphone-alt"></i>
+        <span data-i18n="menu_oral_club">口语俱乐部</span>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="records-toggle" onclick="toggleStudyData()">
+        <div class="records-toggle-left">
+            <i class="fas fa-folder-open" style="width:16px;color:var(--text);"></i>
+            <span data-i18n="menu_records">学习记录</span>
+        </div>
+        <i class="fas fa-chevron-down" id="data-chevron"></i>
+    </div>
+
+    <div id="study-data-content">
+        <div class="sub-menu-item" onclick="filterByMenu('fav', this)">
+            <i class="fas fa-bookmark" style="width:16px;text-align:center;"></i>
+            <span data-i18n="menu_fav">我的收藏</span>
+        </div>
+        <div class="sub-menu-item" onclick="filterByMenu('done', this)">
+            <i class="fas fa-check-circle" style="width:16px;text-align:center;"></i>
+            <span data-i18n="menu_done">已完成</span>
+        </div>
+        <div class="sub-menu-item review-item" onclick="location.href='review.html'">
+            <i class="fas fa-brain" style="width:16px;text-align:center;"></i>
+            <span data-i18n="menu_review">艾宾浩斯复习</span>
+        </div>
+
+        <div class="stats-box">
+            <div class="stats-title">
+                <span data-i18n="my_data">我的学习数据</span>
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item"><div class="stat-num" id="stat-days">1</div><div class="stat-label" data-i18n="days">天数</div></div>
+                <div class="stat-item"><div class="stat-num" id="stat-hours">0h</div><div class="stat-label" data-i18n="hours">时长</div></div>
+                <div class="stat-item"><div class="stat-num" id="stat-videos">0</div><div class="stat-label" data-i18n="videos">已看</div></div>
+                <div class="stat-item"><div class="stat-num" id="stat-vocab">0</div><div class="stat-label" data-i18n="vocab">词汇</div></div>
+            </div>
+        </div>
+
+        <div class="calendar-section">
+            <div class="cal-header">
+                <div class="cal-title"><span data-i18n="heatmap">学习打卡</span></div>
+                <div class="cal-month-label" id="currentMonthStr">...</div>
+            </div>
+            <div class="cal-weekdays">
+                <div class="cal-weekday">日</div><div class="cal-weekday">一</div><div class="cal-weekday">二</div>
+                <div class="cal-weekday">三</div><div class="cal-weekday">四</div><div class="cal-weekday">五</div>
+                <div class="cal-weekday">六</div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="cal-legend">
+                <span style="font-size:10px;color:#ccc">Less</span>
+                <div style="display:flex;gap:3px;">
+                    <div class="legend-dot lvl-0"></div>
+                    <div class="legend-dot lvl-1" style="background:#E8DFC8"></div>
+                    <div class="legend-dot lvl-2" style="background:#C4B38A"></div>
+                    <div class="legend-dot lvl-3" style="background:#7A6B4E"></div>
+                </div>
+                <span style="font-size:10px;color:#ccc">More</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="menu-item" onclick="location.href='tools.html'">
+        <i class="fas fa-toolbox" style="width:16px;"></i>
+        <span data-i18n="menu_tools">学习工具</span>
+    </div>
+    <div class="menu-item" onclick="location.href='library.html'">
+        <i class="fas fa-book" style="width:16px;"></i>
+        <span data-i18n="menu_library">图书馆 (E-Books)</span>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="price-menu-item" onclick="location.href='price.html'">
+        <i class="fas fa-tags" style="width:16px;color:#8A6D20;"></i>
+        <span data-i18n="menu_pricing">价格列表</span>
+    </div>
+    <div class="menu-item" onclick="location.href='rules.html'">
+        <i class="fas fa-info-circle" style="width:16px;"></i>
+        <span data-i18n="menu_rules">使用须知</span>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="menu-section">
+        <div class="menu-title" data-i18n="menu_account">账户</div>
+        <div class="menu-item" onclick="openProfile()">
+            <i class="fas fa-user-circle" style="width:16px;"></i>
+            <span data-i18n="menu_profile">个人中心</span>
+        </div>
+    </div>
+    <button class="logout-btn" onclick="forceLogout()">
+        <i class="fas fa-sign-out-alt"></i> <span data-i18n="menu_logout">退出登录</span>
+    </button>
+</div>
+
+<!-- ====================================================
+     右侧主内容
+==================================================== -->
+<div class="main-content">
+    <header>
+        <div class="welcome-row">
+            
+            <div class="top-tools">
+                <div class="page-title" data-i18n="video_lib">视频</div>
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input class="search-input" id="searchBox" placeholder="Search..." oninput="searchVideo(this.value)">
+                </div>
+                <select class="sort-select" id="sortSelect" onchange="sortVideos(this.value)">
+                    <option value="new">Sort: Newest</option>
+                    <option value="progress">Sort: Progress</option>
+                </select>
+                <div class="lang-switch" onclick="toggleLang()">
+                    <i class="fas fa-globe"></i> <span id="langLabel">RU</span>
+                </div>
+                
+            </div>           
+        </div>
+        <div class="filter-row">
+            <div class="filter-group">
+                <span class="filter-label" data-i18n="filter_level">难度:</span>
+                <button class="filter-btn active" data-type="hsk" data-val="all" onclick="applyFilter('hsk','all',this)">所有</button>
+                <button class="filter-btn" data-type="hsk" data-val="HSK 3" onclick="applyFilter('hsk','HSK 3',this)">HSK 3</button>
+                <button class="filter-btn" data-type="hsk" data-val="HSK 4" onclick="applyFilter('hsk','HSK 4',this)">HSK 4</button>
+                <button class="filter-btn" data-type="hsk" data-val="HSK 5" onclick="applyFilter('hsk','HSK 5',this)">HSK 5</button>
+                <button class="filter-btn" data-type="hsk" data-val="HSK 6" onclick="applyFilter('hsk','HSK 6',this)">HSK 6</button>
+                <button class="filter-btn" data-type="hsk" data-val="HSK 6+" onclick="applyFilter('hsk','HSK 6+',this)">HSK 6+</button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label" data-i18n="filter_topic">主题:</span>
+                <button class="filter-btn active" data-type="topic" data-val="all" data-i18n="topic_all" onclick="applyFilter('topic','all',this)">所有</button>
+                <button class="filter-btn" data-type="topic" data-val="job" data-i18n="topic_job" onclick="applyFilter('topic','job',this)">工作</button>
+                <button class="filter-btn" data-type="topic" data-val="life" data-i18n="topic_life" onclick="applyFilter('topic','life',this)">生活</button>
+                <button class="filter-btn" data-type="topic" data-val="food" data-i18n="topic_food" onclick="applyFilter('topic','food',this)">食物</button>
+                <button class="filter-btn" data-type="topic" data-val="culture" data-i18n="topic_culture" onclick="applyFilter('topic','culture',this)">文化</button>
+                <button class="filter-btn" data-type="topic" data-val="thoughts" data-i18n="topic_thoughts" onclick="applyFilter('topic','thoughts',this)">感想</button>
+                <button class="filter-btn" data-type="topic" data-val="shopping" data-i18n="topic_shopping" onclick="applyFilter('topic','shopping',this)">购物</button>
+                <button class="filter-btn" data-type="topic" data-val="fashion" data-i18n="topic_fashion" onclick="applyFilter('topic','fashion',this)">穿搭</button>
+                <button class="filter-btn" data-type="topic" data-val="travel" data-i18n="topic_travel" onclick="applyFilter('topic','travel',this)">旅行</button>
+                <button class="filter-btn" data-type="topic" data-val="beauty" data-i18n="topic_beauty" onclick="applyFilter('topic','beauty',this)">护肤化妆</button>
+                <button class="filter-btn" data-type="topic" data-val="sports" data-i18n="topic_sports" onclick="applyFilter('topic','sports',this)">运动</button>
+                <button class="filter-btn" data-type="topic" data-val="study" data-i18n="topic_study" onclick="applyFilter('topic','study',this)">学习</button>
+            </div>
+        </div>
+    </header>
+    <div class="content-scroll">
+        <div class="grid" id="videoGrid"></div>
+    </div>
+</div>
+
+<!-- ====================================================
+     个人中心弹窗
+==================================================== -->
+<div id="profileModal" class="modal-overlay" style="display:none;">
+    <div class="profile-card">
+        <div class="modal-close" onclick="closeProfile()">×</div>
+        <div class="profile-header">
+            <div class="avatar-circle"><i class="fas fa-user-astronaut"></i></div>
+            <div class="profile-info">
+                <div class="user-email" id="p-email">student@vip.com</div>
+                <div class="user-role" data-i18n="p_role">HSK 4 学习者</div>
+            </div>
+        </div>
+        <div class="vip-card">
+            <div class="vip-row">
+                <span><i class="fas fa-crown"></i> <span data-i18n="p_status_label">会员状态</span></span>
+                <span class="vip-status active" id="p-status" data-i18n="p_active">生效中</span>
+            </div>
+            <div class="vip-row">
+                <span data-i18n="p_expire_label">到期时间</span>
+                <span id="p-expire">Вечно</span>
+            </div>
+        </div>
+        <div class="action-list">
+            <div class="action-item" onclick="syncData()">
+                <div class="act-left"><i class="fas fa-cloud-upload-alt" style="color:#7A6B4E;"></i> <span data-i18n="p_sync">同步进度到云端</span></div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="action-item" onclick="downloadData()">
+                <div class="act-left"><i class="fas fa-cloud-download-alt" style="color:#A89468;"></i> <span data-i18n="p_download">从云端恢复进度</span></div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="action-item" onclick="alert('请联系老师重置密码')">
+                <div class="act-left"><i class="fas fa-lock" style="color:#C4A24E;"></i> <span data-i18n="p_password">修改密码</span></div>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+        <div class="menu-item" onclick="forceLogout()" style="color:var(--red);cursor:pointer;">
+            <i class="fas fa-sign-out-alt"></i> <span data-i18n="menu_logout">退出登录</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ================================================================
+    // ⚠️  以下 JS 全部来自旧版 home，一字不改
+    // ================================================================
+
+    const SUPABASE_URL = 'https://royal-feather-3237.zhouyuhe525.workers.dev/';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw';
+
+    let supabaseClient = null;
+    if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: { storageKey: 'sb-bwweaohahsafbecogist-auth-token' }
+        });
+        console.log("✅ 云端服务已连接");
+    } else {
+        console.error("❌ Supabase 库未加载，请检查 CDN");
+    }
+
+    let allVideos = [];
+    let currentFilters = { hsk: 'all', topic: 'all', menu: 'all', search: '', batch: 'all' };
+    let currentLang = 'ru';
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("读取本地课程数据...");
+    if (localStorage.getItem('isGuest') === 'true') {
+        localStorage.setItem('my_access_tags', JSON.stringify(["trial_pack"]));
+    } else if (!localStorage.getItem('my_access_tags')) {
+        localStorage.setItem('my_access_tags', JSON.stringify(["trial_pack"]));
+    }
+
+    if (window.lessonDatabase) {
+        allVideos = Object.keys(window.lessonDatabase).map(id => {
+            const item = window.lessonDatabase[id];
+            item.id = id;
+            item.searchStr = (item.title + item.desc + item.author + (item.topic || '')).toLowerCase();
+            return item;
+        });
+        updateLanguage();
+        calculateStats();
+        renderMonthCalendar();
+        if (localStorage.getItem('isGuest') !== 'true' && typeof updateUserAccess === 'function') {
+            updateUserAccess(); 
+        }
+    } else {
+        alert("❌ 错误：找不到本地课程数据！请检查 lesson_001.js");
+    }
+});
+
+    function calculateStats() {
+        const now = new Date();
+        const todayKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+        let studyDates = JSON.parse(localStorage.getItem('my_study_days') || '[]');
+        if (!studyDates.includes(todayKey)) {
+            studyDates.push(todayKey);
+            localStorage.setItem('my_study_days', JSON.stringify(studyDates));
+        }
+        document.getElementById('stat-days').innerText = studyDates.length;
+
+        let startedVideos = 0, totalSeconds = 0, totalVocab = 0;
+        allVideos.forEach(v => {
+            const progress = parseInt(localStorage.getItem('progress_' + v.id) || 0);
+            if (progress > 0) {
+                startedVideos++;
+                if (v.flashcards) totalVocab += v.flashcards.length;
+                if (v.duration && v.duration.includes(':')) {
+                    const parts = v.duration.split(':');
+                    totalSeconds += (parseInt(parts[0]) * 60 + parseInt(parts[1])) * (progress / 100);
+                }
+            }
+        });
+        document.getElementById('stat-videos').innerText = startedVideos;
+        document.getElementById('stat-hours').innerText = (totalSeconds / 3600).toFixed(1) + 'h';
+        document.getElementById('stat-vocab').innerText = totalVocab;
+    }
+
+    function openProfile() {
+        const isGuest = localStorage.getItem('isGuest') === 'true';
+        const modal = document.getElementById('profileModal');
+        if (isGuest) {
+            document.getElementById('p-email').innerText = uiDict[currentLang].p_guest_user;
+            document.getElementById('p-expire').innerText = uiDict[currentLang].p_no_sync;
+            const syncBtn = document.querySelector('.action-item[onclick="syncData()"]');
+            if (syncBtn) {
+                syncBtn.innerHTML = `
+                    <div class="act-left">
+                        <i class="fas fa-cloud-upload-alt" style="color:var(--red);"></i>
+                        <span style="color:var(--red);font-weight:bold;" data-i18n="p_sync_guest">${uiDict[currentLang].p_sync_guest}</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>`;
+            }
+        }
+        modal.style.display = 'flex';
+    }
+
+    function closeProfile() {
+        const modal = document.getElementById('profileModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    document.getElementById('profileModal').addEventListener('click', function(e) {
+        if (e.target === this) closeProfile();
+    });
+
+    window.syncData = async function() {
+        if (!supabaseClient) return alert("❌ 服务器连接失败，请刷新重试");
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return alert("⚠️ 请先登录账号");
+
+        const dataToUpload = {};
+        let count = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.includes('session') || key.includes('sb-') || key.includes('token')) continue;
+            if (key === 'my_access_tags') continue;
+            if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my_')) {
+                dataToUpload[key] = localStorage.getItem(key);
+                count++;
+            }
+        }
+        if (count === 0) return alert("本地没有学习记录，无需同步。");
+
+        const btnText = document.querySelector('.action-item span[data-i18n="p_sync"]');
+        const originalText = btnText ? btnText.innerText : "同步";
+        if (btnText) btnText.innerText = "⏳ 上传中...";
+
+        try {
+            const { error } = await supabaseClient
+                .from('user_progress')
+                .upsert({ user_id: user.id, data: dataToUpload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+            if (error) throw error;
+            alert(`✅ 同步成功！\n已备份 ${count} 条数据到专属记录表。`);
+        } catch (e) {
+            console.error(e);
+            alert("❌ 同步失败: " + e.message);
+        } finally {
+            if (btnText) btnText.innerText = originalText;
+        }
+    };
+
+    window.downloadData = async function(isSilent = false) {
+        if (!supabaseClient) return;
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) { if (!isSilent) alert("请先登录！"); return; }
+
+        const btnSpan = document.querySelector('.action-item span[data-i18n="p_download"]');
+        const originalText = btnSpan ? btnSpan.innerText : "恢复进度";
+        if (!isSilent && btnSpan) btnSpan.innerText = "⏳ 下载中...";
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('user_progress').select('data').eq('user_id', user.id).maybeSingle();
+            if (error) throw error;
+
+            if (data && data.data) {
+                const cloudData = data.data;
+                let count = 0;
+                for (const key in cloudData) {
+                    const cloudVal = cloudData[key];
+                    const localVal = localStorage.getItem(key);
+                    if (key === 'my_access_tags') continue;
+                    if (key === 'my_vocab_list' || key === 'my_study_days') {
+                        try {
+                            const localArr = localVal ? JSON.parse(localVal) : [];
+                            const cloudArr = JSON.parse(cloudVal || '[]');
+                            const mergedArr = [...new Set([...localArr, ...cloudArr])];
+                            localStorage.setItem(key, JSON.stringify(mergedArr));
+                            count++;
+                        } catch(e) { console.warn("数组合并失败", e); }
+                        continue;
+                    }
+                    if (key.startsWith('progress_')) {
+                        const localNum = parseInt(localVal || 0);
+                        const cloudNum = parseInt(cloudVal || 0);
+                        if (cloudNum > localNum) { localStorage.setItem(key, cloudNum); count++; }
+                        continue;
+                    }
+                    if (key.startsWith('done_')) {
+                        if (cloudVal === 'true' && localVal !== 'true') { localStorage.setItem(key, 'true'); count++; }
+                        continue;
+                    }
+                    if (!localVal) { localStorage.setItem(key, cloudVal); count++; }
+                }
+                if (typeof calculateStats === 'function') calculateStats();
+                if (typeof renderMonthCalendar === 'function') renderMonthCalendar();
+                if (typeof renderVideos === 'function' && typeof getFilteredVideos === 'function') renderVideos(getFilteredVideos());
+                if (!isSilent) alert(`✅ 恢复成功！\n已智能合并 ${count} 项新进度。`);
+            } else {
+                if (!isSilent) alert("☁️ 云端暂无备份数据");
+            }
+        } catch (e) {
+            console.error(e);
+            if (!isSilent) alert("❌ 下载失败: " + e.message);
+        } finally {
+            if (!isSilent && btnSpan) btnSpan.innerText = originalText;
+        }
+    };
+
+    const uiDict = {
+        ru: {
+            my_data:"Мои данные", days:"Дней", hours:"Часов", videos:"Видео", vocab:"Слов",
+            heatmap:"Активность", today:"Сегодня",
+            menu_records:"Записи", menu_all:"Все видео", menu_fav:"Избранное", menu_done:"Завершено",
+            menu_review:"Тетрадь и Печатать", menu_account:"Аккаунт", menu_profile:"Профиль", menu_logout:"Выйти",
+            video_lib:"Видео   ", filter_level:"Уровень:", filter_topic:"Тема:",
+            status_done:"Завершено", status_watch:"Просмотр", status_new:"Новое", review:"Повторить",
+            topic_all:"Все", topic_job:"Работа", topic_life:"Жизнь", topic_food:"Еда", topic_culture:"Культура",
+            topic_thoughts:"Мысли", topic_shopping:"Покупки", topic_fashion:"Мода", topic_travel:"Путешествия",
+            topic_beauty:"Красота", topic_sports:"Спорт", topic_study:"Учёба",
+            sort_new:"Сорт: Новые", sort_prog:"Сорт: Прогресс",
+            p_role:"Студент", p_status_label:"Статус", p_active:"Активен", p_expire_label:"Истекает",
+            p_sync:"Синхронизация (Upload)", p_download:"Восстановить (Download)", p_password:"Сменить пароль",
+            side_packages:"Курсы",
+            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（23/102）", batch_hsk56:"HSK 5-6+（21/105）",
+            batch_drama:"Сериалы", batch_talk_show:"Стендап（20/50）", batch_vlog:"小红书",
+            status_lock:"Закрыто", msg_lock:"Этот курс доступен в полной версии. Свяжитесь с учителем!",
+            menu_rules:"СОВЕТЫ", menu_tools:"Инструменты (Tools)", menu_pricing:"Прайс-лист",
+            menu_hsk_lib:"Материалы HSK", menu_library:"Электронная книга",
+            p_guest_user:"Гость", p_no_sync:"Нет (данные не синхронизируются)", p_sync_guest:"Зарегистрируйтесь для синхронизации",
+            menu_oral_club: "Разговорный клуб",
+        },
+        en: {
+            my_data:"My Data", days:"Days", hours:"Hours", videos:"Videos", vocab:"Vocab",
+            heatmap:"Heatmap", today:"Today",
+            menu_records:"Records", menu_all:"All Courses", menu_fav:"Favorites", menu_done:"Completed",
+            menu_review:"Notebook + Print", menu_account:"Account", menu_profile:"Profile", menu_logout:"Logout",
+            video_lib:"Videos   ", filter_level:"Level:", filter_topic:"Topic:",
+            status_done:"Done", status_watch:"Watched", status_new:"New", review:"Review",
+            topic_all:"All", topic_job:"Work", topic_life:"Life", topic_food:"Food", topic_culture:"Culture",
+            topic_thoughts:"Thoughts", topic_shopping:"Shopping", topic_fashion:"Fashion", topic_travel:"Travel",
+            topic_beauty:"Beauty", topic_sports:"Sports", topic_study:"Study",
+            sort_new:"Sort: Newest", sort_prog:"Sort: Progress",
+            p_role:"Student", p_status_label:"Membership", p_active:"Active", p_expire_label:"Expires",
+            p_sync:"Sync to Cloud", p_download:"Restore from Cloud", p_password:"Change Password",
+            side_packages:"Packages",
+            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（23/102）", batch_hsk56:"HSK 5-6+（21/105）",
+            batch_drama:"TV Series", batch_talk_show:"Stand-up（20/50）", batch_vlog:"XiaoHongShu",
+            status_lock:"Locked", msg_lock:"This course is locked. Please contact the teacher!",
+            menu_rules:"Tips", menu_tools:"Learning Tools", menu_pricing:"Price List",
+            menu_hsk_lib:"HSK Learning Hub", menu_library:"Library",
+            p_guest_user:"Guest User", p_no_sync:"None (No auto-sync)", p_sync_guest:"Register to sync data",
+            menu_oral_club: "Oral Club",
+        },
+        cn: {
+            my_data:"我的学习数据", days:"天数", hours:"时长", videos:"已看", vocab:"词汇",
+            heatmap:"学习热力图", today:"今天",
+            menu_records:"学习记录", menu_all:"全部课程", menu_fav:"我的收藏", menu_done:"已完成",
+            menu_review:"生词本 + 打印", menu_account:"账户", menu_profile:"个人中心", menu_logout:"退出登录",
+            video_lib:"视频   ", filter_level:"难度:", filter_topic:"主题:",
+            status_done:"已完成", status_watch:"已看", status_new:"未开始", review:"需复习",
+            topic_all:"所有", topic_job:"职场", topic_life:"生活", topic_food:"美食", topic_culture:"文化",
+            topic_thoughts:"感想", topic_shopping:"购物", topic_fashion:"穿搭", topic_travel:"旅行",
+            topic_beauty:"护肤化妆", topic_sports:"运动", topic_study:"学习",
+            sort_new:"排序：最新", sort_prog:"排序：进度",
+            p_role:"学生", p_status_label:"会员状态", p_active:"生效中", p_expire_label:"到期时间",
+            p_sync:"同步进度到云端", p_download:"从云端恢复进度", p_password:"修改密码",
+            side_packages:"学习包",
+            batch_hsk12:"hsk1-2（0/100）", batch_hsk34:"hsk3-4（23/102）", batch_hsk56:"HSK 5-6+（21/105）",
+            batch_drama:"电视剧", batch_talk_show:"脱口秀（20/50）", batch_vlog:"小红书",
+            status_lock:"需解锁", msg_lock:"🔒 该课程需要解锁，请联系老师购买！",
+            menu_rules:"使用须知", menu_tools:"学习工具", menu_pricing:"价格列表",
+            menu_hsk_lib:"HSK 学习库", menu_library:"电子书资源",
+            p_guest_user:"访客", p_no_sync:"无 (数据不自动同步)", p_sync_guest:"注册账号同步数据",
+            menu_oral_club: "口语俱乐部",
+        }
+    };
+
+    function toggleLang() {
+        if (currentLang === 'ru') currentLang = 'en';
+        else if (currentLang === 'en') currentLang = 'cn';
+        else currentLang = 'ru';
+        updateLanguage();
+    }
+
+    function updateLanguage() {
+        let label = 'RU';
+        if (currentLang === 'en') label = 'EN';
+        if (currentLang === 'cn') label = 'CN';
+        document.getElementById('langLabel').innerText = label;
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (uiDict[currentLang][key]) el.innerText = uiDict[currentLang][key];
+        });
+
+        const sortSel = document.getElementById('sortSelect');
+        if (sortSel && sortSel.options.length > 0) {
+            sortSel.options[0].text = uiDict[currentLang].sort_new;
+            sortSel.options[1].text = uiDict[currentLang].sort_prog;
+        }
+        renderVideos(getFilteredVideos());
+    }
+
+function renderVideos(videos) {
+    const grid = document.getElementById('videoGrid');
+    grid.innerHTML = '';
+    if (videos.length === 0) {
+        grid.innerHTML = '<div class="empty-state">没有找到相关视频</div>';
+        return;
+    }
+
+    let userAccess = [];
+    try {
+        userAccess = JSON.parse(localStorage.getItem('my_access_tags') || '["trial_pack"]');
+    } catch (e) {
+        userAccess = ["trial_pack"];
+    }
+
+    const batchConfig = {
+        'trial_pack':  { label: '🎁 免费试学',  color: '#16a34a', bg: '#dcfce7' },
+        'hsk34_pack':  { label: '📗 HSK 3-4 包', color: '#1d4ed8', bg: '#dbeafe' },
+        'hsk56_pack':  { label: '👑 HSK 5-6+ 包', color: '#7c3aed', bg: '#ede9fe' },
+        'tv_drama':    { label: '📺 电视剧包',   color: '#b45309', bg: '#fef3c7' },
+        'talk_show':   { label: '🎤 脱口秀包',   color: '#be185d', bg: '#fce7f3' },
+        'vlog_pack':   { label: '📱 小红书包',   color: '#c2410c', bg: '#ffedd5' },
+    };
+
+    const sortedVideos = [...videos].sort((a, b) => {
+        if (a.batch === 'trial_pack' && b.batch !== 'trial_pack') return -1;
+        if (a.batch !== 'trial_pack' && b.batch === 'trial_pack') return 1;
+        return 0;
+    });
+
+    sortedVideos.forEach(v => {
+        const batch = v.batch || 'trial_pack';
+        const isLocked = batch !== 'trial_pack' && !userAccess.includes(batch);
+
+        let cardClickAction = isLocked
+            ? `showPriceGuide('${batch}')`
+            : `location.href='index.html?id=${v.id}'`;
+
+        const batchInfo = batchConfig[batch];
+        const batchBadgeHtml = batchInfo
+            ? `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;
+                    color:${batchInfo.color};background:${batchInfo.bg};white-space:nowrap;">
+                    ${batchInfo.label}
+               </span>`
+            : '';
+
+        const progress = parseInt(localStorage.getItem('progress_' + v.id) || 0);
+        const isDone   = localStorage.getItem('done_' + v.id) === 'true';
+
+        let statusHtml = '';
+        if (isLocked) {
+            statusHtml = `<span style="color:#9333ea;font-size:12px;font-weight:bold;">
+                            <i class="fas fa-lock"></i> 需升级解锁
+                          </span>`;
+        } else if (isDone) {
+            statusHtml = `<span class="status-text done"><i class="fas fa-check-circle"></i> 已完成</span>`;
+        } else if (progress > 0) {
+            statusHtml = `<span class="status-text watching"><i class="far fa-clock"></i> ${progress}%</span>`;
+        } else {
+            statusHtml = `<span class="status-text" style="color:#999">未开始</span>`;
+        }
+
+        let coverStyle = v.cover ? `background-image: url('${v.cover}');` : `background-color:#EDEAE4;`;
+        if (isLocked) coverStyle += 'filter:grayscale(100%);opacity:0.7;';
+
+        const html = `
+        <div class="card" onclick="${cardClickAction}">
+            <div class="card-cover" style="${coverStyle}">
+                ${isLocked
+                    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45);
+                            display:flex;align-items:center;justify-content:center;
+                            color:white;font-size:38px;">
+                            <i class="fas fa-lock"></i>
+                       </div>`
+                    : `<div class="duration-tag">${v.duration || '00:00'}</div>`
+                }
+            </div>
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                    <span style="font-size:11px;background:var(--primary-light);color:var(--primary);
+                                 padding:2px 6px;border-radius:6px;font-weight:bold;">
+                        ${v.hsk || 'HSK'}
+                    </span>
+                    <span style="font-size:11px;color:#A8998A;">
+                        <i class="fas fa-user"></i> ${v.author || 'Vlogger'}
+                    </span>
+                </div>
+                <div style="margin-bottom:6px;">
+                    ${batchBadgeHtml}
+                </div>
+                <div class="card-title" style="${isLocked ? 'color:#aaa' : ''}">${v.title}</div>
+                <div class="status-row">${statusHtml}</div>
+                <div class="card-desc">${v.desc || ''}</div>
+            </div>
+        </div>`;
+        grid.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+    function applyFilter(type, value, btn) {
+        const group = btn.parentElement;
+        group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilters[type] = value;
+        renderVideos(getFilteredVideos());
+    }
+
+    function getFilteredVideos() {
+        const topicMap = {
+            'job': ['job','work','工作','职场','career'],
+            'life': ['life','daily','生活','日常','vlog'],
+            'food': ['food','cooking','食物','美食','做饭','超市'],
+            'culture': ['culture','history','文化','传统'],
+            'thoughts': ['thoughts','thinking','感想','观点','聊天'],
+            'shopping': ['shopping','buy','购物','买东西','🛍️'],
+            'fashion': ['fashion','outfit','clothes','穿搭','衣服','OOTD','👗'],
+            'travel': ['travel','trip','tour','旅行','旅游','去哪玩','✈️'],
+            'beauty': ['beauty','makeup','skincare','护肤','化妆','美妆','💄'],
+            'sports': ['sports','gym','exercise','运动','健身','减肥','⚽️'],
+            'study': ['study','learn','学习','中文','考试','📚']
+        };
+        return allVideos.filter(v => {
+            if (currentFilters.search && !v.searchStr.includes(currentFilters.search)) return false;
+            if (currentFilters.hsk !== 'all') {
+                const dataLevel = (v.hsk || '').toLowerCase().replace(/\s/g, '');
+                const filterLevel = currentFilters.hsk.toLowerCase().replace(/\s/g, '');
+                if (currentFilters.hsk === 'HSK 6+') {
+                    if (dataLevel !== 'hsk6' && dataLevel !== 'hsk6+') return false;
+                } else {
+                    if (dataLevel !== filterLevel) return false;
+                }
+            }
+            if (currentFilters.topic !== 'all') {
+                const videoTopic = (v.topic || '').toLowerCase();
+                const btnKey = currentFilters.topic.toLowerCase();
+                const keywords = topicMap[btnKey] || [btnKey];
+                if (!keywords.some(k => videoTopic.includes(k.toLowerCase()))) return false;
+            }
+            if (currentFilters.menu === 'fav' && !v.isFav) return false;
+            if (currentFilters.menu === 'done' && !v.isDone) return false;
+            if (currentFilters.batch !== 'all' && v.batch !== currentFilters.batch) return false;
+            return true;
+        });
+    }
+
+    function searchVideo(val) { currentFilters.search = val.toLowerCase(); renderVideos(getFilteredVideos()); }
+
+    function filterByMenu(type, btn) {
+        document.querySelectorAll('.menu-item, .sub-menu-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilters.menu = type;
+        if (type === 'all') {
+            currentFilters.hsk = 'all'; currentFilters.topic = 'all'; currentFilters.batch = 'all';
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.filter-group .filter-btn:first-child').forEach(b => b.classList.add('active'));
+        }
+        renderVideos(getFilteredVideos());
+    }
+
+    function filterByBatch(batchName, btn) {
+        document.querySelectorAll('.grid-item, .menu-item').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilters.menu = 'all';
+        currentFilters.batch = batchName;
+        renderVideos(getFilteredVideos());
+    }
+
+    function sortVideos(sortType) {
+        let result = getFilteredVideos();
+        if (sortType === 'new') result.sort((a, b) => new Date(b.date) - new Date(a.date));
+        else if (sortType === 'progress') result.sort((a, b) => b.progress - a.progress);
+        renderVideos(result);
+    }
+
+    function resetFilters() {
+        currentFilters = { hsk: 'all', topic: 'all', menu: 'all', search: '', batch: 'all' };
+        document.querySelectorAll('.grid-item, .menu-item').forEach(el => el.classList.remove('active'));
+        renderVideos(allVideos);
+    }
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth <= 768) {
+            sidebar.classList.remove('collapsed');
+            sidebar.classList.toggle('mobile-open');
+        } else {
+            sidebar.classList.remove('mobile-open');
+            sidebar.classList.toggle('collapsed');
+        }
+    }
+
+    function renderMonthCalendar() {
+        const container = document.getElementById('calendarGrid');
+        const monthLabel = document.getElementById('currentMonthStr');
+        if (!container || !monthLabel) return;
+        container.innerHTML = '';
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        monthLabel.innerText = `${year}.${month + 1}`;
+
+        const studyDates = JSON.parse(localStorage.getItem('my_study_days') || '[]');
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.style.visibility = 'hidden';
+            container.appendChild(empty);
+        }
+        for (let day = 1; day <= daysInMonth; day++) {
+            const div = document.createElement('div');
+            const checkDate = `${year}-${month + 1}-${day}`;
+            const level = studyDates.includes(checkDate) ? 3 : 0;
+            div.className = `cal-day lvl-${level}`;
+            div.innerText = day;
+            div.setAttribute('data-date', `${month + 1}月${day}日`);
+            if (level === 3) div.setAttribute('data-tip', '已打卡');
+            container.appendChild(div);
+        }
+    }
+
+function forceLogout() {
+    if (typeof globalLogout === 'function') {
+        globalLogout();
+    } else {
+        if(confirm("确定要退出登录吗？")) {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.replace('login.html');
+        }
+    }
+}
+
+async function updateUserAccess() {
+    if (!supabaseClient) return;
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) { console.log("无本地会话，保持当前状态"); return; }
+        const { data, error } = await supabaseClient
+            .from('profiles').select('access_tags').eq('id', session.user.id).maybeSingle();
+        if (error) throw error;
+        if (data && data.access_tags) {
+            localStorage.setItem('my_access_tags', JSON.stringify(data.access_tags));
+            console.log("✅ 云端权限对账成功:", data.access_tags);
+            renderVideos(getFilteredVideos());
+        }
+    } catch (e) {
+        console.warn("☁️ 云端同步遇阻，已切换为本地离线权限模式:", e.message);
+    }
+}
+
+    function showPriceGuide(batchName) {
+        const msg = currentLang === 'ru'
+            ? "Этот курс заблокирован. Перейти к ценам?"
+            : "该课程尚未解锁。是否前往价格页查看特权？";
+        if (confirm(msg)) window.location.href = 'price.html';
+    }
+
+    function toggleStudyData() {
+        const content = document.getElementById('study-data-content');
+        const icon = document.getElementById('data-chevron');
+        if (content.style.display === "none" || content.style.display === "") {
+            content.style.display = "block";
+            icon.className = "fas fa-chevron-up";
+        } else {
+            content.style.display = "none";
+            icon.className = "fas fa-chevron-down";
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (typeof supabaseClient !== 'undefined' && supabaseClient !== null) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lessonId = urlParams.get('id') || '未知课程';
+            supabaseClient.from('site_visits').insert([{ page_name: `进入播放页 - 课文 ${lessonId}` }])
+                .then(({ error }) => { if (error) console.error("埋点记录失败:", error); });
+        }
+    });
+</script>
+
+<!-- 录屏控制台 -->
+<style>
+    #scroll-director-panel {
+        position: fixed; bottom: 20px; right: 20px; width: 340px;
+        background: rgba(15, 15, 15, 0.95); color: #fff; padding: 20px;
+        border-radius: 12px; border: 1px solid #7A6B4E; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        z-index: 99999; font-family: sans-serif; backdrop-filter: blur(8px);
+        display: none; 
+    }
+    #scroll-director-panel h3 { margin: 0 0 15px 0; color: #A89468; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 10px;}
+    .s-dir-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
+    .s-dir-row input { width: 60px; background: #333; border: 1px solid #666; color: white; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold;}
+    .s-dir-btn { width: 100%; background: var(--primary); color: #fff; font-weight: bold; border: none; padding: 12px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 14px; transition: 0.2s;}
+    .s-dir-btn:hover { background: #6B5C42; transform: translateY(-2px); }
+    .s-dir-btn-stop { background: var(--red); margin-top: 10px; }
+    .s-dir-btn-stop:hover { background: #5A4A38; }
+</style>
+
+<div id="scroll-director-panel">
+    <h3>🎥 首页曲线变速录屏 (Ease-In)</h3>
+    <div class="s-dir-row" title="一开始能看清字的速度">
+        <span>1️⃣ 起始慢速 (如: 3):</span> 
+        <input type="number" id="dir-start-speed" value="3.5" step="0.1">
+    </div>
+    <div class="s-dir-row" title="最后狂飙的速度">
+        <span>2️⃣ 最高极速 (如: 30.0):</span> 
+        <input type="number" id="dir-max-speed" value="30.0" step="0.5">
+    </div>
+    <div class="s-dir-row" title="从慢到快需要几秒钟？">
+        <span>3️⃣ 渐变加速耗时 (毫秒):</span> 
+        <input type="number" id="dir-ramp-time" value="5000" step="500">
+    </div>
+    <button class="s-dir-btn" onclick="startCinematicScroll()">🎬 3秒后开始神级运镜</button>
+    <button class="s-dir-btn s-dir-btn-stop" onclick="stopCinematicScroll()">⏹ 紧急停止</button>
+    <button onclick="document.getElementById('scroll-director-panel').style.display='none'" style="width:100%; background:transparent; border:none; color:#888; margin-top:10px; cursor:pointer; font-size:12px; text-decoration:underline;">隐藏</button>
+</div>
+
+<script>
+    let titleClicksHome = 0;
+    document.querySelector('.page-title').addEventListener('click', () => {
+        titleClicksHome++;
+        if (titleClicksHome >= 5) {
+            document.getElementById('scroll-director-panel').style.display = 'block';
+            titleClicksHome = 0;
+        }
+        setTimeout(() => titleClicksHome = 0, 2000); 
+    });
+
+    let scrollAnimationId = null;
+    let isScrolling = false;
+    let startTime = null;
+
+    async function startCinematicScroll() {
+        const startSpeed = parseFloat(document.getElementById('dir-start-speed').value) || 0.5;
+        const maxSpeed = parseFloat(document.getElementById('dir-max-speed').value) || 5.0;
+        const rampTime = parseFloat(document.getElementById('dir-ramp-time').value) || 3000;
+        const scrollContainer = document.querySelector('.content-scroll');
+        const panel = document.getElementById('scroll-director-panel');
+        if (!scrollContainer) return;
+        scrollContainer.scrollTop = 0;
+        panel.style.display = 'none';
+        isScrolling = true;
+        console.log("🎬 准备录屏...3秒后开拍");
+        await new Promise(res => setTimeout(res, 3000));
+        startTime = performance.now();
+        function smoothScrollStep(currentTime) {
+            if (!isScrolling) return;
+            let elapsed = currentTime - startTime;
+            let timeProgress = Math.min(elapsed / rampTime, 1);
+            let easeProgress = timeProgress * timeProgress;
+            let currentSpeed = startSpeed + (maxSpeed - startSpeed) * easeProgress;
+            scrollContainer.scrollTop += currentSpeed;
+            if (Math.ceil(scrollContainer.scrollTop + scrollContainer.clientHeight) >= scrollContainer.scrollHeight) {
+                console.log("✅ 到底了，咔！");
+                isScrolling = false;
+                panel.style.display = 'block'; 
+                return;
+            }
+            scrollAnimationId = requestAnimationFrame(smoothScrollStep);
+        }
+        scrollAnimationId = requestAnimationFrame(smoothScrollStep);
+    }
+
+    function stopCinematicScroll() {
+        isScrolling = false;
+        if (scrollAnimationId) cancelAnimationFrame(scrollAnimationId);
+    }
+</script>
+</body>
+</html>
