@@ -6,10 +6,16 @@
 
 (function () {
   // ── 复用 auth.js 里的 authClient，不重复建连接 ──
+  let _db = null;
   function getClient() {
-    if (window.authClient) return window.authClient;
-    // 兜底：如果 authClient 还没初始化，稍后重试
-    return null;
+    if (_db) return _db;
+    if (window.supabase) {
+      _db = window.supabase.createClient(
+        'https://royal-feather-3237.zhouyuhe525.workers.dev/',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3d2Vhb2hhaHNhZmJlY29naXN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTk3MjMsImV4cCI6MjA4NDMzNTcyM30.ZqViPiwlvzzaqkWLMzejjpgHXeztkD0K0ne32kfGhWw'
+      );
+    }
+    return _db;
   }
 
   // ── 状态 ──
