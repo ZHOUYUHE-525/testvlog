@@ -349,14 +349,41 @@
 
         /* 个人中心弹窗 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45,45,40,0.4); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .profile-card { background: white; width: 320px; border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .profile-card { background: white; width: 340px; border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-height: 90vh; overflow-y: auto; }
         @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .modal-close { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #A8998A; }
         .modal-close:hover { color: var(--red); }
         .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .avatar-circle { width: 60px; height: 60px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); border: 2px solid var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-        .user-email { font-weight: 800; color: var(--text); font-size: 16px; margin-bottom: 4px; }
+        .avatar-circle { width: 60px; height: 60px; background: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--primary); border: 2px solid var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.08); overflow: hidden; cursor: pointer; position: relative; transition: all 0.2s; }
+        .avatar-circle:hover { box-shadow: 0 4px 14px rgba(122,107,78,0.25); border-color: var(--accent); }
+        .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-circle .avatar-edit-hint { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.55); color: white; font-size: 8px; text-align: center; padding: 2px 0; opacity: 0; transition: opacity 0.2s; }
+        .avatar-circle:hover .avatar-edit-hint { opacity: 1; }
+        .user-email { font-weight: 800; color: var(--text); font-size: 15px; margin-bottom: 4px; word-break: break-all; }
         .user-role { font-size: 12px; color: #A8998A; background: var(--primary-light); padding: 2px 8px; border-radius: 10px; display: inline-block; }
+
+        /* 头像选择器 */
+        .avatar-picker-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45,45,40,0.5); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .avatar-picker-overlay.show { display: flex; }
+        .avatar-picker { background: white; width: 320px; border-radius: 20px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .avatar-picker-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; text-align: center; font-family: "LXGW WenKai", "Noto Sans SC", serif; }
+        .avatar-picker-subtitle { font-size: 12px; color: #A8998A; text-align: center; margin-bottom: 16px; }
+        .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+        .avatar-option { width: 100%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--border); cursor: pointer; overflow: hidden; transition: all 0.2s; position: relative; background: var(--primary-light); }
+        .avatar-option:hover { border-color: var(--accent); transform: scale(1.1); box-shadow: 0 4px 12px rgba(122,107,78,0.2); }
+        .avatar-option.selected { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); transform: scale(1.08); }
+        .avatar-option img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-picker-actions { display: flex; gap: 8px; }
+        .avatar-btn { flex: 1; padding: 10px; border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer; transition: all 0.2s; font-family: inherit; border: none; }
+        .avatar-btn-shuffle { background: var(--primary-light); color: var(--primary); border: 1px solid var(--border); }
+        .avatar-btn-shuffle:hover { background: #E8E3D8; }
+        .avatar-btn-confirm { background: var(--primary); color: white; }
+        .avatar-btn-confirm:hover { background: #6B5C42; }
+        .avatar-btn-confirm:disabled { background: #ccc; cursor: not-allowed; }
+        .avatar-btn-cancel { background: white; color: var(--red); border: 1px solid var(--red); }
+        .avatar-btn-cancel:hover { background: var(--red); color: white; }
+        .avatar-locked-msg { text-align: center; padding: 20px 10px; color: #A8998A; font-size: 13px; }
+        .avatar-locked-msg i { font-size: 28px; display: block; margin-bottom: 10px; color: var(--yellow); }
         .vip-card { background: linear-gradient(135deg, #3D3830 0%, #5A5040 100%); color: #C4A24E; padding: 15px; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         .vip-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
         .vip-row:last-child { margin-bottom: 0; font-size: 12px; opacity: 0.8; }
@@ -669,9 +696,13 @@
     <div class="profile-card">
         <div class="modal-close" onclick="closeProfile()">×</div>
         <div class="profile-header">
-            <div class="avatar-circle"><i class="fas fa-user-astronaut"></i></div>
+            <div class="avatar-circle" id="avatarCircle" onclick="openAvatarPicker()" title="点击更换头像">
+                <i class="fas fa-user-astronaut" id="avatarDefaultIcon"></i>
+                <img id="avatarImg" style="display:none;" alt="avatar">
+                <div class="avatar-edit-hint"><i class="fas fa-pencil-alt"></i></div>
+            </div>
             <div class="profile-info">
-                <div class="user-email" id="p-email">student@vip.com</div>
+                <div class="user-email" id="p-email">loading...</div>
                 <div class="user-role" data-i18n="p_role">HSK 4 学习者</div>
             </div>
         </div>
@@ -701,6 +732,22 @@
         </div>
         <div class="menu-item" onclick="forceLogout()" style="color:var(--red);cursor:pointer;">
             <i class="fas fa-sign-out-alt"></i> <span data-i18n="menu_logout">退出登录</span>
+        </div>
+    </div>
+</div>
+
+<!-- 头像选择器弹窗 -->
+<div id="avatarPickerOverlay" class="avatar-picker-overlay">
+    <div class="avatar-picker">
+        <div class="avatar-picker-title" id="avatarPickerTitle">选择你的专属头像</div>
+        <div class="avatar-picker-subtitle" id="avatarPickerSub">点击选中，不喜欢可以换一批</div>
+        <div id="avatarPickerContent">
+            <div class="avatar-grid" id="avatarGrid"></div>
+            <div class="avatar-picker-actions">
+                <button class="avatar-btn avatar-btn-shuffle" onclick="shuffleAvatars()"><i class="fas fa-random"></i> 换一批</button>
+                <button class="avatar-btn avatar-btn-confirm" id="avatarConfirmBtn" onclick="confirmAvatar()" disabled><i class="fas fa-check"></i> 确定</button>
+                <button class="avatar-btn avatar-btn-cancel" onclick="closeAvatarPicker()">取消</button>
+            </div>
         </div>
     </div>
 </div>
@@ -748,6 +795,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (localStorage.getItem('isGuest') !== 'true' && typeof updateUserAccess === 'function') {
             updateUserAccess(); 
         }
+        // 预加载头像
+        const cachedAvatar = localStorage.getItem('my_avatar');
+        if (cachedAvatar) displayAvatar(cachedAvatar);
+        // 启动自动同步
+        setTimeout(() => initAutoSync(), 2000);
     } else {
         alert("❌ 错误：找不到本地课程数据！请检查 lesson_001.js");
     }
@@ -780,9 +832,161 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('stat-vocab').innerText = totalVocab;
     }
 
-    function openProfile() {
+    // ============================================================
+    // 头像系统 (非排他，所有头像任意选)
+    // ============================================================
+    const AVATAR_REPO_BASE = 'https://raw.githubusercontent.com/zhouyuhe525/hanyu-vlog-avatars/main/';
+    const AVATAR_TOTAL = 50; // 头像总数，以后加图只改这个数字
+    const ALL_AVATARS = Array.from({length: AVATAR_TOTAL}, (_, i) => `avatar_${String(i + 1).padStart(2, '0')}.png`);
+    
+    let currentPickerAvatars = [];
+    let selectedAvatarFile = null;
+
+    function isSubscribedUser() {
+        try {
+            const tags = JSON.parse(localStorage.getItem('my_access_tags') || '["trial_pack"]');
+            return tags.some(t => t !== 'trial_pack');
+        } catch(e) { return false; }
+    }
+
+    async function loadMyAvatar() {
+        if (!supabaseClient) return null;
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) return null;
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('avatar_url')
+                .eq('id', session.user.id)
+                .maybeSingle();
+            if (error) throw error;
+            return data?.avatar_url || null;
+        } catch(e) {
+            console.warn('加载头像失败:', e.message);
+            return null;
+        }
+    }
+
+    function displayAvatar(avatarFile) {
+        const img = document.getElementById('avatarImg');
+        const icon = document.getElementById('avatarDefaultIcon');
+        if (avatarFile) {
+            img.src = AVATAR_REPO_BASE + avatarFile;
+            img.style.display = 'block';
+            icon.style.display = 'none';
+            localStorage.setItem('my_avatar', avatarFile);
+        } else {
+            img.style.display = 'none';
+            icon.style.display = 'block';
+        }
+    }
+
+    async function openAvatarPicker() {
+        if (!isSubscribedUser()) {
+            const pickerContent = document.getElementById('avatarPickerContent');
+            pickerContent.innerHTML = `
+                <div class="avatar-locked-msg">
+                    <i class="fas fa-crown"></i>
+                    <div style="font-weight:700;color:var(--text);margin-bottom:6px;">专属头像仅限订阅用户</div>
+                    <div>升级后即可选择可爱的专属头像哦！</div>
+                    <div style="margin-top:12px;">
+                        <button class="avatar-btn avatar-btn-confirm" onclick="location.href='price.html'" style="width:auto;padding:10px 24px;">
+                            <i class="fas fa-tags"></i> 查看订阅方案
+                        </button>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button class="avatar-btn avatar-btn-cancel" onclick="closeAvatarPicker()" style="width:auto;padding:8px 20px;">关闭</button>
+                    </div>
+                </div>`;
+            document.getElementById('avatarPickerOverlay').classList.add('show');
+            return;
+        }
+
+        document.getElementById('avatarPickerContent').innerHTML = `
+            <div class="avatar-grid" id="avatarGrid"></div>
+            <div class="avatar-picker-actions">
+                <button class="avatar-btn avatar-btn-shuffle" onclick="shuffleAvatars()"><i class="fas fa-random"></i> 换一批</button>
+                <button class="avatar-btn avatar-btn-confirm" id="avatarConfirmBtn" onclick="confirmAvatar()" disabled><i class="fas fa-check"></i> 确定</button>
+                <button class="avatar-btn avatar-btn-cancel" onclick="closeAvatarPicker()">取消</button>
+            </div>`;
+        
+        selectedAvatarFile = null;
+        shuffleAvatars();
+        document.getElementById('avatarPickerOverlay').classList.add('show');
+    }
+
+    function closeAvatarPicker() {
+        document.getElementById('avatarPickerOverlay').classList.remove('show');
+    }
+    
+    document.getElementById('avatarPickerOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeAvatarPicker();
+    });
+
+    function shuffleAvatars() {
+        selectedAvatarFile = null;
+        const btn = document.getElementById('avatarConfirmBtn');
+        if (btn) btn.disabled = true;
+        
+        const shuffled = [...ALL_AVATARS].sort(() => Math.random() - 0.5);
+        currentPickerAvatars = shuffled.slice(0, 5);
+        
+        const grid = document.getElementById('avatarGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        currentPickerAvatars.forEach(file => {
+            const div = document.createElement('div');
+            div.className = 'avatar-option';
+            div.innerHTML = `<img src="${AVATAR_REPO_BASE + file}" alt="avatar" loading="lazy">`;
+            div.onclick = () => selectAvatar(file, div);
+            grid.appendChild(div);
+        });
+    }
+
+    function selectAvatar(file, el) {
+        document.querySelectorAll('.avatar-option').forEach(d => d.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedAvatarFile = file;
+        const btn = document.getElementById('avatarConfirmBtn');
+        if (btn) btn.disabled = false;
+    }
+
+    async function confirmAvatar() {
+        if (!selectedAvatarFile || !supabaseClient) return;
+        
+        const btn = document.getElementById('avatarConfirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+        
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) throw new Error('未登录');
+            
+            const { error } = await supabaseClient
+                .from('profiles')
+                .update({ avatar_url: selectedAvatarFile })
+                .eq('id', session.user.id);
+            if (error) throw error;
+            
+            displayAvatar(selectedAvatarFile);
+            closeAvatarPicker();
+            console.log('✅ 头像已更新:', selectedAvatarFile);
+        } catch(e) {
+            console.error('保存头像失败:', e);
+            alert('❌ 保存失败: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> 确定';
+        }
+    }
+
+    // ============================================================
+    // 个人中心弹窗 (改写)
+    // ============================================================
+    async function openProfile() {
         const isGuest = localStorage.getItem('isGuest') === 'true';
         const modal = document.getElementById('profileModal');
+
         if (isGuest) {
             document.getElementById('p-email').innerText = uiDict[currentLang].p_guest_user;
             document.getElementById('p-expire').innerText = uiDict[currentLang].p_no_sync;
@@ -795,7 +999,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <i class="fas fa-chevron-right"></i>`;
             }
+            displayAvatar(null);
+        } else {
+            // 显示用户真实邮箱
+            try {
+                if (supabaseClient) {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session && session.user) {
+                        document.getElementById('p-email').innerText = session.user.email || 'user';
+                    }
+                }
+            } catch(e) {
+                console.warn('获取邮箱失败:', e.message);
+            }
+            
+            // 加载头像
+            const cachedAvatar = localStorage.getItem('my_avatar');
+            if (cachedAvatar) {
+                displayAvatar(cachedAvatar);
+            }
+            // 异步从云端确认
+            loadMyAvatar().then(avatar => {
+                if (avatar) displayAvatar(avatar);
+            });
         }
+        
         modal.style.display = 'flex';
     }
 
@@ -808,22 +1036,103 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === this) closeProfile();
     });
 
+    // ============================================================
+    // 自动同步系统
+    // ============================================================
+    const AUTO_SYNC_INTERVAL = 2 * 60 * 1000; // 每2分钟检测一次是否有变化
+    let _lastSyncHash = '';         // 上次同步的数据指纹
+    let _autoSyncTimer = null;
+    let _isSyncing = false;
+
+    // 收集需要同步的 localStorage 数据
+    function collectSyncData() {
+        const dataToUpload = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.includes('session') || key.includes('sb-') || key.includes('token')) continue;
+            if (key === 'my_access_tags' || key === 'my_avatar') continue;
+            if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my_') || key.startsWith('fav_')) {
+                dataToUpload[key] = localStorage.getItem(key);
+            }
+        }
+        return dataToUpload;
+    }
+
+    // 简单哈希，检测数据是否有变化
+    function hashData(obj) {
+        return JSON.stringify(obj);
+    }
+
+    // 静默上传 (不弹窗)
+    async function silentSync() {
+        if (_isSyncing || !supabaseClient) return;
+        if (localStorage.getItem('isGuest') === 'true') return;
+        
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) return;
+
+            const dataToUpload = collectSyncData();
+            const currentHash = hashData(dataToUpload);
+            
+            // 数据没变化，跳过
+            if (currentHash === _lastSyncHash) return;
+            
+            _isSyncing = true;
+            const { error } = await supabaseClient
+                .from('user_progress')
+                .upsert({
+                    user_id: user.id,
+                    data: dataToUpload,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+            
+            if (error) throw error;
+            _lastSyncHash = currentHash;
+            console.log('☁️ 自动同步完成', new Date().toLocaleTimeString());
+        } catch(e) {
+            console.warn('☁️ 自动同步失败:', e.message);
+        } finally {
+            _isSyncing = false;
+        }
+    }
+
+    // 页面加载时：先从云端拉取一次，再启动自动上传
+    async function initAutoSync() {
+        if (!supabaseClient) return;
+        if (localStorage.getItem('isGuest') === 'true') return;
+        
+        try {
+            // 先静默下载一次云端数据 (合并)
+            await downloadData(true);
+            console.log('☁️ 启动时已合并云端数据');
+        } catch(e) {
+            console.warn('☁️ 启动合并跳过:', e.message);
+        }
+        
+        // 记住当前数据指纹
+        _lastSyncHash = hashData(collectSyncData());
+        
+        // 定时检测 + 上传
+        _autoSyncTimer = setInterval(silentSync, AUTO_SYNC_INTERVAL);
+        
+        // 页面关闭/切换时也同步一次
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') silentSync();
+        });
+        window.addEventListener('beforeunload', () => silentSync());
+        
+        console.log('☁️ 自动同步已启动 (每2分钟检测)');
+    }
+
+    // 手动同步 (保留原按钮功能，带弹窗提示)
     window.syncData = async function() {
         if (!supabaseClient) return alert("❌ 服务器连接失败，请刷新重试");
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return alert("⚠️ 请先登录账号");
 
-        const dataToUpload = {};
-        let count = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key.includes('session') || key.includes('sb-') || key.includes('token')) continue;
-            if (key === 'my_access_tags') continue;
-            if (key.startsWith('progress_') || key.startsWith('done_') || key.startsWith('my_')) {
-                dataToUpload[key] = localStorage.getItem(key);
-                count++;
-            }
-        }
+        const dataToUpload = collectSyncData();
+        const count = Object.keys(dataToUpload).length;
         if (count === 0) return alert("本地没有学习记录，无需同步。");
 
         const btnText = document.querySelector('.action-item span[data-i18n="p_sync"]');
@@ -835,7 +1144,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .from('user_progress')
                 .upsert({ user_id: user.id, data: dataToUpload, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
             if (error) throw error;
-            alert(`✅ 同步成功！\n已备份 ${count} 条数据到专属记录表。`);
+            _lastSyncHash = hashData(dataToUpload);
+            alert(`✅ 同步成功！\n已备份 ${count} 条数据到云端。`);
         } catch (e) {
             console.error(e);
             alert("❌ 同步失败: " + e.message);
