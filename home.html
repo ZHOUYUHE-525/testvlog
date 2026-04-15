@@ -835,8 +835,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // 头像系统 (非排他，所有头像任意选)
     // ============================================================
-    const AVATAR_REPO_BASE = 'https://raw.githubusercontent.com/zhouyuhe525/hanyu-vlog-avatars/main/';
-    const AVATAR_TOTAL = 50; // 头像总数，以后加图只改这个数字
+    const AVATAR_REPO_BASE = 'https://raw.githubusercontent.com/ZHOUYUHE-525/testvlog/main/avatars/';
+    const AVATAR_TOTAL = 10; // 头像总数，以后加图只改这个数字
     const ALL_AVATARS = Array.from({length: AVATAR_TOTAL}, (_, i) => `avatar_${String(i + 1).padStart(2, '0')}.png`);
     
     let currentPickerAvatars = [];
@@ -1001,17 +1001,49 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             displayAvatar(null);
         } else {
-            // 显示用户真实邮箱
-            try {
-                if (supabaseClient) {
-                    const { data: { session } } = await supabaseClient.auth.getSession();
-                    if (session && session.user) {
-                        document.getElementById('p-email').innerText = session.user.email || 'user';
+            // 显示用户真实邮箱 (多种方式尝试)
+            const emailEl = document.getElementById('p-email');
+            emailEl.innerText = '加载中...';
+            
+            (async () => {
+                try {
+                    if (!supabaseClient) return;
+                    // 方式1: getSession
+                    let email = null;
+                    try {
+                        const { data: { session } } = await supabaseClient.auth.getSession();
+                        if (session && session.user) email = session.user.email;
+                    } catch(e) {}
+                    
+                    // 方式2: getUser (如果 session 没拿到)
+                    if (!email) {
+                        try {
+                            const { data: { user } } = await supabaseClient.auth.getUser();
+                            if (user) email = user.email;
+                        } catch(e) {}
                     }
+                    
+                    // 方式3: 从 profiles 表的 email_remark 字段读取
+                    if (!email) {
+                        try {
+                            const { data: { session } } = await supabaseClient.auth.getSession();
+                            if (session) {
+                                const { data } = await supabaseClient
+                                    .from('profiles')
+                                    .select('email_remark')
+                                    .eq('id', session.user.id)
+                                    .maybeSingle();
+                                if (data && data.email_remark) email = data.email_remark;
+                            }
+                        } catch(e) {}
+                    }
+                    
+                    emailEl.innerText = email || 'user';
+                } catch(e) {
+                    console.warn('获取邮箱失败:', e.message);
+                    emailEl.innerText = 'user';
                 }
-            } catch(e) {
-                console.warn('获取邮箱失败:', e.message);
-            }
+            })();
             
             // 加载头像
             const cachedAvatar = localStorage.getItem('my_avatar');
